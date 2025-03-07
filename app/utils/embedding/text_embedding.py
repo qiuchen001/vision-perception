@@ -6,11 +6,6 @@ from app.utils.logger import logger
 load_dotenv()
 
 
-# def embed_fn(text):
-#     model = SentenceTransformer('models/embedding/bge-small-zh-v1.5')
-#     return model.encode(text, normalize_embeddings=True)
-
-
 def embed_fn(text):
     """生成文本的embedding向量"""
     try:

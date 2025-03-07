@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Tuple
 from app.dao.video_dao import VideoDAO
 from app.utils.logger import logger
 from app.utils.common import *
-from app.utils.text_embedding import *
+from app.utils.embedding.text_embedding import *
 from app.utils.minio_uploader import MinioFileUploader
 from app.utils.embedding.embedding_factory import EmbeddingFactory
 from app.utils.milvus_operator import video_frame_operator

@@ -1,6 +1,6 @@
 from typing import Optional, Dict
 from app.utils.embedding.embedding_base import EmbeddingBase
-from app.utils.multimodal_embedding import MultiModalEmbedding
+from app.utils.embedding.multimodal_embedding import MultiModalEmbedding
 from app.utils.embedding.embedding_types import EmbeddingType
 from config import Config
 

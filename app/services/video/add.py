@@ -1,7 +1,7 @@
 from app.dao.video_dao import VideoDAO
 from app.services.video.mining import MiningVideoService
 from app.services.video.summary import SummaryVideoService
-from app.utils.text_embedding import *
+from app.utils.embedding.text_embedding import *
 
 
 class AddVideoService:

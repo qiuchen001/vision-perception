@@ -6,7 +6,7 @@ from io import BytesIO
 
 from app.dao.video_dao import VideoDAO
 from app.services.video.video_frame_search import image_to_frame, text_to_frame
-from app.utils.text_embedding import embed_fn
+from app.utils.embedding.text_embedding import embed_fn
 from app.utils.logger import logger
 
 
