@@ -10,7 +10,7 @@ from app.utils.logger import logger
 from app.utils.common import *
 from app.utils.text_embedding import *
 from app.utils.minio_uploader import MinioFileUploader
-from app.utils.clip_embedding import clip_embedding
+from app.utils.embedding_factory import EmbeddingFactory
 from app.utils.milvus_operator import video_frame_operator
 from werkzeug.utils import secure_filename
 from config import Config
@@ -130,8 +130,9 @@ class UploadVideoService:
 
         for idx, frame in enumerate(frames):
             try:
-                # 生成帧的向量表示
-                embedding = clip_embedding.embedding_image(frame)
+                # 获取embedding实例
+                embedding = EmbeddingFactory.create_embedding()
+
                 if embedding is None:
                     continue
 

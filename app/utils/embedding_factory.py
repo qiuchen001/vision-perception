@@ -1,6 +1,5 @@
 from typing import Optional, Dict
 from app.utils.embedding_base import EmbeddingBase
-from app.utils.clip_embedding import ClipEmbedding
 from app.utils.multimodal_embedding import MultiModalEmbedding
 from app.utils.embedding_types import EmbeddingType
 from config import Config
@@ -30,9 +29,7 @@ class EmbeddingFactory:
 
         # 如果实例不存在,创建新实例
         if cls._instances[model_type] is None:
-            if model_type == EmbeddingType.CLIP:
-                cls._instances[model_type] = ClipEmbedding()
-            elif model_type == EmbeddingType.MULTIMODAL:
+            if model_type == EmbeddingType.MULTIMODAL:
                 cls._instances[model_type] = MultiModalEmbedding()
 
         return cls._instances[model_type]
