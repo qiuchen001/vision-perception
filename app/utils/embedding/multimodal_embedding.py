@@ -7,7 +7,6 @@ from http import HTTPStatus
 from app.utils.embedding.embedding_base import EmbeddingBase
 from app.utils.logger import logger
 from typing import List, Tuple
-from app.utils.embedding.embedding_types import EmbeddingType
 
 
 class MultiModalEmbedding(EmbeddingBase):
