@@ -8,8 +8,9 @@ import os
 
 class VideoDAO:
     def __init__(self):
-        SERVER_HOST = current_app.config['SERVER_HOST']
-        self.milvus_client = MilvusClient(uri=f"http://{SERVER_HOST}:19530", db_name=os.getenv("MILVUS_DB_NAME"))
+        MILVUS_HOST = os.getenv("MILVUS_HOST")
+        MILVUS_PORT = os.getenv("MILVUS_PORT")
+        self.milvus_client = MilvusClient(uri=f"http://{MILVUS_HOST}:{MILVUS_PORT}", db_name=os.getenv("MILVUS_DB_NAME"))
         # self.milvus_client = current_app.config['MILVUS_CLIENT']
         self.collection_name = "video_collection"
 

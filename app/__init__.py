@@ -17,8 +17,8 @@ def create_app(config_name):
     # 初始化 Milvus 客户端
     MILVUS_HOST = os.getenv("MILVUS_HOST")
     MILVUS_PORT = os.getenv("MILVUS_PORT")
-    SERVER_HOST = os.getenv("SERVER_HOST")
-    app.config['SERVER_HOST'] = SERVER_HOST
+    # SERVER_HOST = os.getenv("SERVER_HOST")
+    # app.config['SERVER_HOST'] = SERVER_HOST
     app.config['MILVUS_CLIENT'] = MilvusClientWrapper(uri=f"http://{MILVUS_HOST}:{MILVUS_PORT}", db_name=os.getenv("MILVUS_DB_NAME"))
 
     # 注册蓝图
