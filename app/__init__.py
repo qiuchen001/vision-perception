@@ -15,9 +15,11 @@ def create_app(config_name):
     dictConfig(logging_config.LOGGING_CONFIG)
 
     # 初始化 Milvus 客户端
+    MILVUS_HOST = os.getenv("MILVUS_HOST")
+    MILVUS_PORT = os.getenv("MILVUS_PORT")
     SERVER_HOST = os.getenv("SERVER_HOST")
     app.config['SERVER_HOST'] = SERVER_HOST
-    app.config['MILVUS_CLIENT'] = MilvusClientWrapper(uri=f"http://{SERVER_HOST}:19530", db_name=os.getenv("MILVUS_DB_NAME"))
+    app.config['MILVUS_CLIENT'] = MilvusClientWrapper(uri=f"http://{MILVUS_HOST}:{MILVUS_PORT}", db_name=os.getenv("MILVUS_DB_NAME"))
 
     # 注册蓝图
     from .routes import main, video_api, video_proxy
