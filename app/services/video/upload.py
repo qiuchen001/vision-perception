@@ -9,7 +9,7 @@ from app.utils.minio_uploader import MinioFileUploader
 from app.utils.embedding.embedding_factory import EmbeddingFactory
 from app.utils.milvus_operator import video_frame_operator
 from werkzeug.utils import secure_filename
-from config import Config
+from config.config import Config
 from app.utils.video_processor import VideoProcessor
 from app.prompt.title import system_instruction, prompt
 

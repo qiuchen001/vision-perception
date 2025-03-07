@@ -1,6 +1,6 @@
 from flask import Flask
 from logging.config import dictConfig
-import logging_config
+from config import logging_config
 from app.utils.milvus_client import MilvusClientWrapper
 import os
 from dotenv import load_dotenv

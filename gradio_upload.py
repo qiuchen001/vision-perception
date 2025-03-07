@@ -8,7 +8,7 @@ import time
 
 # 从环境变量获取配置名称,默认使用development
 # config_name = os.getenv('FLASK_CONFIG', 'development')
-config_name = "config.Config"
+config_name = "config.config.Config"
 
 # 创建Flask应用实例
 app = create_app(config_name)
