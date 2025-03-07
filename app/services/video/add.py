@@ -16,11 +16,9 @@ class AddVideoService:
             tags.append(tag)
         return tags
 
-
     @staticmethod
     def parse_summary_result(summary_result):
         return summary_result['summary']
-
 
     def add(self, video_url, action_type):
         video_info = self.video_dao.get_by_path(video_url)
@@ -41,7 +39,7 @@ class AddVideoService:
 
         self.video_dao.upsert_video(video)
         return video['m_id']
-    
+
     def process_mining(self, video, video_url):
         mining_service = MiningVideoService()
         mining_result = mining_service.mining(video_url)
@@ -54,8 +52,3 @@ class AddVideoService:
         summary_txt = self.parse_summary_result(summary_result)
         video['summary_txt'] = summary_txt
         video['summary_embedding'] = embed_fn(summary_txt)
-
-
-
-
-

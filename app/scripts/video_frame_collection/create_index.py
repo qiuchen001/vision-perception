@@ -7,7 +7,7 @@ load_dotenv()
 SERVER_HOST = os.getenv("SERVER_HOST")
 uri = f"http://{SERVER_HOST}:19530"
 milvus_client = MilvusClient(uri=uri, db_name=os.getenv("DB_NAME"))
-collection_name = "video_frame_vector"
+collection_name = "video_frame_vector_v2"
 
 
 def create_index():
