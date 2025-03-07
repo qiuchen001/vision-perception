@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Tuple, List
 from PIL import Image
 
+
 class EmbeddingBase(ABC):
     """多模态向量化基类"""
     
