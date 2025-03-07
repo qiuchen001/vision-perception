@@ -48,14 +48,14 @@ def create_schema():
     collection_schema.add_field(
         field_name="embedding",
         datatype=DataType.FLOAT_VECTOR,
-        dim=512,
+        dim=1024,
         description="视频详情embedding"
     )
     
     collection_schema.add_field(
         field_name="summary_embedding",
         datatype=DataType.FLOAT_VECTOR,
-        dim=512,
+        dim=1024,
         description="视频摘要的向量表示"
     )
     
