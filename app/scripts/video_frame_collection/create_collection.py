@@ -8,7 +8,7 @@ MILVUS_HOST = os.getenv("MILVUS_HOST")
 MILVUS_PORT = os.getenv("MILVUS_PORT")
 uri = f"http://{MILVUS_HOST}:{MILVUS_PORT}"
 milvus_client = MilvusClient(uri=uri, db_name=os.getenv("MILVUS_DB_NAME"))
-collection_name = "video_frame_vector_v2"
+collection_name = "video_frame_vector"
 
 
 def create_schema():
@@ -19,25 +19,25 @@ def create_schema():
     )
 
     collection_schema.add_field(
-        field_name="m_id", 
-        datatype=DataType.VARCHAR, 
+        field_name="m_id",
+        datatype=DataType.VARCHAR,
         is_primary=True, max_length=256,
         description="唯一ID"
     )
     collection_schema.add_field(
-        field_name="embedding", 
-        datatype=DataType.FLOAT_VECTOR, 
+        field_name="embedding",
+        datatype=DataType.FLOAT_VECTOR,
         dim=1024,
         description="视频帧embedding"
     )
     collection_schema.add_field(
-        field_name="video_id", 
-        datatype=DataType.VARCHAR, 
+        field_name="video_id",
+        datatype=DataType.VARCHAR,
         max_length=256,
         description="视频ID"
     )
     collection_schema.add_field(
-        field_name="at_seconds", 
+        field_name="at_seconds",
         datatype=DataType.INT32,
         description="视频时间点(秒)"
     )
@@ -55,4 +55,4 @@ def create_collection(collection_schema):
 
 if __name__ == "__main__":
     schema = create_schema()
-    create_collection(schema) 
+    create_collection(schema)

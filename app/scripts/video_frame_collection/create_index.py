@@ -4,10 +4,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SERVER_HOST = os.getenv("SERVER_HOST")
-uri = f"http://{SERVER_HOST}:19530"
+MILVUS_HOST = os.getenv("MILVUS_HOST")
+MILVUS_PORT = os.getenv("MILVUS_PORT")
+uri = f"http://{MILVUS_HOST}:{MILVUS_PORT}"
 milvus_client = MilvusClient(uri=uri, db_name=os.getenv("MILVUS_DB_NAME"))
-collection_name = "video_frame_vector_v2"
+collection_name = "video_frame_vector"
 
 
 def create_index():

@@ -15,11 +15,11 @@ load_dotenv()
 # 配置 Milvus 连接
 MILVUS_HOST = os.getenv("MILVUS_HOST")
 MILVUS_PORT = os.getenv("MILVUS_PORT")
-MILVUS_URI = f"http://{MILVUS_HOST}:{MILVUS_PORT}"
+uri = f"http://{MILVUS_HOST}:{MILVUS_PORT}"
 COLLECTION_NAME = "video_collection"
 
 milvus_client = MilvusClient(
-    uri=MILVUS_URI,
+    uri=uri,
     db_name=os.getenv("MILVUS_DB_NAME")
 )
 
