@@ -125,8 +125,8 @@ class UploadVideoService:
         for idx, frame in enumerate(frames):
             try:
                 # 获取embedding实例
-                embedding = EmbeddingFactory.create_embedding()
-
+                embedding_model = EmbeddingFactory.create_embedding()
+                embedding = embedding_model.embedding_image(frame)
                 if embedding is None:
                     continue
 
