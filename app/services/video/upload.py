@@ -1,12 +1,8 @@
-import cv2
-import numpy as np
 from PIL import Image
 import uuid
-import os
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List
 
 from app.dao.video_dao import VideoDAO
-from app.utils.logger import logger
 from app.utils.common import *
 from app.utils.embedding.text_embedding import *
 from app.utils.minio_uploader import MinioFileUploader
@@ -15,9 +11,6 @@ from app.utils.milvus_operator import video_frame_operator
 from werkzeug.utils import secure_filename
 from config import Config
 from app.utils.video_processor import VideoProcessor
-from app.prompt.title import system_instruction, prompt
-import json
-from openai import OpenAI
 
 
 class UploadVideoService:
@@ -159,43 +152,3 @@ class UploadVideoService:
         if m_ids:
             video_frame_operator.insert_data([m_ids, embeddings, paths, at_seconds])
             logger.info(f"批量插入剩余 {len(m_ids)} 帧，时间戳范围: {at_seconds[0]}-{at_seconds[-1]}秒")
-
-    def generate_title(self, video_path):
-        """生成视频标题"""
-        # 1. 提取关键帧
-        frame_urls = self.video_processor.extract_key_frames(video_path)
-        
-        # 2. 调用通义千问VL模型
-        client = OpenAI(
-            api_key=os.getenv("API_KEY"),
-            base_url=os.getenv("BASE_URL")
-        )
-
-        messages = [{
-            "role": "system",
-            "content": system_instruction
-        }, {
-            "role": "user",
-            "content": [
-                {
-                    "type": "video",
-                    "video": frame_urls
-                },
-                {
-                    "type": "text",
-                    "text": prompt
-                }
-            ]
-        }]
-
-        response = client.chat.completions.create(
-            model=os.getenv("VISION_MODEL_NAME"),
-            messages=messages,
-            response_format={"type": "json_object"}
-        )
-        
-        response_json = response.model_dump_json()
-        js = json.loads(response_json)
-        content = js['choices'][0]['message']['content']
-        title_json = json.loads(content)
-        return title_json["title"]
