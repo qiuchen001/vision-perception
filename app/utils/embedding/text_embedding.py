@@ -17,7 +17,7 @@ def embed_fn(text):
         response = client.embeddings.create(
             model=os.getenv("EMBEDDING_MODEL_NAME"),
             input=text,
-            dimensions=512,
+            dimensions=1024,
             encoding_format="float"
         )
 

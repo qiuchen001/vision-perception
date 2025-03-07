@@ -53,5 +53,5 @@ class Video:
     def create_index(collection_name):
         milvus_client = current_app.config['MILVUS_CLIENT']
 
-        params = {"nlist": 512}
+        params = {"nlist": 1024}
         milvus_client.create_index(collection_name, "embedding", "IVF_FLAT", "IP", params)

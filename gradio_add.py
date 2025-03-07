@@ -3,7 +3,7 @@ from app.services.video.add import AddVideoService
 from app import create_app
 
 # 创建Flask应用实例
-config_name = "config.Config"
+config_name = "config.config.Config"
 app = create_app(config_name)
 
 

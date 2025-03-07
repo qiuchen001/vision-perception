@@ -1,3 +1,5 @@
+import logging
+
 import gradio as gr
 from app.services.video.search import SearchVideoService
 from app import create_app
@@ -5,7 +7,7 @@ from PIL import Image
 import json
 
 # 创建Flask应用实例
-config_name = "config.Config"
+config_name = "config.config.Config"
 app = create_app(config_name)
 
 
@@ -312,7 +314,7 @@ def search_videos(
             return gallery_data, gr.HTML(value=""), "搜索完成"
 
     except Exception as e:
-        print(f"Search error: {str(e)}")
+        logging.error(f"Search error: {str(e)}")
         return [], gr.HTML(value=""), f"搜索失败: {str(e)}"
 
 
