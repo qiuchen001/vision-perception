@@ -13,13 +13,14 @@ from pymilvus import DataType, MilvusClient
 load_dotenv()
 
 # 配置 Milvus 连接
-SERVER_HOST = os.getenv("SERVER_HOST")
-MILVUS_URI = f"http://{SERVER_HOST}:19530"
+MILVUS_HOST = os.getenv("MILVUS_HOST")
+MILVUS_PORT = os.getenv("MILVUS_PORT")
+MILVUS_URI = f"http://{MILVUS_HOST}:{MILVUS_PORT}"
 COLLECTION_NAME = "video_collection"
 
 milvus_client = MilvusClient(
     uri=MILVUS_URI,
-    db_name=os.getenv("DB_NAME")
+    db_name=os.getenv("MILVUS_DB_NAME")
 )
 
 
