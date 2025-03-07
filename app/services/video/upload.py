@@ -11,6 +11,7 @@ from app.utils.milvus_operator import video_frame_operator
 from werkzeug.utils import secure_filename
 from config import Config
 from app.utils.video_processor import VideoProcessor
+from app.prompt.title import system_instruction, prompt
 
 
 class UploadVideoService:
@@ -54,15 +55,19 @@ class UploadVideoService:
                 self._process_frames(video_oss_url, frames)
                 result["processed_frames"] = len(frames)
 
+            # 生成并更新标题
+            title = self.generate_title(video_file_path)
+
             # 添加视频信息到数据库
             if not self.video_dao.check_url_exists(video_oss_url):
                 embedding = embed_fn(" ")
                 summary_embedding = embed_fn(" ")
-                self.video_dao.init_video(video_oss_url, embedding, summary_embedding, thumbnail_oss_url)
+                self.video_dao.init_video(video_oss_url, embedding, summary_embedding, thumbnail_oss_url, title)
             
             result.update({
                 "file_name": video_oss_url,
                 "video_url": video_oss_url,
+                "title": title
             })
 
         except Exception as e:
@@ -152,3 +157,43 @@ class UploadVideoService:
         if m_ids:
             video_frame_operator.insert_data([m_ids, embeddings, paths, at_seconds])
             logger.info(f"批量插入剩余 {len(m_ids)} 帧，时间戳范围: {at_seconds[0]}-{at_seconds[-1]}秒")
+
+    def generate_title(self, video_path):
+        """生成视频标题"""
+        # 1. 提取关键帧
+        frame_urls = self.video_processor.extract_key_frames(video_path)
+
+        # 2. 调用通义千问VL模型
+        client = OpenAI(
+            api_key=os.getenv("API_KEY"),
+            base_url=os.getenv("BASE_URL")
+        )
+
+        messages = [{
+            "role": "system",
+            "content": system_instruction
+        }, {
+            "role": "user",
+            "content": [
+                {
+                    "type": "video",
+                    "video": frame_urls
+                },
+                {
+                    "type": "text",
+                    "text": prompt
+                }
+            ]
+        }]
+
+        response = client.chat.completions.create(
+            model=os.getenv("VISION_MODEL_NAME"),
+            messages=messages,
+            response_format={"type": "json_object"}
+        )
+
+        response_json = response.model_dump_json()
+        js = json.loads(response_json)
+        content = js['choices'][0]['message']['content']
+        title_json = json.loads(content)
+        return title_json["title"]
