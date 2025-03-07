@@ -6,7 +6,7 @@ from io import BytesIO
 import re
 import numpy as np
 
-from app.utils.embedding_factory import EmbeddingFactory
+from app.utils.embedding.embedding_factory import EmbeddingFactory
 from app.utils.milvus_operator import video_frame_operator
 
 

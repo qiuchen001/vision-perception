@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from app.utils.embedding_types import EmbeddingType
+from app.utils.embedding.embedding_types import EmbeddingType
 
 load_dotenv()
 

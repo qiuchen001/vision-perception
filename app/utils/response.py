@@ -2,6 +2,7 @@ from functools import wraps
 from flask import jsonify
 from ..utils.logger import logger
 
+
 def api_response(success_data):
     """统一的成功响应格式"""
     return {
@@ -9,6 +10,7 @@ def api_response(success_data):
         "code": 0,
         "data": success_data
     }
+
 
 def error_response(error_msg, code=500):
     """统一的错误响应格式"""
@@ -20,8 +22,10 @@ def error_response(error_msg, code=500):
         }
     }
 
+
 def api_handler(f):
     """API 统一异常处理装饰器"""
+
     @wraps(f)
     def decorated(*args, **kwargs):
         try:
@@ -32,4 +36,5 @@ def api_handler(f):
         except Exception as e:
             logger.error(f"Error in {f.__name__}: {str(e)}")
             return jsonify(error_response(str(e))), 500
-    return decorated 
+
+    return decorated
