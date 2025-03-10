@@ -1,6 +1,11 @@
 from PIL import Image
 import uuid
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
+from werkzeug.datastructures import FileStorage
+import cv2
+import os
+import json
+from openai import OpenAI
 
 from app.dao.video_dao import VideoDAO
 from app.utils.common import *
@@ -22,12 +27,12 @@ class UploadVideoService:
         self.batch_size = Config.VIDEO_FRAME_BATCH_SIZE
         self.video_processor = VideoProcessor()
 
-    def upload(self, video_file) -> Dict[str, Any]:
+    def upload(self, video_file: FileStorage) -> Dict[str, Any]:
         """
         上传视频并处理。
         
         Args:
-            video_file: 上传的视频文件
+            video_file: 上传的视频文件，类型为FileStorage
             
         Returns:
             Dict[str, Any]: 包含视频URL和处理结果的字典
@@ -81,7 +86,15 @@ class UploadVideoService:
         return result
 
     def _extract_frames(self, video_path: str) -> List[Image.Image]:
-        """提取视频帧"""
+        """
+        提取视频帧。
+        
+        Args:
+            video_path: 视频文件路径
+            
+        Returns:
+            List[Image.Image]: 提取的视频帧列表
+        """
         frames = []
         cap = cv2.VideoCapture(video_path)
         
@@ -115,7 +128,10 @@ class UploadVideoService:
             video_url: 视频文件URL
             frames: 提取的视频帧列表
         """
-        m_ids, embeddings, paths, at_seconds = [], [], [], []
+        m_ids: List[str] = []
+        embeddings: List[List[float]] = []
+        paths: List[str] = []
+        at_seconds: List[int] = []
 
         # 获取视频的FPS
         cap = cv2.VideoCapture(video_url)
@@ -158,8 +174,16 @@ class UploadVideoService:
             video_frame_operator.insert_data([m_ids, embeddings, paths, at_seconds])
             logger.info(f"批量插入剩余 {len(m_ids)} 帧，时间戳范围: {at_seconds[0]}-{at_seconds[-1]}秒")
 
-    def generate_title(self, video_path):
-        """生成视频标题"""
+    def generate_title(self, video_path: str) -> str:
+        """
+        生成视频标题。
+        
+        Args:
+            video_path: 视频文件路径
+            
+        Returns:
+            str: 生成的视频标题
+        """
         # 1. 提取关键帧
         frame_urls = self.video_processor.extract_key_frames(video_path)
 
