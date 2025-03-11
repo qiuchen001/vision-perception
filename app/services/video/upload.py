@@ -62,7 +62,8 @@ class UploadVideoService:
             result["frame_count"] = len(frames)
 
             if frames:
-                self._process_frames(video_oss_url, frames)
+                resource_id = str(uuid.uuid4())
+                self._process_frames(video_oss_url, frames, resource_id)
                 result["processed_frames"] = len(frames)
 
             # 生成并更新标题
@@ -125,18 +126,20 @@ class UploadVideoService:
 
         return frames
 
-    def _process_frames(self, video_url: str, frames: List[Image.Image]) -> None:
+    def _process_frames(self, video_url: str, frames: List[Image.Image], resource_id: str) -> None:
         """
         处理视频帧并存入向量数据库。
         
         Args:
             video_url: 视频文件URL
             frames: 提取的视频帧列表
+            resource_id: 资源ID，用于关联原始数据
         """
         m_ids: List[str] = []
         embeddings: List[List[float]] = []
         paths: List[str] = []
         at_seconds: List[int] = []
+        resource_ids: List[str] = []
 
         # 获取视频的FPS
         cap = cv2.VideoCapture(video_url)
@@ -153,9 +156,9 @@ class UploadVideoService:
 
                 # 准备数据
                 m_ids.append(str(uuid.uuid4()))
-                # embeddings.append(embedding[0].detach().cpu().numpy().tolist())
                 embeddings.append(embedding)
                 paths.append(video_url)
+                resource_ids.append(resource_id)
 
                 # 正确计算时间戳（秒）
                 # 当前帧实际的帧号 = 索引 * 帧间隔
@@ -166,9 +169,9 @@ class UploadVideoService:
 
                 # 使用配置的批处理大小
                 if len(m_ids) >= self.batch_size:
-                    video_frame_operator.insert_data([m_ids, embeddings, paths, at_seconds])
+                    video_frame_operator.insert_data([m_ids, embeddings, paths, at_seconds, resource_ids])
                     logger.info(f"批量插入 {len(m_ids)} 帧，时间戳范围: {at_seconds[0]}-{at_seconds[-1]}秒")
-                    m_ids, embeddings, paths, at_seconds = [], [], [], []
+                    m_ids, embeddings, paths, at_seconds, resource_ids = [], [], [], [], []
 
             except Exception as e:
                 logger.error(f"处理帧 {idx} 失败: {str(e)}")
@@ -176,7 +179,7 @@ class UploadVideoService:
 
         # 处理剩余的帧
         if m_ids:
-            video_frame_operator.insert_data([m_ids, embeddings, paths, at_seconds])
+            video_frame_operator.insert_data([m_ids, embeddings, paths, at_seconds, resource_ids])
             logger.info(f"批量插入剩余 {len(m_ids)} 帧，时间戳范围: {at_seconds[0]}-{at_seconds[-1]}秒")
 
     def generate_title(self, video_path: str) -> str:
@@ -227,12 +230,13 @@ class UploadVideoService:
         title_json = json.loads(content)
         return title_json["title"]
 
-    def process_data_path(self, data_path: str) -> Dict[str, Any]:
+    def process_data_path(self, data_path: str, raw_id: Optional[str] = None) -> Dict[str, Any]:
         """
         处理数据路径并生成视频。
         
         Args:
             data_path: 格式为 collection:path 的数据路径
+            raw_id: 原始数据ID
             
         Returns:
             Dict[str, Any]: 包含视频URL和处理结果的字典
@@ -269,7 +273,8 @@ class UploadVideoService:
             result["frame_count"] = len(frames)
 
             if frames:
-                self._process_frames(video_oss_url, frames)
+                resource_id = raw_id if raw_id else str(uuid.uuid4())
+                self._process_frames(video_oss_url, frames, resource_id)
                 result["processed_frames"] = len(frames)
 
             # 生成并更新标题
@@ -469,7 +474,7 @@ class UploadVideoService:
             logger.info(f"获取到数据路径: {data_path}")
             
             # 调用已有的process_data_path方法
-            return self.process_data_path(data_path)
+            return self.process_data_path(data_path, raw_id)
             
         except Exception as e:
             logger.error(f"处理rawId失败: {str(e)}")
