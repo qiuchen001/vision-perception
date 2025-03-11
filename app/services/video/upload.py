@@ -1,11 +1,14 @@
 from PIL import Image
 import uuid
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from werkzeug.datastructures import FileStorage
 import cv2
 import os
 import json
+import requests
 from openai import OpenAI
+import tempfile
+import numpy as np
 
 from app.dao.video_dao import VideoDAO
 from app.utils.common import *
@@ -26,6 +29,7 @@ class UploadVideoService:
         self.frame_interval = Config.VIDEO_FRAME_INTERVAL
         self.batch_size = Config.VIDEO_FRAME_BATCH_SIZE
         self.video_processor = VideoProcessor()
+        self.filestore_base_url = os.getenv("FILESTORE_BASE_URL", "http://10.66.12.37:30112")
 
     def upload(self, video_file: FileStorage) -> Dict[str, Any]:
         """
@@ -51,11 +55,11 @@ class UploadVideoService:
             # 上传视频到OSS
             video_oss_url = upload_thumbnail_to_oss(filename, video_file_path)
             thumbnail_oss_url = self.minioFileUploader.generate_video_thumbnail_url(video_oss_url)
-            
+
             # 处理视频帧
             frames = self._extract_frames(video_file_path)
             result["frame_count"] = len(frames)
-            
+
             if frames:
                 self._process_frames(video_oss_url, frames)
                 result["processed_frames"] = len(frames)
@@ -68,7 +72,7 @@ class UploadVideoService:
                 embedding = embed_fn(" ")
                 summary_embedding = embed_fn(" ")
                 self.video_dao.init_video(video_oss_url, embedding, summary_embedding, thumbnail_oss_url, title)
-            
+
             result.update({
                 "file_name": video_oss_url,
                 "video_url": video_oss_url,
@@ -97,7 +101,7 @@ class UploadVideoService:
         """
         frames = []
         cap = cv2.VideoCapture(video_path)
-        
+
         if not cap.isOpened():
             raise ValueError(f"无法打开视频: {video_path}")
 
@@ -107,17 +111,17 @@ class UploadVideoService:
                 ret, frame = cap.read()
                 if not ret:
                     break
-                    
+
                 if frame_count % self.frame_interval == 0:
                     # 转换为PIL Image
                     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     pil_image = Image.fromarray(frame_rgb)
                     frames.append(pil_image)
-                    
+
                 frame_count += 1
         finally:
             cap.release()
-            
+
         return frames
 
     def _process_frames(self, video_url: str, frames: List[Image.Image]) -> None:
@@ -221,3 +225,193 @@ class UploadVideoService:
         content = js['choices'][0]['message']['content']
         title_json = json.loads(content)
         return title_json["title"]
+
+    def process_data_path(self, data_path: str) -> Dict[str, Any]:
+        """
+        处理数据路径并生成视频。
+        
+        Args:
+            data_path: 格式为 collection:path 的数据路径
+            
+        Returns:
+            Dict[str, Any]: 包含视频URL和处理结果的字典
+        """
+        # 解析data_path
+        collection, prefix = self._parse_data_path(data_path)
+
+        # 获取所有图片文件
+        image_files = self._get_all_files(collection, prefix)
+        if not image_files:
+            raise ValueError(f"未找到图片文件: {data_path}")
+
+        # 创建临时视频文件
+        with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as temp_video:
+            video_path = temp_video.name
+
+        try:
+            # 下载图片并生成视频
+            self._create_video_from_images(collection, image_files, video_path)
+
+            # 复用upload方法的处理逻辑
+            result = {
+                "frame_count": 0,
+                "processed_frames": 0
+            }
+
+            # 上传视频到OSS
+            video_filename = f"{uuid.uuid4()}.mp4"
+            video_oss_url = upload_thumbnail_to_oss(video_filename, video_path)
+            thumbnail_oss_url = self.minioFileUploader.generate_video_thumbnail_url(video_oss_url)
+
+            # 处理视频帧
+            frames = self._extract_frames(video_path)
+            result["frame_count"] = len(frames)
+
+            if frames:
+                self._process_frames(video_oss_url, frames)
+                result["processed_frames"] = len(frames)
+
+            # 生成并更新标题
+            title = self.generate_title(video_path)
+
+            # 添加视频信息到数据库
+            if not self.video_dao.check_url_exists(video_oss_url):
+                embedding = embed_fn(" ")
+                summary_embedding = embed_fn(" ")
+                self.video_dao.init_video(video_oss_url, embedding, summary_embedding, thumbnail_oss_url, title)
+
+            result.update({
+                "file_name": video_oss_url,
+                "video_url": video_oss_url,
+                "title": title
+            })
+
+            return result
+
+        except Exception as e:
+            logger.error(f"处理数据路径失败: {str(e)}")
+            raise
+        finally:
+            # 清理临时文件
+            if os.path.exists(video_path):
+                os.remove(video_path)
+                logger.debug(f"Deleted temporary video file: {video_path}")
+
+    def _parse_data_path(self, data_path: str) -> Tuple[str, str]:
+        """解析数据路径为collection和prefix"""
+        parts = data_path.split(":", 1)
+        if len(parts) != 2:
+            raise ValueError(f"无效的数据路径格式: {data_path}")
+        return parts[0], parts[1]
+
+    def _get_all_files(self, collection: str, prefix: str) -> List[Dict[str, Any]]:
+        """获取所有图片文件信息"""
+        all_files = []
+        page = 1
+
+        while True:
+            try:
+                logger.info(f"获取文件列表: collection={collection}, prefix={prefix}, page={page}")
+                # 调用获取文件列表API
+                response = requests.get(
+                    f"{self.filestore_base_url}/filestore/{collection}/files",
+                    params={
+                        "prefix": prefix,
+                        "page": page,
+                        "page-size": 10,
+                        "keyword": ""
+                    },
+                    headers={"Content-Type": "application/x-www-form-urlencoded"}
+                )
+
+                if response.status_code != 200:
+                    raise Exception(f"获取文件列表失败: {response.text}")
+
+                data = response.json()
+                files = data.get("files", [])
+
+                # 过滤出图片文件并按时间戳排序
+                image_files = [f for f in files if f["filename"].lower().endswith(('.jpg', '.jpeg', '.png'))]
+                all_files.extend(image_files)
+
+                logger.info(f"获取到 {len(image_files)} 个图片文件")
+
+                # 检查是否需要继续翻页
+                if len(files) < 10:
+                    break
+
+                page += 1
+
+            except Exception as e:
+                logger.error(f"获取文件列表失败: {str(e)}")
+                raise
+
+        if not all_files:
+            logger.warning(f"未找到任何图片文件: collection={collection}, prefix={prefix}")
+            return []
+
+        # 按文件名排序（假设文件名包含时间戳）
+        all_files.sort(key=lambda x: x["filename"])
+        logger.info(f"总共获取到 {len(all_files)} 个图片文件")
+        return all_files
+
+    def _create_video_from_images(self, collection: str, image_files: List[Dict[str, Any]], output_path: str):
+        """从图片序列创建视频"""
+        if not image_files:
+            raise ValueError("没有图片文件可以处理")
+
+        try:
+            logger.info("开始生成视频...")
+            # 下载第一张图片来获取尺寸
+            first_image = self._download_image(collection, image_files[0]["filename"])
+            height, width = first_image.shape[:2]
+
+            # 创建视频写入器
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            out = cv2.VideoWriter(output_path, fourcc, 30.0, (width, height))
+
+            try:
+                # 处理所有图片
+                total = len(image_files)
+                for i, file_info in enumerate(image_files, 1):
+                    logger.debug(f"处理第 {i}/{total} 张图片: {file_info['filename']}")
+                    image = self._download_image(collection, file_info["filename"])
+                    out.write(image)
+
+            finally:
+                out.release()
+
+            logger.info(f"视频生成完成: {output_path}")
+
+        except Exception as e:
+            logger.error(f"生成视频失败: {str(e)}")
+            raise
+
+    def _download_image(self, collection: str, filename: str) -> np.ndarray:
+        """下载单个图片文件"""
+        response = requests.get(
+            f"{self.filestore_base_url}/filestore/{collection}",
+            params={"filename": filename},
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
+        )
+
+        if response.status_code != 200:
+            raise Exception(f"下载图片失败: {filename}")
+
+        # 将响应内容转换为图片
+        nparr = np.frombuffer(response.content, np.uint8)
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        if image is None:
+            raise Exception(f"无法解码图片: {filename}")
+
+        return image
+
+
+if __name__ == "__main__":
+    try:
+        service = UploadVideoService()
+        result = service.process_data_path("rawdata:GWM-LANSHAN/NAS10S_2022-01-01/NAS10S_20220101_084465_01/avm-front")
+        print(f"视频处理完成: {result['video_url']}")
+    except Exception as e:
+        print(f"处理失败: {str(e)}")
