@@ -409,23 +409,31 @@ class UploadVideoService:
 
     def _download_image(self, collection: str, filename: str) -> np.ndarray:
         """下载单个图片文件"""
-        response = requests.get(
-            f"{self.filestore_base_url}/filestore/{collection}",
-            params={"filename": filename},
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
-        )
+        try:
+            response = requests.get(
+                f"{self.storage_service_base_url}/filestore/{collection}",
+                params={"filename": filename},
+                headers={"Content-Type": "application/x-www-form-urlencoded"}
+            )
 
-        if response.status_code != 200:
-            raise Exception(f"下载图片失败: {filename}")
+            if response.status_code != 200:
+                raise Exception(f"下载图片失败: {filename}, 状态码: {response.status_code}")
 
-        # 将响应内容转换为图片
-        nparr = np.frombuffer(response.content, np.uint8)
-        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            # 将响应内容转换为图片
+            nparr = np.frombuffer(response.content, np.uint8)
+            image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        if image is None:
-            raise Exception(f"无法解码图片: {filename}")
+            if image is None:
+                raise Exception(f"无法解码图片: {filename}")
 
-        return image
+            return image
+        
+        except Exception as e:
+            error_msg = str(e)
+            if hasattr(e, '__cause__') and e.__cause__:
+                error_msg += f" (caused by: {str(e.__cause__)})"
+            logger.error(f"下载图片失败: {filename} - {error_msg}")
+            raise Exception(f"下载图片失败: {filename} - {error_msg}")
 
     def process_by_raw_id(self, raw_id: str) -> Dict[str, Any]:
         """
