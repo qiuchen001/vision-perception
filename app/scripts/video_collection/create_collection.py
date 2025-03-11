@@ -44,6 +44,13 @@ def create_schema():
         max_length=256,
         description="唯一ID"
     )
+
+    collection_schema.add_field(
+        field_name="resource_id",
+        datatype=DataType.VARCHAR,
+        max_length=256,
+        description="资源ID"
+    )
     
     collection_schema.add_field(
         field_name="embedding",
@@ -105,7 +112,7 @@ def create_schema():
 
 def create_collection(collection_schema):
     """
-    使用指定���schema创建视频集合。
+    使用指定的schema创建视频集合。
 
     Args:
         collection_schema (CollectionSchema): 集合的schema定义

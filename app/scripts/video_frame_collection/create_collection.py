@@ -37,6 +37,12 @@ def create_schema():
         description="视频ID"
     )
     collection_schema.add_field(
+        field_name="resource_id",
+        datatype=DataType.VARCHAR,
+        max_length=256,
+        description="资源ID"
+    )
+    collection_schema.add_field(
         field_name="at_seconds",
         datatype=DataType.INT32,
         description="视频时间点(秒)"
