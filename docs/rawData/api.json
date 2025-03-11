@@ -1,0 +1,2178 @@
+[
+  {
+    "index": 0,
+    "name": "数据统计",
+    "desc": null,
+    "add_time": 1724382099,
+    "up_time": 1724382099,
+    "list": [
+      {
+        "query_path": {
+          "path": "/statistic/rawdata/overview",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 409,
+        "method": "GET",
+        "catid": 149,
+        "title": "数据概览",
+        "path": "/statistic/rawdata/overview",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 42,
+        "add_time": 1724738545,
+        "up_time": 1724739580,
+        "req_query": [],
+        "req_headers": [],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\n   \"result\": \"success\",\n   \"code\": 0,\n   \"data\": {\n      \"dataTime\": {\n         \"sub\": 61157.82555555556,\n         \"total\": 68239.99,\n         \"raw\": 6985.2636111111115,\n         \"scene\": 96.90083333333334\n      },\n      \"dataNums\": {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      },\n      \"dataSize\": {\n         \"total\": 4564171.300000022,\n         \"raw\": 4561571.300000022,\n         \"dataset\": 2600\n      }\n   }\n}"
+      },
+      {
+        "query_path": {
+          "path": "/statistic/rawdata/trend",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 1,
+        "tag": [],
+        "_id": 413,
+        "method": "GET",
+        "catid": 149,
+        "title": "数据趋势",
+        "path": "/statistic/rawdata/trend",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 42,
+        "add_time": 1724738594,
+        "up_time": 1724740275,
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "66cd72b3f04fceb68aaa6591",
+            "name": "type",
+            "example": "num",
+            "desc": "num/size"
+          },
+          {
+            "required": "1",
+            "_id": "66cd72b3f04fce1f36aa6590",
+            "name": "timespan",
+            "example": "1",
+            "desc": "    TODAY_PER_HOUR(1)\n    , YESTERDAY_PER_2HOUR(2)\n    , LAST_7DAY_PER_DAY(3)\n    , LAST_14DAY_PER_DAY(4)\n   , LAST_28DAY_PER_2DAY(5)\n   , CUSTOM(6)"
+          },
+          {
+            "required": "0",
+            "_id": "66cd72b3f04fce7d87aa658f",
+            "name": "beginTime",
+            "example": "1720000000000",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "66cd72b3f04fce012faa658e",
+            "name": "endTime",
+            "example": "1730000000000",
+            "desc": ""
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\n   \"result\": \"success\",\n   \"code\": 0,\n   \"data\": [\n      {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"index\": 0,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      },\n      {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"index\": 1,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      },\n      {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"index\": 2,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      },\n      {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"index\": 3,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      },\n      {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"index\": 4,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      },\n      {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"index\": 5,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      },\n      {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"index\": 6,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      },\n      {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"index\": 7,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      },\n      {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"index\": 8,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      },\n      {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"index\": 9,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      },\n      {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"index\": 10,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      },\n      {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"index\": 11,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      },\n      {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"index\": 12,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      },\n      {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"index\": 13,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      },\n      {\n         \"sub\": 2305,\n         \"total\": 10617,\n         \"index\": 14,\n         \"raw\": 421,\n         \"dataset\": 100,\n         \"scene\": 7791\n      }\n   ]\n}"
+      },
+      {
+        "query_path": {
+          "path": "/api/v1/cases/statistics",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 2,
+        "tag": [],
+        "_id": 421,
+        "method": "GET",
+        "catid": 149,
+        "title": "simone案例总数",
+        "path": "/api/v1/cases/statistics",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 42,
+        "add_time": 1724817234,
+        "up_time": 1724824148,
+        "req_query": [],
+        "req_headers": [],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\n   \"code\": 0,\n   \"data\": [\n      {\n         \"number\": 0,\n         \"opponent\": \"datadriven\"\n      },\n      {\n         \"number\": 0,\n         \"opponent\": \"logsim\"\n      },\n      {\n         \"number\": 0,\n         \"opponent\": \"multivehicle\"\n      },\n      {\n         \"number\": 177,\n         \"opponent\": \"openscenario\"\n      },\n      {\n         \"number\": 0,\n         \"opponent\": \"openscenario2\"\n      },\n      {\n         \"number\": 1,\n         \"opponent\": \"record\"\n      },\n      {\n         \"number\": 1,\n         \"opponent\": \"trafficflow\"\n      },\n      {\n         \"number\": 179,\n         \"opponent\": \"total\"\n      }\n   ]\n}"
+      },
+      {
+        "query_path": {
+          "path": "/api/v1/cases/trend",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 3,
+        "tag": [],
+        "_id": 425,
+        "method": "GET",
+        "catid": 149,
+        "title": "simone案例趋势",
+        "path": "/api/v1/cases/trend",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 42,
+        "add_time": 1724817324,
+        "up_time": 1724824165,
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "66ceba65f04fce2b76aa65bb",
+            "name": "timespan",
+            "example": "1",
+            "desc": "   TODAY_PER_HOUR(1)\n    , YESTERDAY_PER_2HOUR(2)\n    , LAST_7DAY_PER_DAY(3)\n    , LAST_14DAY_PER_DAY(4)\n   , LAST_28DAY_PER_2DAY(5)\n   , CUSTOM(6)"
+          },
+          {
+            "required": "0",
+            "_id": "66ceba65f04fcef914aa65ba",
+            "name": "beginTime",
+            "example": "",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "66ceba65f04fce28dcaa65b9",
+            "name": "endTime",
+            "example": "",
+            "desc": ""
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\n   \"result\": \"success\",\n   \"code\": 0,\n   \"data\": [\n      {\n         \"caseNum\": 189,\n         \"index\": 0,\n         \"timestamp\": \"2024-08-20 01:20\"\n      },\n      {\n         \"caseNum\": 189,\n         \"index\": 1,\n         \"timestamp\": \"2024-08-21 01:20\"\n      },\n      {\n         \"caseNum\": 189,\n         \"index\": 2,\n         \"timestamp\": \"2024-08-22 01:20\"\n      },\n      {\n         \"caseNum\": 189,\n         \"index\": 3,\n         \"timestamp\": \"2024-08-23 01:20\"\n      },\n      {\n         \"caseNum\": 189,\n         \"index\": 4,\n         \"timestamp\": \"2024-08-24 01:20\"\n      },\n      {\n         \"caseNum\": 189,\n         \"index\": 5,\n         \"timestamp\": \"2024-08-25 01:20\"\n      },\n      {\n         \"caseNum\": 189,\n         \"index\": 6,\n         \"timestamp\": \"2024-08-26 01:20\"\n      },\n      {\n         \"caseNum\": 189,\n         \"index\": 7,\n         \"timestamp\": \"2024-08-27 01:20\"\n      }\n   ]\n}"
+      },
+      {
+        "query_path": {
+          "path": "/data-statistic/task-instance/trend",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 4,
+        "tag": [],
+        "_id": 417,
+        "method": "GET",
+        "catid": 149,
+        "title": "任务趋势",
+        "path": "/data-statistic/task-instance/trend",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "66cd8878f04fce14c3aa65ac",
+            "name": "startTime",
+            "example": "2024-07-01",
+            "desc": "开始时间（闭区间）"
+          },
+          {
+            "required": "1",
+            "_id": "66cd8878f04fce361faa65ab",
+            "name": "endTime",
+            "example": "2024-08-15",
+            "desc": "结束时间（闭区间）"
+          },
+          {
+            "required": "1",
+            "_id": "66cd8878f04fceb58aaa65aa",
+            "name": "dataSourceType",
+            "example": "1",
+            "desc": "数据源类型，1：运行次数，2：运行时长"
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\n  \"msg\": \"success\",\n  \"code\": 0,\n  \"data\": {\n    \"trendList\": [ // 趋势列表\n      {\n        \"num\": 106913804, // 运行次数/运行时长（单位毫秒）\n        \"startTime\": 1719763200000, // 区间开始时间，单位毫秒\n        \"endTime\": 1720368000000 // 区间结束时间，单位毫秒\n      },\n      {\n        \"num\": 1381048428,\n        \"startTime\": 1720368000000,\n        \"endTime\": 1720972800000\n      },\n      {\n        \"num\": 4071616,\n        \"startTime\": 1720972800000,\n        \"endTime\": 1721577600000\n      },\n      {\n        \"num\": 134047457,\n        \"startTime\": 1721577600000,\n        \"endTime\": 1722182400000\n      },\n      {\n        \"num\": 171973775,\n        \"startTime\": 1722182400000,\n        \"endTime\": 1722787200000\n      },\n      {\n        \"num\": 137830731,\n        \"startTime\": 1722787200000,\n        \"endTime\": 1723392000000\n      },\n      {\n        \"num\": 2190003,\n        \"startTime\": 1723392000000,\n        \"endTime\": 1723737600000\n      }\n    ], \n    \"detailList\": [ // 详情列表\n      {\n        \"taskType\": \"publishDataset\", // 任务类型：uploadURL:在线上传、uploadFiles:文件同步、miningTag:标签挖掘处理、manualCut:手动切片、tagSliceSingle:单标签切片、tagSliceWhole:整体标签切片、publishDataset:发布数据集、handleLog2World:Log2World处理、export:导出\n        \"runCount\": 152, // 运行次数\n        \"runTime\": 10040920, // 运行时长，单位毫秒\n        \"completedCount\": 149, // 成功次数\n        \"terminatedCount\": 6, // 终止次数\n        \"failedCount\": 3, // 失败次数\n        \"endUseTime\": 1722483540633 // 最后使用时间，单位毫秒\n      },\n      {\n        \"taskType\": \"export\",\n        \"runCount\": 1794,\n        \"runTime\": 10325168851420,\n        \"completedCount\": 1123,\n        \"terminatedCount\": 65,\n        \"failedCount\": 671,\n        \"endUseTime\": 1723533880414\n      },\n      {\n        \"taskType\": \"tagSliceWhole\",\n        \"runCount\": 81,\n        \"runTime\": 657,\n        \"completedCount\": 71,\n        \"terminatedCount\": 10,\n        \"failedCount\": 10,\n        \"endUseTime\": 1722407647447\n      },\n      {\n        \"taskType\": \"generateTrajectory\",\n        \"runCount\": 143,\n        \"runTime\": 2657664,\n        \"completedCount\": 117,\n        \"terminatedCount\": 3,\n        \"failedCount\": 26,\n        \"endUseTime\": 1723623540109\n      },\n      {\n        \"taskType\": \"miningTag\",\n        \"runCount\": 198,\n        \"runTime\": 3442722628731,\n        \"completedCount\": 185,\n        \"terminatedCount\": 9,\n        \"failedCount\": 13,\n        \"endUseTime\": 1723623580276\n      },\n      {\n        \"taskType\": \"visualize\",\n        \"runCount\": 186,\n        \"runTime\": 3441122829868,\n        \"completedCount\": 186,\n        \"terminatedCount\": 11,\n        \"failedCount\": 0,\n        \"endUseTime\": 1723616560071\n      },\n      {\n        \"taskType\": \"syncPaths\",\n        \"runCount\": 259,\n        \"runTime\": 154526,\n        \"completedCount\": 172,\n        \"terminatedCount\": 1,\n        \"failedCount\": 87,\n        \"endUseTime\": 1723623539698\n      },\n      {\n        \"taskType\": \"log2World\",\n        \"runCount\": 624,\n        \"runTime\": 1720538867303,\n        \"completedCount\": 609,\n        \"terminatedCount\": 22,\n        \"failedCount\": 15,\n        \"endUseTime\": 1723623620313\n      },\n      {\n        \"taskType\": \"timeSlice\",\n        \"runCount\": 292,\n        \"runTime\": 109758530,\n        \"completedCount\": 292,\n        \"terminatedCount\": 4,\n        \"failedCount\": 0,\n        \"endUseTime\": 1723623595954\n      },\n      {\n        \"taskType\": \"tagSliceSingle\",\n        \"runCount\": 381,\n        \"runTime\": 4017,\n        \"completedCount\": 309,\n        \"terminatedCount\": 262,\n        \"failedCount\": 72,\n        \"endUseTime\": 1723616696149\n      }\n    ]\n  }\n}",
+        "uid": 11,
+        "add_time": 1724742861,
+        "up_time": 1724745848,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/data-statistic/business-tag/overview",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 5,
+        "tag": [],
+        "_id": 397,
+        "method": "GET",
+        "catid": 149,
+        "title": "标签概览",
+        "path": "/data-statistic/business-tag/overview",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1724382319,
+        "up_time": 1724643180,
+        "req_query": [],
+        "req_headers": [],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\n  \"msg\": \"success\",\n  \"code\": 0,\n  \"data\": {\n    \"business\": [\n      {\n        \"id\": 91,\n        \"dataType\": 5, // 数据类型：1:累计标记合规数据的标签数、2:累计标记切片数据的标签数、3:累计标记场景数据的标签数、4:累计标记数据的标签数、5:累计被标记标签的合规数据数、6:累计被标记标签的切片数据数、7:累计被标记标签的场景数据数、8:累计被标记标签的数据数\n        \"num\": 41,\n        \"datetime\": 2024082611,\n        \"createTime\": 1724643134000,\n        \"updateTime\": 1724643134000\n      },\n      {\n        \"id\": 92,\n        \"dataType\": 6,\n        \"num\": 988,\n        \"datetime\": 2024082611,\n        \"createTime\": 1724643134000,\n        \"updateTime\": 1724643134000\n      },\n      {\n        \"id\": 93,\n        \"dataType\": 7,\n        \"num\": 609,\n        \"datetime\": 2024082611,\n        \"createTime\": 1724643134000,\n        \"updateTime\": 1724643134000\n      },\n      {\n        \"id\": 94,\n        \"dataType\": 8,\n        \"num\": 609,\n        \"datetime\": 2024082611,\n        \"createTime\": 1724643134000,\n        \"updateTime\": 1724643134000\n      }\n    ],\n    \"tag\": [\n      {\n        \"id\": 87,\n        \"dataType\": 1,\n        \"num\": 405,\n        \"datetime\": 2024082611,\n        \"createTime\": 1724643133000,\n        \"updateTime\": 1724643133000\n      },\n      {\n        \"id\": 88,\n        \"dataType\": 2,\n        \"num\": 17594,\n        \"datetime\": 2024082611,\n        \"createTime\": 1724643133000,\n        \"updateTime\": 1724643133000\n      },\n      {\n        \"id\": 89,\n        \"dataType\": 3,\n        \"num\": 45167,\n        \"datetime\": 2024082611,\n        \"createTime\": 1724643133000,\n        \"updateTime\": 1724643133000\n      },\n      {\n        \"id\": 90,\n        \"dataType\": 4,\n        \"num\": 63166,\n        \"datetime\": 2024082611,\n        \"createTime\": 1724643133000,\n        \"updateTime\": 1724643133000\n      }\n    ]\n  }\n}"
+      },
+      {
+        "query_path": {
+          "path": "/data-statistic/business-tag/trend",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 6,
+        "tag": [],
+        "_id": 401,
+        "method": "GET",
+        "catid": 149,
+        "title": "标签趋势",
+        "path": "/data-statistic/business-tag/trend",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "66cda509f04fce60d7aa65af",
+            "name": "startTime",
+            "example": "2024-07-01",
+            "desc": "开始时间（闭区间）"
+          },
+          {
+            "required": "1",
+            "_id": "66cda509f04fceb5bdaa65ae",
+            "name": "endTime",
+            "example": "2024-08-15",
+            "desc": "结束时间（闭区间）"
+          },
+          {
+            "required": "1",
+            "_id": "66cda509f04fce6fabaa65ad",
+            "name": "dataSourceType",
+            "example": "1",
+            "desc": "数据源类型，1：标记的标签数，2：被标记的源数据数"
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\r\n  \"msg\": \"success\",\r\n  \"code\": 0,\r\n  \"data\": {\r\n    \"list\": [\r\n      {\r\n        \"id\": 75,\r\n        \"dataType\": 1, // 数据类型，1:累计标记合规数据的标签数、2:累计标记切片数据的标签数、3:累计标记场景数据的标签数、4:累计标记数据的标签数、5:累计被标记标签的合规数据数、6:累计被标记标签的切片数据数、7:累计被标记标签的场景数据数、8:累计被标记标签的数据数\r\n        \"num\": 405,\r\n        \"datetime\": 2024082609,\r\n        \"createTime\": 1724637280000,\r\n        \"updateTime\": 1724637280000\r\n      },\r\n      {\r\n        \"id\": 76,\r\n        \"dataType\": 2,\r\n        \"num\": 17594,\r\n        \"datetime\": 2024082609,\r\n        \"createTime\": 1724637280000,\r\n        \"updateTime\": 1724637280000\r\n      },\r\n      {\r\n        \"id\": 77,\r\n        \"dataType\": 3,\r\n        \"num\": 45167,\r\n        \"datetime\": 2024082609,\r\n        \"createTime\": 1724637280000,\r\n        \"updateTime\": 1724637280000\r\n      },\r\n      {\r\n        \"id\": 78,\r\n        \"dataType\": 4,\r\n        \"num\": 63166,\r\n        \"datetime\": 2024082609,\r\n        \"createTime\": 1724637280000,\r\n        \"updateTime\": 1724637280000\r\n      },\r\n      {\r\n        \"id\": 79,\r\n        \"dataType\": 1,\r\n        \"num\": 405,\r\n        \"datetime\": 2024082610,\r\n        \"createTime\": 1724640123000,\r\n        \"updateTime\": 1724640123000\r\n      },\r\n      {\r\n        \"id\": 80,\r\n        \"dataType\": 2,\r\n        \"num\": 17594,\r\n        \"datetime\": 2024082610,\r\n        \"createTime\": 1724640123000,\r\n        \"updateTime\": 1724640123000\r\n      },\r\n      {\r\n        \"id\": 81,\r\n        \"dataType\": 3,\r\n        \"num\": 45167,\r\n        \"datetime\": 2024082610,\r\n        \"createTime\": 1724640123000,\r\n        \"updateTime\": 1724640123000\r\n      },\r\n      {\r\n        \"id\": 82,\r\n        \"dataType\": 4,\r\n        \"num\": 63166,\r\n        \"datetime\": 2024082610,\r\n        \"createTime\": 1724640123000,\r\n        \"updateTime\": 1724640123000\r\n      }\r\n    ]\r\n  }\r\n}",
+        "uid": 11,
+        "add_time": 1724384246,
+        "up_time": 1724753161,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/data-statistic/business-tag/top",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 7,
+        "tag": [],
+        "_id": 405,
+        "method": "GET",
+        "catid": 149,
+        "title": "标签Top",
+        "path": "/data-statistic/business-tag/top",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "66cda965f04fce0573aa65b2",
+            "name": "startTime",
+            "example": "2024-07-01",
+            "desc": "开始时间（闭区间）"
+          },
+          {
+            "required": "1",
+            "_id": "66cda965f04fcecf08aa65b1",
+            "name": "endTime",
+            "example": "2024-08-15",
+            "desc": "结束时间（闭区间）"
+          },
+          {
+            "required": "1",
+            "_id": "66cda965f04fce6baaaa65b0",
+            "name": "dataSourceType",
+            "example": "1",
+            "desc": "数据源类型，1：标记的标签数，2：被标记的源数据数"
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {\n      \"list\": [\n         {\n            \"id\": 81,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.SUV\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 83,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.SUV\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 82,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.SUV\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 80,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.SUV\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 161,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.SUV\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 163,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.SUV\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 162,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.SUV\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 160,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.SUV\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 93,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.跑车\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 95,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.跑车\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 94,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.跑车\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 92,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.跑车\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 173,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.跑车\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 175,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.跑车\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 174,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.跑车\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 172,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.乘用车.跑车\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 85,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.公交车\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 87,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.公交车\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 86,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.公交车\",\n            \"dataType\": 3,\n            \"num\": 816,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 84,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.公交车\",\n            \"dataType\": 4,\n            \"num\": 1128,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 165,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.公交车\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 167,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.公交车\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 166,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.公交车\",\n            \"dataType\": 3,\n            \"num\": 816,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 164,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.公交车\",\n            \"dataType\": 4,\n            \"num\": 1128,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 97,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.农用车辆\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 99,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.农用车辆\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 98,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.农用车辆\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 96,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.农用车辆\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 177,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.农用车辆\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 179,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.农用车辆\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 178,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.农用车辆\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 176,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.农用车辆\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 89,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.危险品车辆\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 91,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.危险品车辆\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 90,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.危险品车辆\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 88,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.危险品车辆\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 169,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.危险品车辆\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 171,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.危险品车辆\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 170,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.危险品车辆\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 168,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.危险品车辆\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 109,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.吊车，非道路移动机械\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 111,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.吊车，非道路移动机械\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 110,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.吊车，非道路移动机械\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 108,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.吊车，非道路移动机械\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 189,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.吊车，非道路移动机械\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 191,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.吊车，非道路移动机械\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 190,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.吊车，非道路移动机械\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 188,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.吊车，非道路移动机械\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 101,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.救护车\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 103,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.救护车\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 102,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.救护车\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 100,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.救护车\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 181,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.救护车\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 183,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.救护车\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 182,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.救护车\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 180,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.救护车\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 105,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.洒水车\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 107,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.洒水车\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 106,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.洒水车\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 104,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.洒水车\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 185,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.洒水车\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 187,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.洒水车\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 186,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.洒水车\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 184,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.洒水车\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 77,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.训练车\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 79,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.训练车\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 78,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.训练车\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 76,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.训练车\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 157,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.训练车\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 159,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.训练车\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 158,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.训练车\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 156,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.训练车\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 113,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.货车\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 115,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.货车\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 114,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.货车\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 112,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.货车\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082318,\n            \"createTime\": 1724410797000,\n            \"updateTime\": 1724410797000\n         },\n         {\n            \"id\": 193,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.货车\",\n            \"dataType\": 1,\n            \"num\": 6,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 195,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.货车\",\n            \"dataType\": 2,\n            \"num\": 306,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 194,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.货车\",\n            \"dataType\": 3,\n            \"num\": 815,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         },\n         {\n            \"id\": 192,\n            \"tagPath\": \"动态实体.对手车.对手车类型.车辆.货车\",\n            \"dataType\": 4,\n            \"num\": 1127,\n            \"datetime\": 2024082609,\n            \"createTime\": 1724634920000,\n            \"updateTime\": 1724634920000\n         }\n      ]\n   }\n}",
+        "uid": 11,
+        "add_time": 1724384280,
+        "up_time": 1724754277,
+        "__v": 0
+      }
+    ]
+  },
+  {
+    "index": 0,
+    "name": "感知挖掘",
+    "desc": null,
+    "add_time": 1729222272,
+    "up_time": 1729222272,
+    "list": [
+      {
+        "query_path": {
+          "path": "/video/analyze",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 436,
+        "method": "POST",
+        "catid": 153,
+        "title": "视频分析",
+        "path": "/video/analyze",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1729222364,
+        "up_time": 1729222589,
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "6711d7bde7bb5c6a66cdf750",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": "{\r\n    \"code\": 0,\r\n    \"data\": [\r\n        {\r\n            \"analysis\": \"A dark-colored vehicle merges into the lane ahead of the dashcam vehicle.\", // 分析过程\r\n            \"behaviour\": {\r\n                \"behaviourId\": \"B4\", // 行为ID\r\n                \"behaviourName\": \"Merging Closely\", // 行为名称\r\n                \"timeRange\": \"0:13-0:16\" // 行为时间范围\r\n            }\r\n        }\r\n    ],\r\n    \"msg\": \"success\"\r\n}"
+      }
+    ]
+  },
+  {
+    "index": 0,
+    "name": "场景管理",
+    "desc": null,
+    "add_time": 1735262526,
+    "up_time": 1735262526,
+    "list": [
+      {
+        "query_path": {
+          "path": "/logsim",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 537,
+        "method": "GET",
+        "catid": 191,
+        "title": "logsim场景列表",
+        "path": "/logsim",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1735262568,
+        "up_time": 1736819662,
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "6785c3ce0c22fd7563ca58a6",
+            "name": "filter",
+            "example": "{\"rawId\": \"47806831-6668-4151-a8d6-935804d2a285\"}",
+            "desc": ""
+          },
+          {
+            "required": "1",
+            "_id": "6785c3ce0c22fdbce2ca58a5",
+            "name": "tagFilter",
+            "example": "",
+            "desc": ""
+          },
+          {
+            "required": "1",
+            "_id": "6785c3ce0c22fdee83ca58a4",
+            "name": "page",
+            "example": "1",
+            "desc": ""
+          },
+          {
+            "required": "1",
+            "_id": "6785c3ce0c22fd5dc3ca58a3",
+            "name": "pageSize",
+            "example": "10",
+            "desc": ""
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "res_body": ""
+      },
+      {
+        "query_path": {
+          "path": "/dataplatform/scene",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 563,
+        "method": "GET",
+        "catid": 191,
+        "title": "worldsim场景列表",
+        "path": "/dataplatform/scene",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "67848f580c22fd3dafca589a",
+            "name": "filter",
+            "example": "{}",
+            "desc": ""
+          },
+          {
+            "required": "1",
+            "_id": "67848f580c22fd1b65ca5899",
+            "name": "tagFilter",
+            "example": "",
+            "desc": ""
+          },
+          {
+            "required": "1",
+            "_id": "67848f580c22fd757aca5898",
+            "name": "page",
+            "example": "1",
+            "desc": ""
+          },
+          {
+            "required": "1",
+            "_id": "67848f580c22fd2476ca5897",
+            "name": "pageSize",
+            "example": "10",
+            "desc": ""
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "desc": "<h3>filter示例：</h3>\n<p><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">{</span><br>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\"><strong>\"dataFormat\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">:&nbsp;</span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\"><strong>\"UNPACKED\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">,&nbsp; //&nbsp;</span><span class=\"colour\" style=\"color: rgb(106, 135, 89);\">数据格式：ROS1、ROS2、BAG、MF4、PCAP、UNPACKED</span><br>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\"><strong>\"vconfigId\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">:&nbsp;</span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\"><strong>\"123\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, //&nbsp;</span><span class=\"colour\" style=\"color: rgb(106, 135, 89);\">车端配置id（车辆类型）</span><br>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\"><strong>\"vehicleId\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">:&nbsp;</span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\"><strong>\"123\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, //&nbsp;</span><span class=\"colour\" style=\"color: rgb(106, 135, 89);\">车辆编号（车架号）</span><br>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\"><strong>\"vehicleName\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">:&nbsp;</span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\"><strong>\"123\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, //&nbsp;</span><span class=\"colour\" style=\"color: rgb(106, 135, 89);\">车辆名称</span><br>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\"><strong>\"collectTimeBefore\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">:&nbsp;</span><span class=\"colour\" style=\"color: rgb(4, 30, 73);\">1736999814901</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, // 采集开始时间</span><br>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\"><strong>\"collectTimeAfter\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">:&nbsp;</span><span class=\"colour\" style=\"color: rgb(4, 30, 73);\">1737086221901</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, // 采集结束时间</span><br>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\"><strong>\"rawId\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">:</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">&nbsp;</span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\"><strong>\"123\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, // 场景ID</span><br>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\"><strong>\"dataName\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">:</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">&nbsp;</span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\"><strong>\"123\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, // 场景名称</span><br>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\"><strong>\"parentRawId\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">:&nbsp;</span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\"><strong>\"123\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, //&nbsp;</span><span class=\"colour\" style=\"color: rgb(106, 135, 89);\">原始数据rawId</span><br>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\">**\"parentDataName\":&nbsp;**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">\"</span><span class=\"colour\" style=\"color: rgb(37, 170, 226);\">**123\" //&nbsp;**</span><span class=\"colour\" style=\"color: rgb(106, 135, 89);\">原始数据名</span><br>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">}</span></p>\n",
+        "markdown": "### filter示例：\n\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">{</span>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">    </span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\">**\"dataFormat\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">: </span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\">**\"UNPACKED\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">,  // </span><span class=\"colour\" style=\"color: rgb(106, 135, 89);\">数据格式：ROS1、ROS2、BAG、MF4、PCAP、UNPACKED</span>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">    </span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\">**\"vconfigId\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">: </span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\">**\"123\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, // </span><span class=\"colour\" style=\"color: rgb(106, 135, 89);\">车端配置id（车辆类型）</span>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">    </span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\">**\"vehicleId\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">: </span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\">**\"123\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, // </span><span class=\"colour\" style=\"color: rgb(106, 135, 89);\">车辆编号（车架号）</span>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">    </span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\">**\"vehicleName\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">: </span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\">**\"123\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, // </span><span class=\"colour\" style=\"color: rgb(106, 135, 89);\">车辆名称</span>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">    </span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\">**\"collectTimeBefore\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">: </span><span class=\"colour\" style=\"color: rgb(4, 30, 73);\">1736999814901</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, // 采集开始时间</span>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">    </span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\">**\"collectTimeAfter\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">: </span><span class=\"colour\" style=\"color: rgb(4, 30, 73);\">1737086221901</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, // 采集结束时间</span>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">    </span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\">**\"rawId\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">:</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\"> </span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\">**\"123\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, // 场景ID</span>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">    </span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\">**\"dataName\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">:</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\"> </span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\">**\"123\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, // 场景名称</span>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">    </span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\">**\"parentRawId\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">: </span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\">**\"123\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">, // </span><span class=\"colour\" style=\"color: rgb(106, 135, 89);\">原始数据rawId</span>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">    </span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\">**\"parentDataName\": **</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">\"</span><span class=\"colour\" style=\"color: rgb(37, 170, 226);\">**123\" // **</span><span class=\"colour\" style=\"color: rgb(106, 135, 89);\">原始数据名</span>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">}</span>",
+        "res_body": "",
+        "uid": 11,
+        "add_time": 1736732210,
+        "up_time": 1736740696,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/logsim",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 572,
+        "method": "DELETE",
+        "catid": 191,
+        "title": "删除logsim",
+        "path": "/logsim",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "6785c1450c22fd94f2ca58a2",
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "required": "1",
+            "_id": "6785c1450c22fd464dca58a1",
+            "name": "X-Username",
+            "example": "wanger",
+            "desc": ""
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "json",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {}\n}",
+        "req_body_other": "{\n   \"rawIds\": [\n      \"daa56582-f627-4e4b-8af0-7fac0de528f4\"\n   ]\n}",
+        "uid": 11,
+        "add_time": 1736818977,
+        "up_time": 1736819013,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/logsim/releases",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 541,
+        "method": "POST",
+        "catid": 191,
+        "title": "发布logsim",
+        "path": "/logsim/releases",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "677f45786250b4fd1c4f5342",
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "required": "1",
+            "_id": "677f45786250b4b9ad4f5341",
+            "name": "X-Username",
+            "example": "wanger",
+            "desc": ""
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "json",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {}\n}",
+        "req_body_other": "{\n   \"rawIds\": [\n      \"daa56582-f627-4e4b-8af0-7fac0de528f4\"\n   ],\n   \"vehicleSensors\": {\n      \"vconfigId\": \"Nus-demo\",\n      \"sensors\": [\n         {\n            \"sensorClass\": \"camera\",\n            \"topics\": [\n               \"CAM_FRONT_LEFT\",\n               \"CAM_FRONT\",\n               \"CAM_FRONT_RIGHT\",\n               \"CAM_BACK_LEFT\",\n               \"CAM_BACK\",\n               \"CAM_BACK_RIGHT\"\n            ]\n         },\n         {\n            \"sensorClass\": \"lidar\",\n            \"topics\": [\n               \"LIDAR_TOP\"\n            ]\n         }\n      ]\n   }\n}",
+        "uid": 11,
+        "add_time": 1735529466,
+        "up_time": 1736394104,
+        "__v": 0
+      }
+    ]
+  },
+  {
+    "index": 1,
+    "name": "车端配置管理",
+    "desc": null,
+    "add_time": 1715147524,
+    "up_time": 1715147524,
+    "list": [
+      {
+        "query_path": {
+          "path": "/dataplatform/vehicle/{vehicleId}",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "var",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 336,
+        "method": "GET",
+        "catid": 121,
+        "title": "查询配置",
+        "path": "/dataplatform/vehicle/{vehicleId}",
+        "project_id": 22,
+        "req_params": [
+          {
+            "_id": "67a579e60c22fd495fca5944",
+            "name": "vehicleId",
+            "example": "",
+            "desc": ""
+          }
+        ],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [],
+        "req_body_form": [],
+        "uid": 42,
+        "add_time": 1715150536,
+        "up_time": 1738897894,
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "res_body": ""
+      },
+      {
+        "query_path": {
+          "path": "/dataplatform/vehicle",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 327,
+        "method": "POST",
+        "catid": 121,
+        "title": "添加车端配置",
+        "path": "/dataplatform/vehicle",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 42,
+        "add_time": 1715150531,
+        "up_time": 1719373034,
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "667b8ceaa4e89a833848fb53",
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "req_body_other": "{\r\n  \"name\": \"51sim-nucar1\",         //用户文件名称(非必填)\r\n  \"registerTime\": 1794999233333,  //用户创建时间 (非必填)\r\n  \"configType\": \"数据闭环\",\r\n  \"vconfigId\":\"Nuscense\",    //车辆类型名称\r\n  \"sensors\": [\r\n    {\r\n      \"sensorName\": \"左前摄像头\",\r\n      \"topic\": \"CAM_FRONT_LEFT\",\r\n      \"sensorType\": \"ca256\",\r\n      \"position\": \"左前\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"123\",\r\n      \"sensorClass\": \"摄像头\"\r\n    },\r\n\t    {\r\n      \"sensorName\": \"正前摄像头\",\r\n      \"topic\": \"CAM_FRONT\",\r\n      \"sensorType\": \"ca256\",\r\n      \"position\": \"正前\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"123\", \r\n      \"sensorClass\": \"摄像头\"\r\n    },\r\n\t    {\r\n      \"sensorName\": \"右前摄像头\",\r\n      \"topic\": \"CAM_FRONT_RIGHT\",\r\n      \"sensorType\": \"ca256\",\r\n      \"position\": \"右前\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"123\",\r\n      \"sensorClass\": \"摄像头\"\r\n    },\r\n\t    {\r\n      \"sensorName\": \"左后摄像头\",\r\n      \"topic\": \"CAM_BACK_LEFT\",\r\n      \"sensorType\": \"ca256\",\r\n      \"position\": \"左后\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"123\",\r\n      \"sensorClass\": \"摄像头\"\r\n    },\r\n\t    {\r\n      \"sensorName\": \"正后摄像头\",\r\n      \"topic\": \"CAM_BACK\",\r\n      \"sensorType\": \"ca256\",\r\n      \"position\": \"正后\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"123\",\r\n      \"sensorClass\": \"摄像头\"\r\n    },\r\n\t    {\r\n      \"sensorName\": \"右后摄像头\",\r\n      \"topic\": \"CAM_BACK_RIGHT\",\r\n      \"sensorType\": \"ca256\",\r\n      \"position\": \"右后\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"123\",\r\n      \"sensorClass\": \"摄像头\"\r\n    },\r\n\t\t{\r\n      \"sensorName\": \"AVM全景影像\",\r\n      \"topic\": \"CAM_AVM\",\r\n      \"sensorType\": \"--\",\r\n      \"position\": \"正中\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"--\",\r\n      \"sensorClass\": \"摄像头\"\r\n    },\r\n\t\t{\r\n      \"sensorName\": \"CAN总线\",\r\n      \"topic\": \"can\",\r\n      \"sensorType\": \"CAN\",\r\n      \"position\": \"底座\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"123\",\r\n      \"sensorClass\": \"CAN总线\"\r\n    },\r\n\t\t{\r\n      \"sensorName\": \"定位信息\",\r\n      \"topic\": \"IMU\",\r\n      \"sensorType\": \"Chassis\",\r\n      \"position\": \"底座\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"1111\",\r\n      \"sensorClass\": \"定位设备\"\r\n    },\r\n    {\r\n      \"sensorName\": \"激光雷达\",\r\n      \"topic\": \"LIDAR_TOP\",\r\n      \"sensorType\": \"LIDAR\",\r\n      \"position\": \"正前\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"123\",\r\n      \"sensorClass\": \"激光雷达\"\r\n    },\r\n\t    {\r\n      \"sensorName\": \"左后毫米波雷达\",\r\n      \"topic\": \"RADAR_BACK_LEFT\",\r\n      \"sensorType\": \"radar2024\",\r\n      \"position\": \"左后\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"123\",\r\n      \"sensorClass\": \"毫米波雷达\"\r\n    },\r\n\t    {\r\n      \"sensorName\": \"右后毫米波雷达\",\r\n      \"topic\": \"RADAR_BACK_RIGHT\",\r\n      \"sensorType\": \"radar2024\",\r\n      \"position\": \"右后\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"123\",\r\n      \"sensorClass\": \"毫米波雷达\"\r\n    },    {\r\n      \"sensorName\": \"左前毫米波雷达\",\r\n      \"topic\": \"RADAR_FRONT_LEFT\",\r\n      \"sensorType\": \"radar2024\",\r\n      \"position\": \"左前\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"123\",\r\n      \"sensorClass\": \"毫米波雷达\"\r\n    },\r\n\t    {\r\n      \"sensorName\": \"正前毫米波雷达\",\r\n      \"topic\": \"RADAR_FRONT\",\r\n      \"sensorType\": \"radar2024\",\r\n      \"position\": \"正前\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"123\",\r\n      \"sensorClass\": \"毫米波雷达\"\r\n    },    \r\n\t\t{\r\n      \"sensorName\": \"右前毫米波雷达\",\r\n      \"topic\": \"RADAR_FRONT_RIGHT\",\r\n      \"sensorType\": \"radar2024\",\r\n      \"position\": \"右前\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"123\",\r\n      \"sensorClass\": \"毫米波雷达\"\r\n    },\r\n\t\t{\r\n      \"sensorName\": \"4D毫米波融合\",\r\n      \"topic\": \"4D_radar_Fusion\",\r\n      \"sensorType\": \"--\",\r\n      \"position\": \"正中\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"--\",\r\n      \"sensorClass\": \"毫米波雷达\"\r\n    },\r\n\t\t{\r\n      \"sensorName\": \"高精地图\",\r\n      \"topic\": \"map\",\r\n      \"sensorType\": \"--\",\r\n      \"position\": \"--\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"--\",\r\n      \"sensorClass\": \"其他\"\r\n    },\r\n\t\t{\r\n      \"sensorName\": \"感知数据\",\r\n      \"topic\": \"perception\",\r\n      \"sensorType\": \"--\",\r\n      \"position\": \"--\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"--\",\r\n      \"sensorClass\": \"其他\"\r\n    },\r\n\t\t{\r\n      \"sensorName\": \"标定参数\",\r\n      \"topic\": \"calibration\",\r\n      \"sensorType\": \"--\",\r\n      \"position\": \"--\",\r\n      \"description\": \"xxxx\",\r\n      \"channel\": \"--\",\r\n      \"sensorClass\": \"其他\"\r\n    }\r\n\t\r\n  ]\r\n}",
+        "req_body_type": "json",
+        "res_body": ""
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "name": "数据集管理",
+    "desc": "数据集管理",
+    "add_time": 1712476573,
+    "up_time": 1712476608,
+    "list": [
+      {
+        "query_path": {
+          "path": "/dataset/{datasetId}",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "var",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 111,
+        "method": "DELETE",
+        "catid": 96,
+        "title": "删除数据集",
+        "path": "/dataset/{datasetId}",
+        "project_id": 22,
+        "req_params": [
+          {
+            "_id": "67c83f7ab5e85e6da4227351",
+            "name": "datasetId",
+            "example": "d434cc48-68ed-45e1-acea-ce6b081ee9a9",
+            "desc": "数据集ID"
+          }
+        ],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "67c83f7ab5e85e70b4227353",
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "required": "1",
+            "_id": "67c83f7ab5e85e65df227352",
+            "name": "X-Username",
+            "example": "wang",
+            "desc": ""
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "json",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {}\n}",
+        "req_body_other": "",
+        "uid": 11,
+        "add_time": 1712483712,
+        "up_time": 1741176698,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/dataset/releases",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 264,
+        "method": "POST",
+        "catid": 96,
+        "title": "发布数据集",
+        "path": "/dataset/releases",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "667249035d885365a5526276",
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "required": "1",
+            "_id": "667249035d885302db526275",
+            "name": "X-Username",
+            "example": "wanger",
+            "desc": ""
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "json",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {}\n}",
+        "req_body_other": "{\r\n    \"datasetId\": \"2bf07b62-dbc0-49b8-8752-45494087d91a\", // 数据集ID\r\n    \"rawIds\": [ // 要发布的数据ID列表（合规数据、切片数据）\r\n        \"00b41b6c-08d9-4755-a438-e7e24101f0fa\"\r\n    ],\r\n    \r\n    \"vehicleSensors\": {\r\n        \"vconfigId\": \"v1234\", // 车辆类型\r\n        \"sensors\": [ // 传感器列表\r\n            {\r\n                \"sensorClass\": \"camera\", // TODO 枚举值待定\r\n                \"topics\": [\r\n                    \"camera1\",\r\n                    \"camera2\",\r\n                    \"camera3_fisheye\"\r\n                ]\r\n            },\r\n            {\r\n                \"sensorClass\": \"lidar\", // TODO 枚举值待定\r\n                \"topics\": [\r\n                    \"lidar1\"\r\n                ]\r\n            },\r\n        ]\r\n    }\r\n    \r\n}",
+        "uid": 27,
+        "add_time": 1713404290,
+        "up_time": 1718765827,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/dataset",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": true,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 84,
+        "method": "GET",
+        "catid": 96,
+        "title": "数据集列表",
+        "path": "/dataset",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1712476801,
+        "up_time": 1722407418,
+        "req_query": [
+          {
+            "required": "0",
+            "_id": "66a9d9fae28803632a9fcc52",
+            "name": "annotationType",
+            "example": "0,1",
+            "desc": "标注类型：0: 图片_单帧标注、1: 图片_连续帧标注、2: 图片_单帧语义分割、3: 图片_连续帧语义分割、4: 图片_多目连续帧、5: 点云_单帧、6: 点云_单帧融合(带配置)、7: 点云_连续帧标注、8: 点云_连续帧融合标注(带配置)、9: 点云_单帧语义分割、10: 点云_叠加连续帧融合标注(动态叠加)、11: 点云_叠加单帧语义分割(静态叠加)。多个以英文逗号分割"
+          },
+          {
+            "required": "0",
+            "_id": "66a9d9fae288035fad9fcc51",
+            "name": "readyStatus",
+            "example": "notReady,processing",
+            "desc": "数据状态：notReady:未就绪、processing:处理中、ready:已就绪、failed:失败。多个以英文逗号分割"
+          },
+          {
+            "required": "0",
+            "_id": "66a9d9fae288031f529fcc50",
+            "name": "annotationStatus",
+            "example": "unannotated,annotated",
+            "desc": "标注状态：unannotated:未标注、annotated:已标注、annotating:标注中。多个以英文逗号分割"
+          },
+          {
+            "required": "0",
+            "_id": "66a9d9fae2880356739fcc4f",
+            "name": "datasetId",
+            "example": "",
+            "desc": "数据集ID"
+          },
+          {
+            "required": "0",
+            "_id": "66a9d9fae28803713c9fcc4e",
+            "name": "datasetName",
+            "example": "",
+            "desc": "数据集名称"
+          },
+          {
+            "required": "0",
+            "_id": "66a9d9fae2880362179fcc4d",
+            "name": "page",
+            "example": "",
+            "desc": "页码，默认1"
+          },
+          {
+            "required": "0",
+            "_id": "66a9d9fae2880347879fcc4c",
+            "name": "pageSize",
+            "example": "",
+            "desc": "页大小，默认10"
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\n  \"msg\": \"success\",\n  \"code\": 0,\n  \"data\": {\n    \"total\": 1,\n    \"list\": [\n      {\n        \"id\": 5,\n        \"datasetId\": \"456\", // 数据集ID\n        \"datasetName\": \"abc\", // 数据集名称\n        \"description\": \"abc\", // 描述信息\n        \"readyStatus\": \"abc\", // 就绪状态：notReady:未就绪、processing:处理中、ready:就绪、failed:失败\n        \"extractingFrameType\": \"frameExtraction\", // 抽帧类型：noFrameExtraction:不抽帧、frameExtraction:抽帧\n        \"extractingFrameParams\": \"{\\\"interval\\\":10,\\\"extracting\\\":3}\",  // 抽帧参数，当annotationType为frameExtraction时有效，如：{\"interval\": 10, \"extracting\": 3}，表示每10帧抽取3帧\n        \"annotationType\": \"abc\", // 标注类型：0: 图片_单帧标注、1: 图片_连续帧标注、2: 图片_单帧语义分割、3: 图片_连续帧语义分割、4: 图片_多目连续帧、5: 点云_单帧、6: 点云_单帧融合(带配置)、7: 点云_连续帧标注、8: 点云_连续帧融合标注(带配置)、9: 点云_单帧语义分割、10: 点云_叠加连续帧融合标注(动态叠加)、11: 点云_叠加单帧语义分割(静态叠加)\n        \"annotationStatus\": \"unannotated\", // 标注状态：unannotated:未标注、annotating:标注中、annotated:已标注\n        \"creator\": \"dataverse\", // 创建人\n        \"createTime\": 1712478767000, // 创建时间，单位：毫秒时间戳\n        \"updateTime\": 1712478767000, // 更新时间，单位：毫秒时间戳\n        \"datasetUrl\": \"{\\\"normal\\\": \\\"dataset:数据集名称-001_ce897ec7-3403-451d-a418-98da856f12c0/\\\", \\\"overlay\\\": \\\"dataset:数据集名称-001_ce897ec7-3403-451d-a418-98da856f12c0/\\\"}\",\n // 数据集送标存储地址\n        \"filesSize\": 0, // 数据集文件大小，单位ＭＢ\n        \"filesNumber\": 0, // 数据集文件数量\n        \"annotationResultUrl\": \"\", // 数据集标注结果地址\n        \"originTaskInstanceId\": \"\" // 关联任务ID\n      }\n    ]\n  }\n}"
+      },
+      {
+        "query_path": {
+          "path": "/dataset/files/{datasetId}",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "var",
+        "req_body_is_json_schema": true,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 300,
+        "method": "GET",
+        "catid": 96,
+        "title": "数据集文件列表",
+        "path": "/dataset/files/{datasetId}",
+        "project_id": 22,
+        "req_params": [
+          {
+            "_id": "667e86dba4e89a97cb48fba8",
+            "name": "datasetId",
+            "example": "2bf07b62-dbc0-49b8-8752-45494087d91a",
+            "desc": "数据集ID"
+          }
+        ],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "667e86dba4e89a969348fbad",
+            "name": "collectName",
+            "example": "dataset",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "667e86dba4e89a4d8248fbac",
+            "name": "prefix",
+            "example": "2222222_e8d586e1-5a94-429c-bb4c-f30937a26764/JAC_SUV_0629_346b3b98-2ddf-42d3-8a91-51d96bf4c6c5/img/CAM_AVM/",
+            "desc": "数据集地址前缀"
+          },
+          {
+            "required": "0",
+            "_id": "667e86dba4e89a9ea848fbab",
+            "name": "startAfter",
+            "example": "2222222_e8d586e1-5a94-429c-bb4c-f30937a26764/JAC_SUV_0629_346b3b98-2ddf-42d3-8a91-51d96bf4c6c5/img/CAM_AVM/1537299220887.jpg",
+            "desc": "起始位置后的"
+          },
+          {
+            "required": "0",
+            "_id": "667e86dba4e89a19e248fbaa",
+            "name": "page",
+            "example": "",
+            "desc": "页码，默认1"
+          },
+          {
+            "required": "0",
+            "_id": "667e86dba4e89a9d8448fba9",
+            "name": "pageSize",
+            "example": "",
+            "desc": "页大小，默认10"
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\n  \"msg\": \"success\",\n  \"code\": 0,\n  \"data\": {\n    \"total\": 0,\n    \"files\": [\n      {\n        \"filename\": \"数据集名称-001_ce897ec7-3403-451d-a418-98da856f12c0/\", // 文件路径\n        \"length\": 0,\n        \"updateTime\": 0, \n        \"isdir\": true, // 是否目录\n        \"subFiles\": 2 // 一级子文件数\n      }\n    ]\n  }\n}",
+        "uid": 27,
+        "add_time": 1713948996,
+        "up_time": 1719568091,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/dataset/annotations",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 228,
+        "method": "PUT",
+        "catid": 96,
+        "title": "数据集标注",
+        "path": "/dataset/annotations",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "66d6898af04fce1337aa65c0",
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "json",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {}\n}",
+        "req_body_other": "{\r\n    \"actionType\": \"annotating\", // 动作类型：annotating：标注中、annotated：已标注\r\n    \"datasets\": [\r\n        {\r\n            \"datasetId\": \"123\", // 数据集ID\r\n            \"annotationResultUrl\": \"{\\\"normal\\\": \\\"dataset:数据集名称-001_ce897ec7-3403-451d-a418-98da856f12c0/\\\", \\\"overlay\\\": \\\"dataset:数据集名称-001_ce897ec7-3403-451d-a418-98da856f12c0/\\\"}\" // 标注结果地址：。当actionType值为annotated时，此为必填项\r\n        }\r\n    ]\r\n}",
+        "uid": 11,
+        "add_time": 1712807373,
+        "up_time": 1725335946,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/dataset/{datasetId}",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "var",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 102,
+        "method": "PUT",
+        "catid": 96,
+        "title": "更新数据集",
+        "path": "/dataset/{datasetId}",
+        "project_id": 22,
+        "req_params": [
+          {
+            "_id": "663995025d885331c2525fac",
+            "name": "datasetId",
+            "example": "d434cc48-68ed-45e1-acea-ce6b081ee9a9",
+            "desc": "数据集ID"
+          }
+        ],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "663995025d88534c2c525fad",
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "json",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {}\n}",
+        "req_body_other": "{\n  \"datasetName\": \"数据集名称\",\n  \"annotationType\": 0, // 标注类型：0: 图片_单帧标注、1: 图片_连续帧标注、2: 图片_单帧语义分割、3: 图片_连续帧语义分割、4: 图片_多目连续帧、5: 点云_单帧、6: 点云_单帧融合(带配置)、7: 点云_连续帧标注、8: 点云_连续帧融合标注(带配置)、9: 点云_单帧语义分割、10: 点云_叠加连续帧融合标注(动态叠加)、11: 点云_叠加单帧语义分割(静态叠加)\n  \"extractingFrameType\": \"frameExtraction\", // 抽帧类型：noFrameExtraction:不抽帧、frameExtraction:抽帧\n  \"extractingFrameParams\": {\"interval\": 10, \"extracting\": 3}, // 抽帧参数，如：{\"interval\": 10, \"extracting\": 3}，表示每10帧抽取3帧。当extractingFrameType为noFrameExtraction时，传递空对象即{}\n  \"description\": \"数据集描述\"\n}",
+        "uid": 11,
+        "add_time": 1712483455,
+        "up_time": 1715049730,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/dataset",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 93,
+        "method": "POST",
+        "catid": 96,
+        "title": "添加数据集",
+        "path": "/dataset",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1712481043,
+        "up_time": 1715049698,
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "663994e25d8853ce26525fab",
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "json",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {}\n}",
+        "req_body_other": "{\n  \"datasetName\": \"数据集名称\",\n  \"annotationType\": 0, // 标注类型：0: 图片_单帧标注、1: 图片_连续帧标注、2: 图片_单帧语义分割、3: 图片_连续帧语义分割、4: 图片_多目连续帧、5: 点云_单帧、6: 点云_单帧融合(带配置)、7: 点云_连续帧标注、8: 点云_连续帧融合标注(带配置)、9: 点云_单帧语义分割、10: 点云_叠加连续帧融合标注(动态叠加)、11: 点云_叠加单帧语义分割(静态叠加)\n  \"extractingFrameType\": \"frameExtraction\", // 抽帧类型：noFrameExtraction:不抽帧、frameExtraction:抽帧\n  \"extractingFrameParams\": {\"interval\": 10, \"extracting\": 3}, // 抽帧参数，如：{\"interval\": 10, \"extracting\": 3}，表示每10帧抽取3帧。当extractingFrameType为noFrameExtraction时，传递空对象即{}\n  \"description\": \"数据集描述\"\n}"
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "name": "任务管理",
+    "desc": "任务管理",
+    "add_time": 1712539110,
+    "up_time": 1712539110,
+    "list": [
+      {
+        "query_path": {
+          "path": "/task-instances",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": true,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 120,
+        "method": "GET",
+        "catid": 101,
+        "title": "任务列表",
+        "path": "/task-instances",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "0",
+            "_id": "677f40306250b45f534f533f",
+            "name": "taskTypes",
+            "example": "[\"uploadURL\", \"syncPaths\"]",
+            "desc": "任务类型：uploadURL:在线上传、syncPaths:数据同步、miningTag:标签挖掘处理、timeSlice:手动切片、tagSliceSingle:单标签切片、tagSliceWhole:整体标签切片、publishDataset:发布数据集、log2World:Log2World处理、visualize:可视化处理、generateTrajectory:生成结构化轨迹数据、export:导出场景、logSim：logSim合包处理、logSimExport：导出logSim"
+          },
+          {
+            "required": "0",
+            "_id": "677f40306250b45d844f533e",
+            "name": "taskStatus",
+            "example": "[\"pending\", \"running\"]",
+            "desc": "任务状态：pending:待执行、running:运行中、completed:已完成、terminated:已终止、failed:失败"
+          },
+          {
+            "required": "0",
+            "_id": "677f40306250b4fbe44f533d",
+            "name": "taskTriggerType",
+            "example": "manual",
+            "desc": "任务触发类型：manual:手动触发、auto:自动触发"
+          },
+          {
+            "required": "0",
+            "_id": "677f40306250b4f3c54f533c",
+            "name": "createStartTime",
+            "example": "",
+            "desc": "创建时间-开始，单位毫秒"
+          },
+          {
+            "required": "0",
+            "_id": "677f40306250b49ecb4f533b",
+            "name": "createEndTime",
+            "example": "",
+            "desc": "创建时间-结束，单位毫秒"
+          },
+          {
+            "required": "0",
+            "_id": "677f40306250b431b04f533a",
+            "name": "taskInstanceId",
+            "example": "",
+            "desc": "任务ID"
+          },
+          {
+            "required": "0",
+            "_id": "677f40306250b4ec084f5339",
+            "name": "taskName",
+            "example": "",
+            "desc": "任务名称"
+          },
+          {
+            "required": "0",
+            "_id": "677f40306250b482a74f5338",
+            "name": "page",
+            "example": "",
+            "desc": "页码，默认1"
+          },
+          {
+            "required": "0",
+            "_id": "677f40306250b4d33e4f5337",
+            "name": "pageSize",
+            "example": "",
+            "desc": "页大小，默认10"
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\n  \"msg\": \"success\",\n  \"code\": 0,\n  \"data\": {\n    \"total\": 1,\n    \"list\": [\n      {\n        \"id\": 1,\n        \"taskInstanceId\": \"5e8f305f-a65f-4ffc-8601-4319140d703b\", // 任务ID\n        \"pid\": \"\",\n        \"taskName\": \"taskName\", // 任务名称\n        \"taskType\": \"taskType\", // 任务类型：uploadURL:在线上传、syncPaths:数据同步、miningTag:标签挖掘处理、timeSlice:手动切片、tagSliceSingle:单标签切片、tagSliceWhole:整体标签切片、publishDataset:发布数据集、log2World:Log2World处理、visualize:可视化处理、generateTrajectory:生成结构化轨迹数据、export:导出场景\n        \"taskStatus\": \"待执行\", // 任务状态：pending:待执行、running:运行中、completed:已完成、terminated:已终止、failed:失败\n        \"childTaskTotal\": 0,\n        \"childTaskSuccessNum\": 0,\n        \"taskTriggerType\": \"triggerType\", // 触发类型：manual:手动触发、auto:自动触发\n        \"createTime\": 1710323450000,\n        \"updateTime\": 1710323450000, //\n        \"startTime\": 0, // 任务开始时间，单位毫秒\n        \"completeTime\": 0, // 任务完成时间，单位毫秒\n        \"terminationTime\": 0, // 任务终止时间，单位毫秒\n        \"creator\": \"creator\", // 创建人\n        \"taskParams\": \"{}\"\n      }\n    ]\n  }\n}",
+        "uid": 11,
+        "add_time": 1712539118,
+        "up_time": 1736392752,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/task-instances",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 138,
+        "method": "DELETE",
+        "catid": 101,
+        "title": "批量删除任务",
+        "path": "/task-instances",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "6639d5dc5d8853b97d525fe4",
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "json",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {}\n}",
+        "req_body_other": "{\n    \"taskInstanceIds\": [\"123\", \"456\"] // 任务示例ID\n}",
+        "uid": 11,
+        "add_time": 1712541224,
+        "up_time": 1715066332,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/task-instances",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 129,
+        "method": "PUT",
+        "catid": 101,
+        "title": "更新任务",
+        "path": "/task-instances",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "67af09e7d30a6a23bc0bee32",
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "required": "1",
+            "_id": "67af09e7d30a6a7f7e0bee31",
+            "name": "X-Username",
+            "example": "zhang",
+            "desc": ""
+          }
+        ],
+        "req_body_form": [],
+        "desc": "<p>更新任务状态，目前支持更新为：终止、完成。<br>\n不同任务状态以 actionType 参数区分，terminate：终止、complete：完成。<br>\n任务状态对应的参数通过 actionParams 传递</p>\n<hr>\n<p>终止任务，入参格式：<br>\n{<br>\n&nbsp; \"actionType\": \"terminate\",<br>\n&nbsp; \"actionParams\": {<br>\n&nbsp;&nbsp;&nbsp; \"taskInstanceIds\": [<br>\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \"123\",<br>\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \"456\"<br>\n&nbsp;&nbsp;&nbsp; ]<br>\n&nbsp; }<br>\n}</p>\n<hr>\n<p>完成任务，入参格式：<br>\n{<br>\n&nbsp;&nbsp;&nbsp; \"actionType\": \"complete\",<br>\n&nbsp;&nbsp;&nbsp; \"actionParams\": {<br>\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \"taskInstanceId\": \"e8a4a187-bf03-4137-b329-0ceafc5e8f32\"<br>\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \"businessId\": \"04dcb1e1-4d5e-464e-9b34-174beafc2f2f\", // 标签挖掘，这里是合规数据id；切片场景转换，这里是场景id<br>\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \"tagFilename\": \"d74a7d88-679e-402c-8a01-91aab94dc4bd.judge\"&nbsp; // 任务为标签挖掘时，这里为必填项<br>\n&nbsp;&nbsp;&nbsp; }<br>\n}</p>\n",
+        "markdown": "更新任务状态，目前支持更新为：终止、完成。\n不同任务状态以 actionType 参数区分，terminate：终止、complete：完成。\n任务状态对应的参数通过 actionParams 传递\n\n- - -\n\n终止任务，入参格式：\n{\n  \"actionType\": \"terminate\",\n  \"actionParams\": {\n    \"taskInstanceIds\": [\n      \"123\",\n      \"456\"\n    ]\n  }\n}\n\n- - -\n\n完成任务，入参格式：\n{\n    \"actionType\": \"complete\",\n    \"actionParams\": {\n        \"taskInstanceId\": \"e8a4a187-bf03-4137-b329-0ceafc5e8f32\"\n        \"businessId\": \"04dcb1e1-4d5e-464e-9b34-174beafc2f2f\", // 标签挖掘，这里是合规数据id；切片场景转换，这里是场景id\n        \"tagFilename\": \"d74a7d88-679e-402c-8a01-91aab94dc4bd.judge\"  // 任务为标签挖掘时，这里为必填项\n    }\n}",
+        "req_body_type": "json",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {}\n}",
+        "req_body_other": "{\n   \"actionType\": \"terminate\",\n   \"actionParams\": {\n      \"taskInstanceIds\": [\n         \"123\",\n         \"456\"\n      ]\n   }\n}",
+        "uid": 11,
+        "add_time": 1712541035,
+        "up_time": 1739524583,
+        "__v": 0
+      }
+    ]
+  },
+  {
+    "index": 4,
+    "name": "业务标签管理",
+    "desc": "业务标签管理",
+    "add_time": 1712545347,
+    "up_time": 1712545347,
+    "list": [
+      {
+        "query_path": {
+          "path": "/biz-tags",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": true,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 174,
+        "method": "GET",
+        "catid": 106,
+        "title": "业务标签列表",
+        "path": "/biz-tags",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "668ce7bca4e89a060a48fc4d",
+            "name": "businessType",
+            "example": "raw",
+            "desc": "业务类型：raw:合规数据、sub:切片数据、scene:场景数据"
+          },
+          {
+            "required": "1",
+            "_id": "668ce7bca4e89ac33448fc4c",
+            "name": "businessId",
+            "example": "00b41b6c-08d9-4755-a438-e7e24101f0fa",
+            "desc": "业务ID"
+          },
+          {
+            "required": "0",
+            "_id": "668ce7bca4e89aab5448fc4b",
+            "name": "actionOrigins",
+            "example": "[\"manual\", \"mining\"]",
+            "desc": "标签来源：manual:手动打标、mining:挖掘打标、collect:采集打标"
+          },
+          {
+            "required": "0",
+            "_id": "668ce7bca4e89a41b948fc4a",
+            "name": "tagPath",
+            "example": "abc",
+            "desc": "标签名称。注：支持模糊搜索"
+          },
+          {
+            "required": "0",
+            "_id": "668ce7bca4e89a284e48fc49",
+            "name": "tagTypes",
+            "example": "[\"static\", \"dynamic\"]",
+            "desc": "标签类型: dynamic：动态实体、scenario：场景分配、static：静态场景、environment：环境状况"
+          },
+          {
+            "required": "0",
+            "_id": "668ce7bca4e89a8b5848fc48",
+            "name": "creators",
+            "example": "[\"qiu\", \"chen\"]",
+            "desc": "操作人名称"
+          },
+          {
+            "required": "0",
+            "_id": "668ce7bca4e89a8e3d48fc47",
+            "name": "page",
+            "example": "",
+            "desc": "页码，默认1"
+          },
+          {
+            "required": "0",
+            "_id": "668ce7bca4e89a707448fc46",
+            "name": "pageSize",
+            "example": "",
+            "desc": "页大小，默认10"
+          }
+        ],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "668ce7bca4e89abc9d48fc4e",
+            "name": "X-Username",
+            "value": "",
+            "example": "%E7%8E%8B"
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\r\n  \"msg\": \"success\",\r\n  \"code\": 0,\r\n  \"data\": {\r\n    \"total\": 1,\r\n    \"list\": [\r\n      {\r\n        \"id\": 33,\r\n        \"businessTagId\": \"65c561d3-32bb-41b4-adf6-0ca9fda8c2d1\", // 业务标签ID\r\n        \"businessType\": \"合规数据\", // 业务类型：raw:合规数据、sub:切片数据、scene:场景数据\r\n        \"businessId\": \"2b68e6fd-368a-4035-be8b-5f8048b2ee10\",\r\n        \"tagPath\": \"动态实体.主车.纵向行动.静止\", // 标签中文全路径\r\n        \"tagPathEn\": \"Dynamic entities.ego.Longitudinal action.Standing still\", // 标签英文文全路径\r\n        \"tagId\": \"73823430923005952\", // 业务标签ID\r\n        \"tagType\": \"static\", // dynamic：动态实体、scenario：场景分配、static：静态场景、environment：环境状况，其他...\r\n        \"actionOrigin\": \"手动打标\", // 标签来源：manual:手动打标、mining:挖掘打标、collect:采集打标\r\n        \"tagStartTime\": 10, // 开始时间\r\n        \"tagEndTime\": 90, // 结束时间\r\n        \"description\": \"手动打标描述\", // 描述\r\n        \"creator\": \"秋晨\", // 操作人\r\n        \"createTime\": 1712575076000, \r\n        \"updateTime\": 1712575076000, // 操作时间\r\n      }\r\n    ]\r\n  }\r\n}",
+        "uid": 27,
+        "add_time": 1712626587,
+        "up_time": 1720510396,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/biz-tags/{businessTagId}",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "var",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 192,
+        "method": "DELETE",
+        "catid": 106,
+        "title": "删除业务标签",
+        "path": "/biz-tags/{businessTagId}",
+        "project_id": 22,
+        "req_params": [
+          {
+            "_id": "663b290e5d8853740752601a",
+            "name": "businessTagId",
+            "example": "14839707-2da0-4449-a713-2cdc8d983d47",
+            "desc": "业务标签ID"
+          }
+        ],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "663b290e5d88534df552601b",
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "json",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {}\n}",
+        "req_body_other": "",
+        "uid": 27,
+        "add_time": 1712627950,
+        "up_time": 1715153166,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/biz-tags/copy",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 384,
+        "method": "POST",
+        "catid": 106,
+        "title": "复制标签",
+        "path": "/biz-tags/copy",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "667d1363a4e89a955b48fb93",
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "required": "1",
+            "_id": "667d1363a4e89a78fa48fb92",
+            "name": "X-Username",
+            "value": "",
+            "example": "wang",
+            "desc": ""
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {}\n}",
+        "req_body_other": "{\r\n    \"source\": {\r\n        \"businessId\": \"123\", // 业务ID\r\n        \"businessType\": \"sub\" // 业务类型：raw:合规数据、sub:切片数据、scene:场景\r\n    },\r\n    \"target\": {\r\n        \"businessId\": \"123\", // 业务ID\r\n        \"businessType\": \"scene\" // 业务类型：raw:合规数据、sub:切片数据、scene:场景\r\n    }\r\n}",
+        "req_body_type": "json",
+        "uid": 27,
+        "add_time": 1719472572,
+        "up_time": 1719472995,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/biz-tags",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 291,
+        "method": "DELETE",
+        "catid": 106,
+        "title": "批量删除业务标签",
+        "path": "/biz-tags",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "668b58e5a4e89ac19248fbcb",
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "required": "1",
+            "_id": "668b58e5a4e89a527048fbca",
+            "name": "X-Username",
+            "value": "chen",
+            "example": "",
+            "desc": ""
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "json",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {}\n}",
+        "req_body_other": "{\n    \"businessTagIds\": [\"123\", \"456\"] // 业务标签ID\n}",
+        "uid": 27,
+        "add_time": 1713857805,
+        "up_time": 1720408293,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/biz-tags",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 147,
+        "method": "POST",
+        "catid": 106,
+        "title": "添加业务标签",
+        "path": "/biz-tags",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "666c0fdf5d8853bf5a526258",
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "required": "1",
+            "_id": "666c0fdf5d88534791526257",
+            "name": "X-Username",
+            "example": "%E7%8E%8B",
+            "desc": ""
+          }
+        ],
+        "req_body_form": [],
+        "desc": "<blockquote>\n<p><strong>此接口标签挖掘和手打标签共用，以actionType区分：manual:手动打标、mining:挖掘打标</strong></p>\n</blockquote>\n<p><strong>标签挖掘结构如下：</strong><br>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">{</span><br>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\"><strong>\"actionType\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">:</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">&nbsp;</span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\"><strong>\"mining\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">,</span><br>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\"><strong>\"tags\"</strong></span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">:&nbsp;</span>{<br>\n&nbsp; &nbsp; &nbsp; &nbsp; //&nbsp;在此为标签挖掘内容<br>\n&nbsp;&nbsp;&nbsp;&nbsp;}<br>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">}</span></p>\n",
+        "markdown": "> **此接口标签挖掘和手打标签共用，以actionType区分：manual:手动打标、mining:挖掘打标**\n\n**标签挖掘结构如下：**\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">{</span>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">    </span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\">**\"actionType\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">:</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\"> </span><span class=\"colour\" style=\"color: rgb(58, 181, 74);\">**\"mining\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">,</span>\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">    </span><span class=\"colour\" style=\"color: rgb(146, 39, 143);\">**\"tags\"**</span><span class=\"colour\" style=\"color: rgb(112, 125, 107);\">: </span>{\n        // 在此为标签挖掘内容\n    }\n<span class=\"colour\" style=\"color: rgb(112, 125, 107);\">}</span>",
+        "req_body_type": "json",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {}\n}",
+        "req_body_other": "{\n    \"businessId\": \"2b68e6fd-368a-4035-be8b-5f8048b2eec9\", // 原始数据ID\n    \"businessType\": \"\", // 业务类型：raw:合规数据、sub:切片数据、scene:场景数据。\n    \"annotation\": { // 标注信息\n        \"tagIds\": [ // 选择的标签id列表\n            \"123\", \n            \"456\"\n        ],\n        \"tagStartTime\": 10, // 开始时间\n        \"tagEndTime\": 90, // 结束时间\n        \"description\": \"手动打标描述\" // 描述\n    },\n    \"deleteBusinessTagIds\": [ // 要移除的业务标签ID\n        \"123\",\n        \"456\"\n    ]\n}",
+        "uid": 11,
+        "add_time": 1712545358,
+        "up_time": 1718357983,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/biz-tags/{businessTagId}",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "var",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 183,
+        "method": "PUT",
+        "catid": 106,
+        "title": "编辑业务标签",
+        "path": "/biz-tags/{businessTagId}",
+        "project_id": 22,
+        "req_params": [
+          {
+            "_id": "6646b22a5d88537b2d526114",
+            "name": "businessTagId",
+            "example": "14839707-2da0-4449-a713-2cdc8d983d47",
+            "desc": "业务标签ID"
+          }
+        ],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "6646b22a5d88539087526116",
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "required": "1",
+            "_id": "6646b22a5d885339af526115",
+            "name": "X-Username",
+            "example": "%E7%8E%8B",
+            "desc": ""
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "json",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {}\n}",
+        "req_body_other": "{\n    \"tagStartTime\": 10, // 开始时间\n    \"tagEndTime\": 90, // 结束时间\n    \"description\": \"手动打标描述\" // 描述\n}",
+        "uid": 27,
+        "add_time": 1712627526,
+        "up_time": 1715909162,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/biz-tags/cover-time-list",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 165,
+        "method": "POST",
+        "catid": 106,
+        "title": "获得同名标签时间范围覆盖的列表",
+        "path": "/biz-tags/cover-time-list",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "664abea15d8853672252612a",
+            "name": "businessId",
+            "example": "ea02ac98-44b1-4436-a523-cbc25d4b23a9",
+            "desc": "业务ID"
+          },
+          {
+            "required": "1",
+            "_id": "664abea15d885383b7526129",
+            "name": "businessType",
+            "example": "raw",
+            "desc": "业务类型：raw:合规数据、sub:切片数据、scene:场景数据"
+          }
+        ],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "664abea15d8853500052612b",
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\n  \"msg\": \"success\",\n  \"code\": 0,\n  \"data\": {\n    \"total\": 1,\n    \"list\": [\n      {\n        \"id\": 33,\n        \"businessTagId\": \"65c561d3-32bb-41b4-adf6-0ca9fda8c2d1\", // 业务标签ID\n        \"businessType\": \"合规数据\", // 业务类型：raw:合规数据、sub:切片数据、scene:场景数据\n        \"businessId\": \"2b68e6fd-368a-4035-be8b-5f8048b2ee10\",\n        \"tagPath\": \"小芳明很喜欢\", // 标签名称\n        \"actionOrigin\": \"手动打标\", // 标签来源：manual:手动打标、mining:挖掘打标、collect:采集打标\n        \"tagStartTime\": 10, // 开始时间\n        \"tagEndTime\": 90, // 结束时间\n        \"description\": \"手动打标描述\", // 描述\n        \"creator\": \"秋晨\", // 操作人\n        \"createTime\": 1712575076000, \n        \"updateTime\": 1712575076000 // 操作时间\n      }\n    ]\n  }\n}",
+        "uid": 11,
+        "add_time": 1712558091,
+        "up_time": 1716174497,
+        "__v": 0,
+        "req_body_other": "{\n  \"tagIds\": [ // 选择的标签id\n      \"123\", \"456\"\n  ], \n  \"tagStartTime\": 1, // 开始时间，单位毫秒时间戳\n  \"tagEndTime\": 99 // 结束时间，单位毫秒时间戳\n}",
+        "req_body_type": "json"
+      }
+    ]
+  },
+  {
+    "index": 5,
+    "name": "切片管理",
+    "desc": null,
+    "add_time": 1712648627,
+    "up_time": 1712648627,
+    "list": [
+      {
+        "query_path": {
+          "path": "/slices",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 201,
+        "method": "POST",
+        "catid": 111,
+        "title": "切片",
+        "path": "/slices",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "663b40f05d8853ff96526037",
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "required": "1",
+            "_id": "663b40f05d88532ac7526036",
+            "name": "X-Username",
+            "example": "%E7%8E%8B",
+            "desc": ""
+          }
+        ],
+        "req_body_form": [],
+        "desc": "<p>时间切片和标签切片共用同一个接口地址，二者以参数sliceType为区分</p>\n<p><br data-tomark-pass=\"\"><br>\n时间切片入参格式：<br>\n{<br>\n&nbsp; &nbsp; \"sliceType\": \"timeSlice\", // 切片类型：timeSlice：时间切片、tagSliceSingle：单标签切片、tagSliceWhole：整体标签切片。时间切片固定为：timeSlice<br>\n&nbsp;&nbsp;&nbsp; \"rawId\": \"bb587c49-8948-4b02-845e-d4a2eeaab1bb\", // 合规数据ID<br>\n&nbsp;&nbsp;&nbsp; \"startTime\": 10, // 时间片段-开始<br>\n&nbsp;&nbsp;&nbsp; \"endTime\": 90, //&nbsp; 时间片段-结束<br>\n&nbsp;&nbsp;&nbsp; \"sliceName\": \"切片数据名称\"<br>\n}</p>\n<hr>\n<p>标签切片入参格式：<br>\n{<br>\n&nbsp; &nbsp; \"sliceType\": \"tagSliceSingle\", // 切片类型：timeSlice：时间切片、tagSliceSingle：单标签切片、tagSliceWhole：整体标签切片。标签切片为：tagSliceSingle、tagSliceWhole<br>\n&nbsp;&nbsp;&nbsp; \"rawIds\": [\"bb587c49-8948-4b02-845e-d4a2eeaab1bb\"], // 合规数据ID列表<br>\n&nbsp;&nbsp;&nbsp; \"tagPaths\": [\"abc\", \"def\"], // 切片标签列表<br>\n&nbsp;&nbsp;&nbsp; \"startTimeDeviation\": 10, // 切片开始时间偏差<br>\n&nbsp;&nbsp;&nbsp; \"endTimeDeviation\": 90, // 切片结束时间偏差<br>\n}</p>\n",
+        "markdown": "时间切片和标签切片共用同一个接口地址，二者以参数sliceType为区分\n\n<br>\n时间切片入参格式：\n{\n    \"sliceType\": \"timeSlice\", // 切片类型：timeSlice：时间切片、tagSliceSingle：单标签切片、tagSliceWhole：整体标签切片。时间切片固定为：timeSlice\n    \"rawId\": \"bb587c49-8948-4b02-845e-d4a2eeaab1bb\", // 合规数据ID\n    \"startTime\": 10, // 时间片段-开始\n    \"endTime\": 90, //  时间片段-结束\n    \"sliceName\": \"切片数据名称\"\n}\n\n- - -\n\n标签切片入参格式：\n{\n    \"sliceType\": \"tagSliceSingle\", // 切片类型：timeSlice：时间切片、tagSliceSingle：单标签切片、tagSliceWhole：整体标签切片。标签切片为：tagSliceSingle、tagSliceWhole\n    \"rawIds\": [\"bb587c49-8948-4b02-845e-d4a2eeaab1bb\"], // 合规数据ID列表\n    \"tagPaths\": [\"abc\", \"def\"], // 切片标签列表\n    \"startTimeDeviation\": 10, // 切片开始时间偏差\n    \"endTimeDeviation\": 90, // 切片结束时间偏差\n}",
+        "req_body_type": "json",
+        "res_body": "{\n   \"msg\": \"success\",\n   \"code\": 0,\n   \"data\": {}\n}",
+        "req_body_other": "{\n    \"sliceType\": \"timeSlice\", // 切片类型：timeSlice：时间切片、tagSliceSingle：单标签切片、tagSliceWhole：整体标签切片。时间切片固定为：timeSlice。标签切片为：tagSliceSingle、tagSliceWhole\n    \n    // 以下为时间切片的请求体结构内容。详细描述见备注\n    \"rawId\": \"bb587c49-8948-4b02-845e-d4a2eeaab1bb\", // 合规数据ID\n    \"startTime\": 10, // 时间片段-开始\n    \"endTime\": 90, //  时间片段-结束\n    \"sliceName\": \"切片数据名称\"\n}",
+        "uid": 27,
+        "add_time": 1712648644,
+        "up_time": 1715159280,
+        "__v": 0
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "name": "合规数据管理",
+    "desc": null,
+    "add_time": 1715162074,
+    "up_time": 1715162074,
+    "list": [
+      {
+        "query_path": {
+          "path": "/dataplatform/rawdata",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 635,
+        "method": "GET",
+        "catid": 126,
+        "title": "合规数据列表",
+        "path": "/dataplatform/rawdata",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 27,
+        "add_time": 1737337028,
+        "up_time": 1737337093,
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "678da9050c22fddb76ca58f0",
+            "name": "filter",
+            "example": "{}",
+            "desc": ""
+          },
+          {
+            "required": "1",
+            "_id": "678da9050c22fdc871ca58ef",
+            "name": "tagFilter",
+            "example": "",
+            "desc": ""
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "res_body": ""
+      },
+      {
+        "query_path": {
+          "path": "/dataplatform/topic/files",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 747,
+        "method": "GET",
+        "catid": 126,
+        "title": "合规数据列表_copy",
+        "path": "/dataplatform/topic/files",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "67c902c006f49fffcd5f3032",
+            "name": "rawId",
+            "example": "e84f8815-2949-4acd-ba2b-8745a04de7cd",
+            "desc": ""
+          },
+          {
+            "required": "1",
+            "_id": "67c902c006f49f5b8d5f3031",
+            "name": "topic",
+            "example": "CAM_FRONT_LEFT",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "67c902c006f49f2ccb5f3030",
+            "name": "keyword",
+            "example": "",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "67c902c006f49ff73b5f302f",
+            "name": "page",
+            "example": "",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "67c902c006f49f6b9c5f302e",
+            "name": "pageSize",
+            "example": "",
+            "desc": ""
+          }
+        ],
+        "req_headers": [],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "res_body": "",
+        "uid": 27,
+        "add_time": 1741226614,
+        "up_time": 1741226688,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/dataplatform/rawdata/importZip",
+          "params": [
+            {
+              "_id": "6721e2a6e7bb5cd280cdf771",
+              "name": "filePath",
+              "value": "/AA/"
+            },
+            {
+              "_id": "6721e2a6e7bb5c70aacdf770",
+              "name": "fileName",
+              "value": "a1.zip"
+            }
+          ]
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 429,
+        "method": "POST",
+        "catid": 126,
+        "title": "在线上传",
+        "path": "/dataplatform/rawdata/importZip?filePath=/AA/&fileName=a1.zip",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 42,
+        "add_time": 1728443802,
+        "up_time": 1730273958,
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "6721e2a6e7bb5c5ad7cdf76e",
+            "name": "filePath",
+            "example": "/nuscene/2018-9-19/",
+            "desc": ""
+          },
+          {
+            "required": "1",
+            "_id": "6721e2a6e7bb5cbe14cdf76d",
+            "name": "fileName",
+            "example": "a1.zip",
+            "desc": ""
+          }
+        ],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "6721e2a6e7bb5ce207cdf76f",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "file",
+        "res_body": "{\n   \"result\": \"success\",\n   \"code\": 0,\n   \"taskId\": \"263c179f-9205-4fa7-9470-469992363896\"\n}",
+        "req_body_other": "binary-filestream"
+      },
+      {
+        "query_path": {
+          "path": "/dataplatform/rawdata",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 644,
+        "method": "POST",
+        "catid": 126,
+        "title": "在线上传_copy",
+        "path": "/dataplatform/rawdata",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "678e24710c22fd8391ca590c",
+            "name": "filePath",
+            "example": "/nuscene/2018-9-19/",
+            "desc": ""
+          },
+          {
+            "required": "1",
+            "_id": "678e24710c22fd9973ca590b",
+            "name": "fileName",
+            "example": "a1.zip",
+            "desc": ""
+          }
+        ],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "678e24710c22fd79e8ca590d",
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "json",
+        "res_body": "{\n   \"result\": \"success\",\n   \"code\": 0,\n   \"taskId\": \"263c179f-9205-4fa7-9470-469992363896\"\n}",
+        "req_body_other": "{\n   \"configFile\": \"cfg.json\",\n   \"userid\": \"dataverse\",\n   \"taskId\": \"\",\n   \"dataPath\": \"dataPath -> rawdata:GWM-demo/NAS_PARK1_2022-01-01/NAS_PARK1_20220101_084458/\"\n}",
+        "uid": 27,
+        "add_time": 1737368376,
+        "up_time": 1737368689,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/dataplatform/triggerJob",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 345,
+        "method": "POST",
+        "catid": 126,
+        "title": "工作流触发",
+        "path": "/dataplatform/triggerJob",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 42,
+        "add_time": 1715162200,
+        "up_time": 1737007061,
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "67889fd50c22fd476cca58e2",
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "<h3>logsim导出示例：</h3>\n<p>{<br>\n&nbsp;&nbsp;&nbsp; \"jobType\": \"logSimExport\",<br>\n&nbsp;&nbsp;&nbsp; \"jobParams\": {<br>\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \"sceneIds\": [<br>\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \"43eafc7f-c2d2-4669-bbbe-42ebc2af8efd\"<br>\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ],<br>\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \"categoryId\": \"67c6aa26-09d6-4d39-bc57-1a8cd9f9a660\",<br>\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \"projectId\": \"default\",<br>\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; \"owner\": \"project\"<br>\n&nbsp;&nbsp;&nbsp; }<br>\n}</p>\n",
+        "markdown": "### logsim导出示例：\n\n{\n    \"jobType\": \"logSimExport\",\n    \"jobParams\": {\n        \"sceneIds\": [\n            \"43eafc7f-c2d2-4669-bbbe-42ebc2af8efd\"\n        ],\n        \"categoryId\": \"67c6aa26-09d6-4d39-bc57-1a8cd9f9a660\",\n        \"projectId\": \"default\",\n        \"owner\": \"project\"\n    }\n}",
+        "req_body_other": "{\r\n  \"jobType\":\"logSim\", //工作流类型:log2World | miningTag | timeSlice | logSim | logSimExport\r\n  \"jobParams\":{  //任务参数,rawId必填，可自定义\r\n      \"rawIds\": [\"b6b8f6d3-ee78-48af-a2cd-d56ad745ca59\"]\r\n  }\r\n}",
+        "req_body_type": "json",
+        "res_body": ""
+      },
+      {
+        "query_path": {
+          "path": "/dataplatform/rawdata/batchSync",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 626,
+        "method": "POST",
+        "catid": 126,
+        "title": "批量同步",
+        "path": "/dataplatform/rawdata/batchSync",
+        "project_id": 22,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 27,
+        "add_time": 1737082615,
+        "up_time": 1737085366,
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "6789d1b60c22fda85aca58e7",
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "req_body_other": "{\n   \"syncPath\": \"rawdata:GWM-demo/NAS_PARK1_2022-01-01\"\n}",
+        "req_body_type": "json",
+        "res_body": ""
+      },
+      {
+        "query_path": {
+          "path": "/dataplatform/rawdata/{rawId}",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "var",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 753,
+        "method": "GET",
+        "catid": 126,
+        "title": "获得某个合规数据",
+        "path": "/dataplatform/rawdata/{rawId}",
+        "project_id": 22,
+        "req_params": [
+          {
+            "_id": "67cffa851b68eacd8e6c69e3",
+            "name": "rawId",
+            "example": "e84f8815-2949-4acd-ba2b-8745a04de7cd",
+            "desc": ""
+          }
+        ],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "res_body": "{\n   \"result\": \"success\",\n   \"msg\": \"\",\n   \"code\": 0,\n   \"subraws\": [\n      {\n         \"id_\": 66,\n         \"rawId\": \"ec820bc3-217e-4939-8688-b824611bc18b\",\n         \"parentRawId\": \"e84f8815-2949-4acd-ba2b-8745a04de7cd\",\n         \"parentDataName\": \"cross-1532622061637\",\n         \"dataName\": \"cross_2018-07-27_00:21:05\",\n         \"projectName\": \"public\",\n         \"collectStartTime\": 1532622065000,\n         \"collectEndTime\": 1532622075000,\n         \"dataPath\": \"rawdata:GWM-SUV/cross_2018-07-27/cross_20180727_002101/\",\n         \"dataType\": \"sub\",\n         \"configFile\": \"cfg.json\",\n         \"totalSize\": 0,\n         \"vconfigId\": \"GWM-SUV\",\n         \"fps\": 10,\n         \"businessId\": null,\n         \"createTime\": 1740724338278,\n         \"updateTime\": 1740724338278,\n         \"deleteTime\": null,\n         \"createdBy\": \"test03\",\n         \"visualizeStatus\": 4,\n         \"structuredStatus\": 4,\n         \"geoJson\": \"{\\\"alt\\\":0.111,\\\"lon\\\":1111.111,\\\"lat\\\":23.333}\",\n         \"originTaskInstanceId\": \"20bf0cd2-8211-43d9-b032-5d41b07b5442\",\n         \"registerTime\": 1794999233333,\n         \"configType\": \"数据闭环\",\n         \"owner\": null,\n         \"carType\": null,\n         \"configJson\": null,\n         \"cameraNum\": null,\n         \"lidarNum\": null,\n         \"carName\": \"51sim-nucar1\",\n         \"softwareVersion\": null,\n         \"vehicleName\": \"cross\",\n         \"vehicleId\": \"cross\",\n         \"extraConfig\": null,\n         \"tagNum\": 2,\n         \"collectSupplier\": null,\n         \"perceptionSupplier\": null,\n         \"arsVersion\": \"17.0\",\n         \"total\": 2\n      },\n      {\n         \"id_\": 65,\n         \"rawId\": \"2c19041a-6c4c-4f70-9c4f-4c71ee9608f0\",\n         \"parentRawId\": \"e84f8815-2949-4acd-ba2b-8745a04de7cd\",\n         \"parentDataName\": \"cross-1532622061637\",\n         \"dataName\": \"cross_2018-07-27_00:21:01\",\n         \"projectName\": \"public\",\n         \"collectStartTime\": 1532622061637,\n         \"collectEndTime\": 1532622081137,\n         \"dataPath\": \"rawdata:GWM-SUV/cross_2018-07-27/cross_20180727_002101/\",\n         \"dataType\": \"sub\",\n         \"configFile\": \"cfg.json\",\n         \"totalSize\": 0,\n         \"vconfigId\": \"GWM-SUV\",\n         \"fps\": 10,\n         \"businessId\": null,\n         \"createTime\": 1740649954264,\n         \"updateTime\": 1740649954264,\n         \"deleteTime\": null,\n         \"createdBy\": \"test03\",\n         \"visualizeStatus\": 4,\n         \"structuredStatus\": 4,\n         \"geoJson\": \"{\\\"alt\\\":0.111,\\\"lon\\\":1111.111,\\\"lat\\\":23.333}\",\n         \"originTaskInstanceId\": \"8aedf527-479e-4e2b-a9bd-d483118d30ec\",\n         \"registerTime\": 1794999233333,\n         \"configType\": \"数据闭环\",\n         \"owner\": null,\n         \"carType\": null,\n         \"configJson\": null,\n         \"cameraNum\": null,\n         \"lidarNum\": null,\n         \"carName\": \"51sim-nucar1\",\n         \"softwareVersion\": null,\n         \"vehicleName\": \"cross\",\n         \"vehicleId\": \"cross\",\n         \"extraConfig\": null,\n         \"tagNum\": 41,\n         \"collectSupplier\": null,\n         \"perceptionSupplier\": null,\n         \"arsVersion\": \"17.0\",\n         \"total\": 2\n      }\n   ],\n   \"rawdata\": {\n      \"id_\": 23,\n      \"rawId\": \"e84f8815-2949-4acd-ba2b-8745a04de7cd\",\n      \"parentRawId\": null,\n      \"parentDataName\": null,\n      \"dataName\": \"cross-1532622061637\",\n      \"projectName\": \"public\",\n      \"collectStartTime\": 1532622061637,\n      \"collectEndTime\": 1532622081137,\n      \"dataPath\": \"rawdata:GWM-SUV/cross_2018-07-27/cross_20180727_002101/\",\n      \"dataType\": \"raw\",\n      \"configFile\": \"cfg.json\",\n      \"totalSize\": 48.22,\n      \"vconfigId\": \"GWM-SUV\",\n      \"vehicleName\": \"cross\",\n      \"vehicleId\": \"cross\",\n      \"fps\": 10,\n      \"tagNum\": 33,\n      \"businessId\": null,\n      \"createTime\": 1741683298166,\n      \"updateTime\": 1741683298166,\n      \"deleteTime\": null,\n      \"createdBy\": \"test03\",\n      \"visualizeStatus\": 4,\n      \"structuredStatus\": 4,\n      \"geoJson\": \"{\\\"alt\\\":0.111,\\\"lon\\\":1111.111,\\\"lat\\\":23.333}\",\n      \"originTaskInstanceId\": \"189e081d-1d67-43dd-ba77-8b04cd21c486\",\n      \"extraConfig\": null,\n      \"collectSupplier\": null,\n      \"perceptionSupplier\": null,\n      \"arsVersion\": \"17.0\"\n   },\n   \"vehicleConfig\": {\n      \"sensors\": [\n         {\n            \"id\": 62,\n            \"vconfigId\": \"GWM-SUV\",\n            \"sensorName\": \"高精地图\",\n            \"sensorClass\": \"HDmap\",\n            \"sensorType\": \"other\",\n            \"topic\": \"map\",\n            \"description\": \"地图存放目录\",\n            \"channel\": null,\n            \"position\": null,\n            \"configJson\": null\n         },\n         {\n            \"id\": 63,\n            \"vconfigId\": \"GWM-SUV\",\n            \"sensorName\": \"感知数据\",\n            \"sensorClass\": \"perception\",\n            \"sensorType\": \"other\",\n            \"topic\": \"perception\",\n            \"description\": \"感知数据目录\",\n            \"channel\": null,\n            \"position\": null,\n            \"configJson\": null\n         },\n         {\n            \"id\": 64,\n            \"vconfigId\": \"GWM-SUV\",\n            \"sensorName\": \"标定参数\",\n            \"sensorClass\": \"calibration\",\n            \"sensorType\": \"other\",\n            \"topic\": \"calibration\",\n            \"description\": \"标定参数目录\",\n            \"channel\": null,\n            \"position\": null,\n            \"configJson\": null\n         },\n         {\n            \"id\": 65,\n            \"vconfigId\": \"GWM-SUV\",\n            \"sensorName\": \"左前摄像头\",\n            \"sensorClass\": \"camera\",\n            \"sensorType\": \"ca256\",\n            \"topic\": \"CAM_FRONT_LEFT\",\n            \"description\": \"xxxx\",\n            \"channel\": \"123\",\n            \"position\": \"左前\",\n            \"configJson\": \"{}\"\n         },\n         {\n            \"id\": 66,\n            \"vconfigId\": \"GWM-SUV\",\n            \"sensorName\": \"正前摄像头\",\n            \"sensorClass\": \"camera\",\n            \"sensorType\": \"ca256\",\n            \"topic\": \"CAM_FRONT\",\n            \"description\": \"xxxx\",\n            \"channel\": \"123\",\n            \"position\": \"正前\",\n            \"configJson\": \"{}\"\n         },\n         {\n            \"id\": 67,\n            \"vconfigId\": \"GWM-SUV\",\n            \"sensorName\": \"右前摄像头\",\n            \"sensorClass\": \"camera\",\n            \"sensorType\": \"ca256\",\n            \"topic\": \"CAM_FRONT_RIGHT\",\n            \"description\": \"xxxx\",\n            \"channel\": \"123\",\n            \"position\": \"右前\",\n            \"configJson\": \"{}\"\n         },\n         {\n            \"id\": 68,\n            \"vconfigId\": \"GWM-SUV\",\n            \"sensorName\": \"左后摄像头\",\n            \"sensorClass\": \"camera\",\n            \"sensorType\": \"ca256\",\n            \"topic\": \"CAM_BACK_LEFT\",\n            \"description\": \"xxxx\",\n            \"channel\": \"123\",\n            \"position\": \"左后\",\n            \"configJson\": \"{}\"\n         },\n         {\n            \"id\": 69,\n            \"vconfigId\": \"GWM-SUV\",\n            \"sensorName\": \"正后摄像头\",\n            \"sensorClass\": \"camera\",\n            \"sensorType\": \"ca256\",\n            \"topic\": \"CAM_BACK\",\n            \"description\": \"xxxx\",\n            \"channel\": \"123\",\n            \"position\": \"正后\",\n            \"configJson\": \"{}\"\n         },\n         {\n            \"id\": 70,\n            \"vconfigId\": \"GWM-SUV\",\n            \"sensorName\": \"右后摄像头\",\n            \"sensorClass\": \"camera\",\n            \"sensorType\": \"ca256\",\n            \"topic\": \"CAM_BACK_RIGHT\",\n            \"description\": \"xxxx\",\n            \"channel\": \"123\",\n            \"position\": \"右后\",\n            \"configJson\": \"{}\"\n         },\n         {\n            \"id\": 71,\n            \"vconfigId\": \"GWM-SUV\",\n            \"sensorName\": \"激光雷达\",\n            \"sensorClass\": \"lidar\",\n            \"sensorType\": \"LIDAR\",\n            \"topic\": \"LIDAR_TOP\",\n            \"description\": \"xxxx\",\n            \"channel\": \"123\",\n            \"position\": \"正前\",\n            \"configJson\": \"{}\"\n         },\n         {\n            \"id\": 72,\n            \"vconfigId\": \"GWM-SUV\",\n            \"sensorName\": \"左后毫米波雷达\",\n            \"sensorClass\": \"radar\",\n            \"sensorType\": \"radar2024\",\n            \"topic\": \"RADAR_BACK_LEFT\",\n            \"description\": \"xxxx\",\n            \"channel\": \"123\",\n            \"position\": \"左后\",\n            \"configJson\": \"{}\"\n         },\n         {\n            \"id\": 73,\n            \"vconfigId\": \"GWM-SUV\",\n            \"sensorName\": \"右后毫米波雷达\",\n            \"sensorClass\": \"radar\",\n            \"sensorType\": \"radar2024\",\n            \"topic\": \"RADAR_BACK_RIGHT\",\n            \"description\": \"xxxx\",\n            \"channel\": \"123\",\n            \"position\": \"右后\",\n            \"configJson\": \"{}\"\n         },\n         {\n            \"id\": 74,\n            \"vconfigId\": \"GWM-SUV\",\n            \"sensorName\": \"左前毫米波雷达\",\n            \"sensorClass\": \"radar\",\n            \"sensorType\": \"radar2024\",\n            \"topic\": \"RADAR_FRONT_LEFT\",\n            \"description\": \"xxxx\",\n            \"channel\": \"123\",\n            \"position\": \"左前\",\n            \"configJson\": \"{}\"\n         },\n         {\n            \"id\": 75,\n            \"vconfigId\": \"GWM-SUV\",\n            \"sensorName\": \"正前毫米波雷达\",\n            \"sensorClass\": \"radar\",\n            \"sensorType\": \"radar2024\",\n            \"topic\": \"RADAR_FRONT\",\n            \"description\": \"xxxx\",\n            \"channel\": \"123\",\n            \"position\": \"正前\",\n            \"configJson\": \"{}\"\n         },\n         {\n            \"id\": 76,\n            \"vconfigId\": \"GWM-SUV\",\n            \"sensorName\": \"右前毫米波雷达\",\n            \"sensorClass\": \"radar\",\n            \"sensorType\": \"radar2024\",\n            \"topic\": \"RADAR_FRONT_RIGHT\",\n            \"description\": \"xxxx\",\n            \"channel\": \"123\",\n            \"position\": \"右前\",\n            \"configJson\": \"{}\"\n         }\n      ],\n      \"vehicle\": {\n         \"id\": 4,\n         \"vconfigId\": \"GWM-SUV\",\n         \"name\": \"51sim-nucar1\",\n         \"projectName\": \"public\",\n         \"configType\": \"数据闭环\",\n         \"owner\": null,\n         \"carType\": null,\n         \"configJson\": null,\n         \"cameraNum\": null,\n         \"lidarNum\": null,\n         \"createTime\": 1740552530096,\n         \"updateTime\": 1740552530096,\n         \"deleteTime\": null,\n         \"createdBy\": \"admin\",\n         \"updatedBy\": null,\n         \"registerTime\": 1794999233333,\n         \"softwareVersion\": null,\n         \"autoSliceFlag\": 0\n      }\n   },\n   \"tags\": [\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"111\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"2222\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"被包含\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"被包含\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"05-17\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"全部包含\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"全部包含\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      },\n      {\n         \"id\": null,\n         \"businessTagId\": null,\n         \"businessType\": null,\n         \"businessId\": null,\n         \"tagPath\": null,\n         \"tagPathEn\": null,\n         \"tagId\": null,\n         \"tagType\": null,\n         \"actionOrigin\": null,\n         \"tagStartTime\": null,\n         \"tagEndTime\": null,\n         \"description\": \"\",\n         \"creator\": \"test03\",\n         \"createTime\": null,\n         \"updateTime\": null,\n         \"total\": null,\n         \"typeCount\": null,\n         \"sumTypeCount\": null\n      }\n   ]\n}",
+        "uid": 11,
+        "add_time": 1741682981,
+        "up_time": 1741683333,
+        "__v": 0
+      }
+    ]
+  }
+]

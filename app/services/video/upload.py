@@ -29,7 +29,8 @@ class UploadVideoService:
         self.frame_interval = Config.VIDEO_FRAME_INTERVAL
         self.batch_size = Config.VIDEO_FRAME_BATCH_SIZE
         self.video_processor = VideoProcessor()
-        self.filestore_base_url = os.getenv("FILESTORE_BASE_URL", "http://10.66.12.37:30112")
+        self.storage_service_base_url = os.getenv("STORAGE_SERVICE_BASE_URL", "http://10.66.12.37:30112")
+        self.rawdata_service_base_url = os.getenv("RAWDATA_SERVICE_BASE_URL", "http://10.66.12.37:31557")
 
     def upload(self, video_file: FileStorage) -> Dict[str, Any]:
         """
@@ -314,7 +315,7 @@ class UploadVideoService:
                 logger.info(f"获取文件列表: collection={collection}, prefix={prefix}, page={page}")
                 # 调用获取文件列表API
                 response = requests.get(
-                    f"{self.filestore_base_url}/filestore/{collection}/files",
+                    f"{self.storage_service_base_url}/filestore/{collection}/files",
                     params={
                         "prefix": prefix,
                         "page": page,
@@ -407,11 +408,51 @@ class UploadVideoService:
 
         return image
 
+    def process_by_raw_id(self, raw_id: str) -> Dict[str, Any]:
+        """
+        通过rawId处理数据并生成视频。
+        
+        Args:
+            raw_id: 原始数据ID
+            
+        Returns:
+            Dict[str, Any]: 包含视频URL和处理结果的字典
+        """
+        try:
+            # 调用获取合规数据API
+            response = requests.get(
+                f"{self.rawdata_service_base_url}/dataplatform/rawdata/{raw_id}",
+                headers={"Content-Type": "application/x-www-form-urlencoded"}
+            )
+
+            if response.status_code != 200:
+                raise Exception(f"获取数据失败: {response.text}")
+
+            data = response.json()
+            
+            # 检查响应格式和状态
+            if data.get("result") != "success" or "rawdata" not in data:
+                raise Exception(f"无效的响应数据: {data}")
+            
+            # 获取dataPath
+            data_path = data["rawdata"].get("dataPath")
+            if not data_path:
+                raise Exception(f"数据路径为空: rawId={raw_id}")
+            
+            logger.info(f"获取到数据路径: {data_path}")
+            
+            # 调用已有的process_data_path方法
+            return self.process_data_path(data_path)
+            
+        except Exception as e:
+            logger.error(f"处理rawId失败: {str(e)}")
+            raise
+
 
 if __name__ == "__main__":
     try:
         service = UploadVideoService()
-        result = service.process_data_path("rawdata:GWM-LANSHAN/NAS10S_2022-01-01/NAS10S_20220101_084465_01/avm-front")
+        result = service.process_by_raw_id("e84f8815-2949-4acd-ba2b-8745a04de7cd")
         print(f"视频处理完成: {result['video_url']}")
     except Exception as e:
         print(f"处理失败: {str(e)}")
