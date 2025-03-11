@@ -1,0 +1,620 @@
+[
+  {
+    "index": 0,
+    "name": "filestore",
+    "desc": null,
+    "add_time": 1699345065,
+    "up_time": 1699345065,
+    "list": [
+      {
+        "query_path": {
+          "path": "/filestore/{collect-name}",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "var",
+        "req_body_is_json_schema": true,
+        "res_body_is_json_schema": true,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 46,
+        "method": "POST",
+        "catid": 63,
+        "title": "上传文件",
+        "path": "/filestore/{collect-name}",
+        "project_id": 6,
+        "req_params": [
+          {
+            "_id": "6549f54de02a354907e98f77",
+            "name": "collect-name",
+            "example": "trajectory_xosc",
+            "desc": ""
+          }
+        ],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1699345213,
+        "up_time": 1699345741,
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "6549f54de02a353f23e98f75",
+            "name": "filename",
+            "example": "cc3f3cf9-c1f1-40ae-8115-68009f082e94.xosc",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "6549f54de02a359544e98f74",
+            "name": "appkey",
+            "example": "",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "6549f54de02a35f140e98f73",
+            "name": "project-name",
+            "example": "public",
+            "desc": ""
+          }
+        ],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "6549f54de02a35a141e98f76",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": "{\"type\":\"object\",\"title\":\"empty object\",\"properties\":{}}"
+      },
+      {
+        "query_path": {
+          "path": "/filestore/{collect-name}",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "var",
+        "req_body_is_json_schema": true,
+        "res_body_is_json_schema": true,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 318,
+        "method": "GET",
+        "catid": 63,
+        "title": "下载文件",
+        "path": "/filestore/{collect-name}",
+        "project_id": 6,
+        "req_params": [
+          {
+            "_id": "6629c06b5d88530039525f0a",
+            "name": "collect-name",
+            "example": "dataset",
+            "desc": ""
+          }
+        ],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "6629c06b5d885369bf525f0d",
+            "name": "filename",
+            "example": "数据集名称-001_ce897ec7-3403-451d-a418-98da856f12c0/images/camera1-170320000000.jpg",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "6629c06b5d8853abc3525f0c",
+            "name": "appkey",
+            "example": "",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "6629c06b5d88532c60525f0b",
+            "name": "project-name",
+            "example": "",
+            "desc": ""
+          }
+        ],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "6629c06b5d88535af3525f0e",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": "{\"type\":\"object\",\"title\":\"empty object\",\"properties\":{}}",
+        "uid": 27,
+        "add_time": 1714012164,
+        "up_time": 1714012267,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/filestore/{collect-name}",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "var",
+        "req_body_is_json_schema": true,
+        "res_body_is_json_schema": true,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 363,
+        "method": "DELETE",
+        "catid": 63,
+        "title": "删除文件",
+        "path": "/filestore/{collect-name}",
+        "project_id": 6,
+        "req_params": [
+          {
+            "_id": "665859085d88534ee052621b",
+            "name": "collect-name",
+            "example": "rawdata",
+            "desc": ""
+          }
+        ],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "665859085d8853131152621d",
+            "name": "filename",
+            "example": "车型/车名称_车架号/车架号_日期/vehicle1_1700000000000/camera1/",
+            "desc": ""
+          },
+          {
+            "required": "1",
+            "_id": "665859085d885395f752621c",
+            "name": "isdir",
+            "example": "",
+            "desc": ""
+          }
+        ],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "665859085d88531e3052621e",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": "{\"type\":\"object\",\"title\":\"empty object\",\"properties\":{}}",
+        "uid": 27,
+        "add_time": 1716866619,
+        "up_time": 1717065992,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/filestore/{collect-name}/copy",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "var",
+        "req_body_is_json_schema": true,
+        "res_body_is_json_schema": true,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 282,
+        "method": "GET",
+        "catid": 63,
+        "title": "复制文件",
+        "path": "/filestore/{collect-name}/copy",
+        "project_id": 6,
+        "req_params": [
+          {
+            "_id": "6625cfcb5d8853097f525e2c",
+            "name": "collect-name",
+            "example": "rawdata",
+            "desc": ""
+          }
+        ],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "6625cfcb5d885376d8525e2f",
+            "name": "source",
+            "example": "车型/车名称_车架号/车架号_日期/vehicle1_1700000000000/camera1/170320000000.jpg",
+            "desc": "源对象"
+          },
+          {
+            "required": "1",
+            "_id": "6625cfcb5d8853272c525e2e",
+            "name": "target-collection",
+            "example": "dataset",
+            "desc": "目标bucket"
+          },
+          {
+            "required": "1",
+            "_id": "6625cfcb5d8853aae5525e2d",
+            "name": "target",
+            "example": "数据集ID_名称/images/170320000000.jpg",
+            "desc": "目标对象"
+          }
+        ],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "6625cfcb5d88533714525e30",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": "{\"type\":\"object\",\"title\":\"empty object\",\"properties\":{}}",
+        "uid": 27,
+        "add_time": 1713750620,
+        "up_time": 1713754059,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/filestore/{collect-name}/files",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "done",
+        "type": "var",
+        "req_body_is_json_schema": true,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 273,
+        "method": "GET",
+        "catid": 63,
+        "title": "获得文件列表",
+        "path": "/filestore/{collect-name}/files",
+        "project_id": 6,
+        "req_params": [
+          {
+            "_id": "67cf9adc1752544e1ca664a1",
+            "name": "collect-name",
+            "example": "rawdata",
+            "desc": ""
+          }
+        ],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "0",
+            "_id": "67cf9adc1752544421a664a7",
+            "name": "prefix",
+            "example": "GWM-LANSHAN/NAS10S_2022-01-01/NAS10S_20220101_084465_01/avm-front",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "67cf9adc1752547423a664a6",
+            "name": "start-after",
+            "example": "",
+            "desc": ""
+          },
+          {
+            "required": "1",
+            "_id": "67cf9adc175254481aa664a5",
+            "name": "keyword",
+            "example": "",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "67cf9adc17525475f8a664a4",
+            "name": "page-size",
+            "example": "",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "67cf9adc17525410b8a664a3",
+            "name": "page",
+            "example": "",
+            "desc": ""
+          },
+          {
+            "required": "0",
+            "_id": "67cf9adc1752541c94a664a2",
+            "name": "delimiter",
+            "example": "",
+            "desc": ""
+          }
+        ],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "67cf9adc17525467eea664a8",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": "{\n   \"result\": \"success\",\n   \"total\": 100,\n   \"dirTotal\": 0,\n   \"files\": [\n      {\n         \"filename\": \"GWM-LANSHAN/NAS10S_2022-01-01/NAS10S_20220101_084465_01/avm-front/1640997898339.jpeg\",\n         \"length\": 724760,\n         \"updateTime\": 1741251654461,\n         \"isdir\": false\n      },\n      {\n         \"filename\": \"GWM-LANSHAN/NAS10S_2022-01-01/NAS10S_20220101_084465_01/avm-front/1640997898439.jpeg\",\n         \"length\": 557469,\n         \"updateTime\": 1741251654411,\n         \"isdir\": false\n      },\n      {\n         \"filename\": \"GWM-LANSHAN/NAS10S_2022-01-01/NAS10S_20220101_084465_01/avm-front/1640997898505.jpeg\",\n         \"length\": 557316,\n         \"updateTime\": 1741251654219,\n         \"isdir\": false\n      },\n      {\n         \"filename\": \"GWM-LANSHAN/NAS10S_2022-01-01/NAS10S_20220101_084465_01/avm-front/1640997898639.jpeg\",\n         \"length\": 561098,\n         \"updateTime\": 1741251654170,\n         \"isdir\": false\n      },\n      {\n         \"filename\": \"GWM-LANSHAN/NAS10S_2022-01-01/NAS10S_20220101_084465_01/avm-front/1640997898739.jpeg\",\n         \"length\": 562452,\n         \"updateTime\": 1741251654118,\n         \"isdir\": false\n      },\n      {\n         \"filename\": \"GWM-LANSHAN/NAS10S_2022-01-01/NAS10S_20220101_084465_01/avm-front/1640997898839.jpeg\",\n         \"length\": 562712,\n         \"updateTime\": 1741251654068,\n         \"isdir\": false\n      },\n      {\n         \"filename\": \"GWM-LANSHAN/NAS10S_2022-01-01/NAS10S_20220101_084465_01/avm-front/1640997898939.jpeg\",\n         \"length\": 564155,\n         \"updateTime\": 1741251654018,\n         \"isdir\": false\n      },\n      {\n         \"filename\": \"GWM-LANSHAN/NAS10S_2022-01-01/NAS10S_20220101_084465_01/avm-front/1640997899039.jpeg\",\n         \"length\": 564828,\n         \"updateTime\": 1741251653970,\n         \"isdir\": false\n      },\n      {\n         \"filename\": \"GWM-LANSHAN/NAS10S_2022-01-01/NAS10S_20220101_084465_01/avm-front/1640997899139.jpeg\",\n         \"length\": 568225,\n         \"updateTime\": 1741251653918,\n         \"isdir\": false\n      },\n      {\n         \"filename\": \"GWM-LANSHAN/NAS10S_2022-01-01/NAS10S_20220101_084465_01/avm-front/1640997899239.jpeg\",\n         \"length\": 573906,\n         \"updateTime\": 1741251653862,\n         \"isdir\": false\n      }\n   ],\n   \"page\": 1\n}",
+        "uid": 27,
+        "add_time": 1713497753,
+        "up_time": 1741658844,
+        "__v": 0
+      }
+    ]
+  },
+  {
+    "index": 0,
+    "name": "mongodb",
+    "desc": null,
+    "add_time": 1734406322,
+    "up_time": 1734406322,
+    "list": [
+      {
+        "query_path": {
+          "path": "/mongodb/collections",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": true,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 471,
+        "method": "POST",
+        "catid": 169,
+        "title": "创建文件夹",
+        "path": "/mongodb/collections",
+        "project_id": 6,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1734406371,
+        "up_time": 1734407247,
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "6760f44f30eb956de47b94fe",
+            "name": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "form",
+        "res_body": "{\n   \"projectName\": \"public\",\n   \"creator\": \"51hitech\",\n   \"collectionName\": \"trajectory_source_data\",\n   \"description\": \"Storage for converted raw datas\",\n   \"expireTimeInSeconds\": 0,\n   \"enableAuthorization\": 0,\n   \"storeType\": \"file_store\"\n}"
+      }
+    ]
+  },
+  {
+    "index": 0,
+    "name": "kafka",
+    "desc": null,
+    "add_time": 1734406652,
+    "up_time": 1734406652,
+    "list": [
+      {
+        "query_path": {
+          "path": "/kafka/topics",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "static",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 480,
+        "method": "POST",
+        "catid": 177,
+        "title": "创建topic",
+        "path": "/kafka/topics",
+        "project_id": 6,
+        "req_params": [],
+        "res_body_type": "json",
+        "uid": 11,
+        "add_time": 1734406966,
+        "up_time": 1740050913,
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "67b711e1d30a6a71cb0bee33",
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "json",
+        "res_body": "{\n   \"projectName\": \"public\",\n   \"creator\": \"51hitech\",\n   \"topic_name\": \"scene-process-trigger\",\n   \"enable_auth\": 0,\n   \"num_partitions\": 1,\n   \"desc\": \"Scene transform trigger messages\"\n}",
+        "req_body_other": "{\n   \"projectName\": \"public\",\n   \"creator\": \"51hitech\",\n   \"topic_name\": \"scene-process-trigger\",\n   \"enable_auth\": 0,\n   \"num_partitions\": 1,\n   \"desc\": \"Scene transform trigger messages\"\n}"
+      },
+      {
+        "query_path": {
+          "path": "/kafka/topics/{topic-name}",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "var",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 733,
+        "method": "DELETE",
+        "catid": 177,
+        "title": "删除opic",
+        "path": "/kafka/topics/{topic-name}",
+        "project_id": 6,
+        "req_params": [
+          {
+            "_id": "67c166f1b5e85e5e6e227349",
+            "name": "topic-name",
+            "desc": ""
+          }
+        ],
+        "res_body_type": "json",
+        "req_query": [
+          {
+            "required": "1",
+            "_id": "67c166f1b5e85e624422734a",
+            "name": "project-name",
+            "example": "public",
+            "desc": ""
+          }
+        ],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "67c166f1b5e85e3b5e22734b",
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_type": "json",
+        "res_body": "",
+        "req_body_other": "",
+        "uid": 27,
+        "add_time": 1740538787,
+        "up_time": 1740728049,
+        "__v": 0
+      },
+      {
+        "query_path": {
+          "path": "/mq/{topic-name}",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "var",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 599,
+        "method": "POST",
+        "catid": 177,
+        "title": "向指定topic发送消息",
+        "path": "/mq/{topic-name}",
+        "project_id": 6,
+        "req_params": [
+          {
+            "_id": "67be8dbed30a6a658b0bee42",
+            "name": "topic-name",
+            "example": "structure-job-trigger",
+            "desc": ""
+          }
+        ],
+        "res_body_type": "json",
+        "uid": 27,
+        "add_time": 1736843252,
+        "up_time": 1740541374,
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "67be8dbed30a6a91650bee41",
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "req_body_form": [],
+        "__v": 0,
+        "desc": "",
+        "markdown": "",
+        "req_body_other": "{\n   \"msg\": \"abc\"\n}",
+        "req_body_type": "json",
+        "res_body": ""
+      },
+      {
+        "query_path": {
+          "path": "/kafka/topics/{topic-name}",
+          "params": []
+        },
+        "edit_uid": 0,
+        "status": "undone",
+        "type": "var",
+        "req_body_is_json_schema": false,
+        "res_body_is_json_schema": false,
+        "api_opened": false,
+        "index": 0,
+        "tag": [],
+        "_id": 705,
+        "method": "GET",
+        "catid": 177,
+        "title": "获得指定topic信息",
+        "path": "/kafka/topics/{topic-name}",
+        "project_id": 6,
+        "req_params": [
+          {
+            "_id": "67be8430d30a6a73030bee3e",
+            "name": "topic-name",
+            "example": "structure-job-trigger",
+            "desc": ""
+          }
+        ],
+        "res_body_type": "json",
+        "req_query": [],
+        "req_headers": [
+          {
+            "required": "1",
+            "_id": "67be8430d30a6a7ade0bee3f",
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "req_body_form": [],
+        "desc": "",
+        "markdown": "",
+        "req_body_other": "{\n   \"msg\": \"abc\"\n}",
+        "req_body_type": "json",
+        "res_body": "",
+        "uid": 27,
+        "add_time": 1739257003,
+        "up_time": 1740538928,
+        "__v": 0
+      }
+    ]
+  }
+]
