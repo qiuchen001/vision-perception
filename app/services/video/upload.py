@@ -433,7 +433,7 @@ class UploadVideoService:
             height, width = first_image.shape[:2]
 
             # 创建视频写入器
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            fourcc = cv2.VideoWriter_fourcc(*'H264')
             out = cv2.VideoWriter(output_path, fourcc, 30.0, (width, height))
 
             try:
