@@ -299,11 +299,30 @@ class UploadVideoService:
                 logger.debug(f"Deleted temporary video file: {video_path}")
 
     def _parse_data_path(self, data_path: str) -> Tuple[str, str]:
-        """解析数据路径为collection和prefix"""
+        """
+        解析数据路径为collection和prefix，并添加avm-front子目录
+        
+        Args:
+            data_path: 格式为 collection:path 的数据路径
+            
+        Returns:
+            Tuple[str, str]: collection和处理后的prefix
+        """
         parts = data_path.split(":", 1)
         if len(parts) != 2:
             raise ValueError(f"无效的数据路径格式: {data_path}")
-        return parts[0], parts[1]
+        
+        collection, prefix = parts
+        
+        # 确保prefix以/结尾
+        if not prefix.endswith('/'):
+            prefix += '/'
+        
+        # 添加avm-front子目录
+        prefix += 'avm-front/'
+        
+        logger.info(f"解析数据路径: collection={collection}, prefix={prefix}")
+        return collection, prefix
 
     def _get_all_files(self, collection: str, prefix: str) -> List[Dict[str, Any]]:
         """获取所有图片文件信息"""
