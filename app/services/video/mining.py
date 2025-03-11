@@ -5,7 +5,15 @@ import json
 from openai import OpenAI
 from app.prompt import mining
 from dotenv import load_dotenv
+from pymilvus import MilvusClient
+
+# 加载环境变量
 load_dotenv()
+
+# Milvus配置
+MILVUS_HOST = os.getenv("MILVUS_HOST")
+MILVUS_PORT = os.getenv("MILVUS_PORT")
+COLLECTION_NAME = "video_collection"
 
 
 def parse_json_string(json_str):
@@ -47,9 +55,9 @@ def format_mining_result(mining_result, video_url):
     mining_result_new = []
     for item in mining_result:
         if item['behaviour'] is None or item['behaviour'] == {} or \
-           not isinstance(item['behaviour'], dict) or \
-           item['behaviour'].get('behaviourId') is None or \
-           item['behaviour'].get('behaviourName') is None:
+                not isinstance(item['behaviour'], dict) or \
+                item['behaviour'].get('behaviourId') is None or \
+                item['behaviour'].get('behaviourName') is None:
             continue
 
         if len(item['behaviour']['timeRange'].split('-')) < 2:
@@ -71,6 +79,11 @@ def format_mining_result(mining_result, video_url):
 class MiningVideoService:
     def __init__(self):
         self.video_dao = VideoDAO()
+        uri = f"http://{MILVUS_HOST}:{MILVUS_PORT}"
+        self.milvus_client = MilvusClient(
+            uri=uri,
+            db_name=os.getenv("MILVUS_DB_NAME")
+        )
 
     def mining(self, video_url):
         mining_result = self.mining_video_handler(video_url)
@@ -110,3 +123,42 @@ class MiningVideoService:
             response_format={"type": "json_object"}
         )
         return response.model_dump_json()
+
+    def mining_by_raw_id(self, json_data):
+        """
+        根据raw_id进行视频挖掘
+        
+        Args:
+            json_data: 包含raw_id的json数据
+            
+        Returns:
+            mining结果
+            
+        Raises:
+            ValueError: 当raw_id不存在或找不到对应视频时
+        """
+        # 获取raw_id
+        raw_id = json_data.get("raw_id")
+        if not raw_id:
+            raise ValueError("raw_id is required")
+
+        # 查询视频path
+        res = self.milvus_client.query(
+            collection_name=COLLECTION_NAME,
+            filter=f'resource_id == "{raw_id}"',
+            output_fields=["path"]
+        )
+
+        if not res:
+            raise ValueError(f"No video found for raw_id: {raw_id}")
+
+        video_path = res[0]["path"]
+
+        # 调用原有mining方法
+        return self.mining(video_path)
+
+
+if __name__ == "__main__":
+    mining_video_service = MiningVideoService()
+    mining_result = mining_video_service.mining_by_raw_id({"raw_id": "bfa15196-04d3-4e46-8f2b-8df91d8db908"})
+    print(mining_result)
