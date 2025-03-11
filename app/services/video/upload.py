@@ -61,8 +61,10 @@ class UploadVideoService:
             frames = self._extract_frames(video_file_path)
             result["frame_count"] = len(frames)
 
+            # 生成resource_id
+            resource_id = str(uuid.uuid4())
+
             if frames:
-                resource_id = str(uuid.uuid4())
                 self._process_frames(video_oss_url, frames, resource_id)
                 result["processed_frames"] = len(frames)
 
@@ -73,7 +75,14 @@ class UploadVideoService:
             if not self.video_dao.check_url_exists(video_oss_url):
                 embedding = embed_fn(" ")
                 summary_embedding = embed_fn(" ")
-                self.video_dao.init_video(video_oss_url, embedding, summary_embedding, thumbnail_oss_url, title)
+                self.video_dao.init_video(
+                    video_oss_url, 
+                    embedding, 
+                    summary_embedding, 
+                    thumbnail_oss_url, 
+                    title,
+                    resource_id  # 传入resource_id
+                )
 
             result.update({
                 "file_name": video_oss_url,
@@ -135,13 +144,13 @@ class UploadVideoService:
             frames: 提取的视频帧列表
             resource_id: 资源ID，用于关联原始数据
         """
-        # 使用字典存储批处理数据
+        # 使用字典存储批处理数据，但保持字段名与服务器端一致
         batch_data = {
-            'ids': [],           # 帧ID
-            'embeddings': [],    # 向量嵌入
-            'paths': [],         # 视频路径
-            'resource_ids': [],  # 资源ID
-            'timestamps': []     # 时间戳
+            'm_ids': [],          # 帧ID
+            'embeddings': [],     # 向量嵌入
+            'paths': [],          # 视频路径
+            'resource_id': [],    # 资源ID (注意这里改成单数形式)
+            'at_seconds': []      # 时间戳
         }
 
         # 获取视频的FPS
@@ -151,12 +160,20 @@ class UploadVideoService:
 
         def insert_batch(data: Dict[str, List]):
             """辅助函数：插入一批数据"""
-            if not data['ids']:
+            if not data['m_ids']:
                 return
             
             try:
-                video_frame_operator.insert_data(data)
-                logger.info(f"批量插入 {len(data['ids'])} 帧，时间戳范围: {data['timestamps'][0]}-{data['timestamps'][-1]}秒")
+                # 转换为列表格式，保持字段顺序与服务器端期望一致
+                insert_data = [
+                    data['m_ids'],
+                    data['embeddings'], 
+                    data['paths'],
+                    data['resource_id'],
+                    data['at_seconds']
+                ]
+                video_frame_operator.insert_data(insert_data)
+                logger.info(f"批量插入 {len(data['m_ids'])} 帧，时间戳范围: {data['at_seconds'][0]}-{data['at_seconds'][-1]}秒")
             except Exception as e:
                 logger.error(f"插入数据失败: {str(e)}")
                 raise
@@ -175,17 +192,17 @@ class UploadVideoService:
                     continue
 
                 # 准备数据
-                batch_data['ids'].append(str(uuid.uuid4()))
+                batch_data['m_ids'].append(str(uuid.uuid4()))
                 batch_data['embeddings'].append(embedding)
                 batch_data['paths'].append(video_url)
-                batch_data['resource_ids'].append(str(resource_id))
+                batch_data['resource_id'].append(str(resource_id))  # 注意这里使用单数形式的键
 
                 frame_number = idx * self.frame_interval
                 timestamp = int(frame_number / fps)
-                batch_data['timestamps'].append(timestamp)
+                batch_data['at_seconds'].append(timestamp)
 
                 # 使用配置的批处理大小
-                if len(batch_data['ids']) >= self.batch_size:
+                if len(batch_data['m_ids']) >= self.batch_size:
                     insert_batch(batch_data)
                     clear_batch(batch_data)
 
@@ -194,7 +211,7 @@ class UploadVideoService:
                 continue
 
         # 处理剩余的帧
-        if batch_data['ids']:
+        if batch_data['m_ids']:
             insert_batch(batch_data)
 
     def generate_title(self, video_path: str) -> str:
@@ -287,8 +304,10 @@ class UploadVideoService:
             frames = self._extract_frames(video_path)
             result["frame_count"] = len(frames)
 
+            # 使用传入的raw_id或生成新的resource_id
+            resource_id = raw_id if raw_id else str(uuid.uuid4())
+
             if frames:
-                resource_id = raw_id if raw_id else str(uuid.uuid4())
                 self._process_frames(video_oss_url, frames, resource_id)
                 result["processed_frames"] = len(frames)
 
@@ -299,7 +318,14 @@ class UploadVideoService:
             if not self.video_dao.check_url_exists(video_oss_url):
                 embedding = embed_fn(" ")
                 summary_embedding = embed_fn(" ")
-                self.video_dao.init_video(video_oss_url, embedding, summary_embedding, thumbnail_oss_url, title)
+                self.video_dao.init_video(
+                    video_oss_url, 
+                    embedding, 
+                    summary_embedding, 
+                    thumbnail_oss_url, 
+                    title,
+                    resource_id  # 传入resource_id
+                )
 
             result.update({
                 "file_name": video_oss_url,
