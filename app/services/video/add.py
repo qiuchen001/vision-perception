@@ -37,7 +37,9 @@ class AddVideoService:
         else:
             raise ValueError("无效的操作类型")
 
-        self.video_dao.upsert_video(video)
+        upsert_res = self.video_dao.upsert_video(video)
+        print("upsert_res:", upsert_res)
+
         return video['m_id']
 
     def process_mining(self, video, video_url):

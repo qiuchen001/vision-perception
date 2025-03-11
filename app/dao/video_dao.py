@@ -82,7 +82,7 @@ class VideoDAO:
             "summary_txt": video['summary_txt'],
             "tags": video['tags']
         }
-        self.milvus_client.upsert(self.collection_name, [user_data])
+        return self.milvus_client.upsert(self.collection_name, [user_data])
 
     def search_video(self, summary_embedding=None, page=1, page_size=6):
         offset = (page - 1) * page_size
