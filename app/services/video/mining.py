@@ -46,8 +46,10 @@ def time_to_standard_format(time_range_str):
 def format_mining_result(mining_result, video_url):
     mining_result_new = []
     for item in mining_result:
-        if item['behaviour']['behaviourId'] is None or item['behaviour']['behaviourName'] is None or \
-                item['behaviour']['timeRange'] is None:
+        if item['behaviour'] is None or item['behaviour'] == {} or \
+           not isinstance(item['behaviour'], dict) or \
+           item['behaviour'].get('behaviourId') is None or \
+           item['behaviour'].get('behaviourName') is None:
             continue
 
         if len(item['behaviour']['timeRange'].split('-')) < 2:
