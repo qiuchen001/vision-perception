@@ -135,16 +135,36 @@ class UploadVideoService:
             frames: 提取的视频帧列表
             resource_id: 资源ID，用于关联原始数据
         """
-        m_ids: List[str] = []
-        embeddings: List[List[float]] = []
-        paths: List[str] = []
-        at_seconds: List[int] = []
-        resource_ids: List[str] = []
+        # 使用字典存储批处理数据
+        batch_data = {
+            'ids': [],           # 帧ID
+            'embeddings': [],    # 向量嵌入
+            'paths': [],         # 视频路径
+            'resource_ids': [],  # 资源ID
+            'timestamps': []     # 时间戳
+        }
 
         # 获取视频的FPS
         cap = cv2.VideoCapture(video_url)
         fps = cap.get(cv2.CAP_PROP_FPS)
         cap.release()
+
+        def insert_batch(data: Dict[str, List]):
+            """辅助函数：插入一批数据"""
+            if not data['ids']:
+                return
+            
+            try:
+                video_frame_operator.insert_data(data)
+                logger.info(f"批量插入 {len(data['ids'])} 帧，时间戳范围: {data['timestamps'][0]}-{data['timestamps'][-1]}秒")
+            except Exception as e:
+                logger.error(f"插入数据失败: {str(e)}")
+                raise
+
+        def clear_batch(data: Dict[str, List]):
+            """辅助函数：清空批处理数据"""
+            for key in data:
+                data[key] = []
 
         for idx, frame in enumerate(frames):
             try:
@@ -155,32 +175,27 @@ class UploadVideoService:
                     continue
 
                 # 准备数据
-                m_ids.append(str(uuid.uuid4()))
-                embeddings.append(embedding)
-                paths.append(video_url)
-                resource_ids.append(resource_id)
+                batch_data['ids'].append(str(uuid.uuid4()))
+                batch_data['embeddings'].append(embedding)
+                batch_data['paths'].append(video_url)
+                batch_data['resource_ids'].append(str(resource_id))
 
-                # 正确计算时间戳（秒）
-                # 当前帧实际的帧号 = 索引 * 帧间隔
-                # 时间戳 = 帧号 / FPS
                 frame_number = idx * self.frame_interval
                 timestamp = int(frame_number / fps)
-                at_seconds.append(timestamp)
+                batch_data['timestamps'].append(timestamp)
 
                 # 使用配置的批处理大小
-                if len(m_ids) >= self.batch_size:
-                    video_frame_operator.insert_data([m_ids, embeddings, paths, at_seconds, resource_ids])
-                    logger.info(f"批量插入 {len(m_ids)} 帧，时间戳范围: {at_seconds[0]}-{at_seconds[-1]}秒")
-                    m_ids, embeddings, paths, at_seconds, resource_ids = [], [], [], [], []
+                if len(batch_data['ids']) >= self.batch_size:
+                    insert_batch(batch_data)
+                    clear_batch(batch_data)
 
             except Exception as e:
                 logger.error(f"处理帧 {idx} 失败: {str(e)}")
                 continue
 
         # 处理剩余的帧
-        if m_ids:
-            video_frame_operator.insert_data([m_ids, embeddings, paths, at_seconds, resource_ids])
-            logger.info(f"批量插入剩余 {len(m_ids)} 帧，时间戳范围: {at_seconds[0]}-{at_seconds[-1]}秒")
+        if batch_data['ids']:
+            insert_batch(batch_data)
 
     def generate_title(self, video_path: str) -> str:
         """
