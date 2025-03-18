@@ -2,11 +2,6 @@ from PIL import Image
 import uuid
 from typing import Dict, Any, List, Optional, Tuple
 from werkzeug.datastructures import FileStorage
-import cv2
-import os
-import json
-import requests
-from openai import OpenAI
 import tempfile
 import numpy as np
 
