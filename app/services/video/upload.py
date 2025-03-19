@@ -1,3 +1,5 @@
+import pdb
+
 from PIL import Image
 import uuid
 from typing import Dict, Any, List, Optional, Tuple
@@ -30,10 +32,10 @@ class UploadVideoService:
     def upload(self, video_file: FileStorage) -> Dict[str, Any]:
         """
         上传视频并处理。
-        
+
         Args:
             video_file: 上传的视频文件，类型为FileStorage
-            
+
         Returns:
             Dict[str, Any]: 包含视频URL和处理结果的字典
         """
@@ -71,10 +73,10 @@ class UploadVideoService:
                 embedding = embed_fn(" ")
                 summary_embedding = embed_fn(" ")
                 self.video_dao.init_video(
-                    video_oss_url, 
-                    embedding, 
-                    summary_embedding, 
-                    thumbnail_oss_url, 
+                    video_oss_url,
+                    embedding,
+                    summary_embedding,
+                    thumbnail_oss_url,
                     title,
                     resource_id  # 传入resource_id
                 )
@@ -98,10 +100,10 @@ class UploadVideoService:
     def _extract_frames(self, video_path: str) -> List[Image.Image]:
         """
         提取视频帧。
-        
+
         Args:
             video_path: 视频文件路径
-            
+
         Returns:
             List[Image.Image]: 提取的视频帧列表
         """
@@ -133,7 +135,7 @@ class UploadVideoService:
     def _process_frames(self, video_url: str, frames: List[Image.Image], resource_id: str) -> None:
         """
         处理视频帧并存入向量数据库。
-        
+
         Args:
             video_url: 视频文件URL
             frames: 提取的视频帧列表
@@ -157,12 +159,12 @@ class UploadVideoService:
             """辅助函数：插入一批数据"""
             if not data['m_ids']:
                 return
-            
+
             try:
                 # 转换为列表格式，保持字段顺序与服务器端期望一致
                 insert_data = [
                     data['m_ids'],
-                    data['embeddings'], 
+                    data['embeddings'],
                     data['paths'],
                     data['resource_id'],
                     data['at_seconds']
@@ -212,10 +214,10 @@ class UploadVideoService:
     def generate_title(self, video_path: str) -> str:
         """
         生成视频标题。
-        
+
         Args:
             video_path: 视频文件路径
-            
+
         Returns:
             str: 生成的视频标题
         """
@@ -260,11 +262,11 @@ class UploadVideoService:
     def process_data_path(self, data_path: str, raw_id: Optional[str] = None) -> Dict[str, Any]:
         """
         处理数据路径并生成视频。
-        
+
         Args:
             data_path: 格式为 collection:path 的数据路径
             raw_id: 原始数据ID
-            
+
         Returns:
             Dict[str, Any]: 包含视频URL和处理结果的字典
         """
@@ -314,10 +316,10 @@ class UploadVideoService:
                 embedding = embed_fn(" ")
                 summary_embedding = embed_fn(" ")
                 self.video_dao.init_video(
-                    video_oss_url, 
-                    embedding, 
-                    summary_embedding, 
-                    thumbnail_oss_url, 
+                    video_oss_url,
+                    embedding,
+                    summary_embedding,
+                    thumbnail_oss_url,
                     title,
                     resource_id  # 传入resource_id
                 )
@@ -342,26 +344,26 @@ class UploadVideoService:
     def _parse_data_path(self, data_path: str) -> Tuple[str, str]:
         """
         解析数据路径为collection和prefix，并添加avm-front子目录
-        
+
         Args:
             data_path: 格式为 collection:path 的数据路径
-            
+
         Returns:
             Tuple[str, str]: collection和处理后的prefix
         """
         parts = data_path.split(":", 1)
         if len(parts) != 2:
             raise ValueError(f"无效的数据路径格式: {data_path}")
-        
+
         collection, prefix = parts
-        
+
         # 确保prefix以/结尾
         if not prefix.endswith('/'):
             prefix += '/'
-        
+
         # 添加avm-front子目录
         prefix += 'avm-front/'
-        
+
         logger.info(f"解析数据路径: collection={collection}, prefix={prefix}")
         return collection, prefix
 
@@ -428,19 +430,56 @@ class UploadVideoService:
             height, width = first_image.shape[:2]
 
             # 创建视频写入器
-            fourcc = cv2.VideoWriter_fourcc(*'H264')
-            out = cv2.VideoWriter(output_path, fourcc, 30.0, (width, height))
+            # 尝试不同的编码器，按兼容性顺序排列
+            encoders = [
+                ('avc1', 'H.264/AVC'),
+                ('XVID', 'XVID MPEG-4'),
+                ('MJPG', 'Motion JPEG'),
+                ('mp4v', 'MPEG-4')
+            ]
+            out = None
+
+            for encoder_code, encoder_name in encoders:
+                try:
+                    logger.info(f"尝试使用编码器 {encoder_name} ({encoder_code})")
+                    fourcc = cv2.VideoWriter_fourcc(*encoder_code)
+                    out = cv2.VideoWriter(output_path, fourcc, 30.0, (width, height))
+                    if out.isOpened():
+                        logger.info(f"成功使用编码器 {encoder_name}")
+                        break
+                except Exception as e:
+                    logger.warning(f"使用编码器 {encoder_name} 失败: {str(e)}")
+                    if out is not None:
+                        out.release()
+                        out = None
+
+            if out is None or not out.isOpened():
+                raise RuntimeError(f"无法创建视频写入器,所有编码器都失败: {output_path}")
 
             try:
                 # 处理所有图片
                 total = len(image_files)
+                frames_written = 0
                 for i, file_info in enumerate(image_files, 1):
                     logger.debug(f"处理第 {i}/{total} 张图片: {file_info['filename']}")
                     image = self._download_image(collection, file_info["filename"])
-                    out.write(image)
+                    if out.write(image):
+                        frames_written += 1
+                    else:
+                        logger.warning(f"写入第 {i} 帧失败")
+
+                logger.info(f"成功写入 {frames_written}/{total} 帧")
+                if frames_written == 0:
+                    raise RuntimeError("没有成功写入任何帧")
+                elif frames_written < total:
+                    logger.warning(f"部分帧写入失败: {frames_written}/{total}")
 
             finally:
                 out.release()
+
+            # 验证生成的视频文件
+            if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
+                raise RuntimeError(f"生成的视频文件无效: {output_path}")
 
             logger.info(f"视频生成完成: {output_path}")
 
