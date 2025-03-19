@@ -6,6 +6,8 @@ from typing import Dict, Any, List, Optional, Tuple
 from werkzeug.datastructures import FileStorage
 import tempfile
 import numpy as np
+import subprocess
+import shutil
 
 from app.dao.video_dao import VideoDAO
 from app.utils.common import *
@@ -418,75 +420,6 @@ class UploadVideoService:
         logger.info(f"总共获取到 {len(all_files)} 个图片文件")
         return all_files
 
-    def _create_video_from_images(self, collection: str, image_files: List[Dict[str, Any]], output_path: str):
-        """从图片序列创建视频"""
-        if not image_files:
-            raise ValueError("没有图片文件可以处理")
-
-        try:
-            logger.info("开始生成视频...")
-            # 下载第一张图片来获取尺寸
-            first_image = self._download_image(collection, image_files[0]["filename"])
-            height, width = first_image.shape[:2]
-
-            # 创建视频写入器
-            # 尝试不同的编码器，按兼容性顺序排列
-            encoders = [
-                ('avc1', 'H.264/AVC'),
-                ('XVID', 'XVID MPEG-4'),
-                ('MJPG', 'Motion JPEG'),
-                ('mp4v', 'MPEG-4')
-            ]
-            out = None
-
-            for encoder_code, encoder_name in encoders:
-                try:
-                    logger.info(f"尝试使用编码器 {encoder_name} ({encoder_code})")
-                    fourcc = cv2.VideoWriter_fourcc(*encoder_code)
-                    out = cv2.VideoWriter(output_path, fourcc, 30.0, (width, height))
-                    if out.isOpened():
-                        logger.info(f"成功使用编码器 {encoder_name}")
-                        break
-                except Exception as e:
-                    logger.warning(f"使用编码器 {encoder_name} 失败: {str(e)}")
-                    if out is not None:
-                        out.release()
-                        out = None
-
-            if out is None or not out.isOpened():
-                raise RuntimeError(f"无法创建视频写入器,所有编码器都失败: {output_path}")
-
-            try:
-                # 处理所有图片
-                total = len(image_files)
-                frames_written = 0
-                for i, file_info in enumerate(image_files, 1):
-                    logger.debug(f"处理第 {i}/{total} 张图片: {file_info['filename']}")
-                    image = self._download_image(collection, file_info["filename"])
-                    if out.write(image):
-                        frames_written += 1
-                    else:
-                        logger.warning(f"写入第 {i} 帧失败")
-
-                logger.info(f"成功写入 {frames_written}/{total} 帧")
-                if frames_written == 0:
-                    raise RuntimeError("没有成功写入任何帧")
-                elif frames_written < total:
-                    logger.warning(f"部分帧写入失败: {frames_written}/{total}")
-
-            finally:
-                out.release()
-
-            # 验证生成的视频文件
-            if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
-                raise RuntimeError(f"生成的视频文件无效: {output_path}")
-
-            logger.info(f"视频生成完成: {output_path}")
-
-        except Exception as e:
-            logger.error(f"生成视频失败: {str(e)}")
-            raise
-
     def _download_image(self, collection: str, filename: str) -> np.ndarray:
         """下载单个图片文件"""
         try:
@@ -507,13 +440,160 @@ class UploadVideoService:
                 raise Exception(f"无法解码图片: {filename}")
 
             return image
-        
+
         except Exception as e:
             error_msg = str(e)
             if hasattr(e, '__cause__') and e.__cause__:
                 error_msg += f" (caused by: {str(e.__cause__)})"
             logger.error(f"下载图片失败: {filename} - {error_msg}")
             raise Exception(f"下载图片失败: {filename} - {error_msg}")
+
+    def _preprocess_image(self, image: np.ndarray, target_size: Tuple[int, int]) -> np.ndarray:
+        """预处理图片，确保尺寸和格式正确"""
+        try:
+            # 检查图片是否为空
+            if image is None:
+                raise ValueError("输入图片为空")
+
+            # 打印图片信息
+            logger.info(f"原始图片信息: shape={image.shape}, dtype={image.dtype}")
+
+            # 确保图片是BGR格式(OpenCV默认格式)
+            if len(image.shape) != 3 or image.shape[2] != 3:
+                raise ValueError(f"图片格式不正确: shape={image.shape}")
+
+            # 调整图片尺寸
+            height, width = target_size
+            if image.shape[:2] != (height, width):
+                logger.info(f"调整图片尺寸从 {image.shape[:2]} 到 {(height, width)}")
+                image = cv2.resize(image, (width, height), interpolation=cv2.INTER_AREA)
+
+            # 检查像素值范围
+            logger.info(f"图片像素值范围: min={image.min()}, max={image.max()}")
+            return image
+
+        except Exception as e:
+            logger.error(f"图片预处理失败: {str(e)}")
+            raise
+
+    def _create_video_from_images(self, collection: str, image_files: List[Dict[str, Any]], output_path: str):
+        """从图片序列创建视频"""
+        if not image_files:
+            raise ValueError("没有图片文件可以处理")
+
+        try:
+            logger.info("开始生成视频...")
+            # 创建临时目录存放图片
+            temp_dir = tempfile.mkdtemp()
+            logger.info(f"创建临时目录: {temp_dir}")
+
+            try:
+                # 下载并预处理所有图片
+                processed_images = []
+                first_image = None
+                
+                for i, file_info in enumerate(image_files, 1):
+                    try:
+                        image = self._download_image(collection, file_info["filename"])
+                        if first_image is None:
+                            first_image = image
+                            height, width = image.shape[:2]
+                            target_size = (height, width)
+                            logger.info(f"目标视频尺寸: {width}x{height}")
+                        
+                        processed_image = self._preprocess_image(image, target_size)
+                        # 保存预处理后的图片
+                        temp_image_path = os.path.join(temp_dir, f"frame_{i:04d}.jpg")
+                        cv2.imwrite(temp_image_path, processed_image)
+                        processed_images.append(temp_image_path)
+                        
+                    except Exception as e:
+                        logger.error(f"处理图片 {file_info['filename']} 失败: {str(e)}")
+                        continue
+
+                if not processed_images:
+                    raise ValueError("没有成功处理任何图片")
+
+                logger.info(f"成功处理 {len(processed_images)} 张图片")
+
+                # 首先尝试使用OpenCV
+                success = False
+                temp_output_path = output_path
+
+                # 尝试不同的编码器
+                encoders = [
+                    ('avc1', 'H.264/AVC', '.mp4'),
+                    ('XVID', 'XVID MPEG-4', '.avi'),
+                    ('MJPG', 'Motion JPEG', '.avi'),
+                    ('mp4v', 'MPEG-4', '.mp4')
+                ]
+
+                for encoder_code, encoder_name, ext in encoders:
+                    try:
+                        if ext != '.mp4':
+                            temp_output_path = os.path.splitext(output_path)[0] + ext
+                        
+                        logger.info(f"尝试使用编码器 {encoder_name} ({encoder_code}) 写入文件 {temp_output_path}")
+                        fourcc = cv2.VideoWriter_fourcc(*encoder_code)
+                        out = cv2.VideoWriter(temp_output_path, fourcc, 30.0, (width, height))
+                        
+                        if out.isOpened():
+                            for img_path in processed_images:
+                                frame = cv2.imread(img_path)
+                                if not out.write(frame):
+                                    raise RuntimeError(f"写入帧失败: {img_path}")
+                            
+                            out.release()
+                            success = True
+                            logger.info(f"使用 {encoder_name} 成功生成视频")
+                            break
+                            
+                    except Exception as e:
+                        logger.warning(f"使用编码器 {encoder_name} 失败: {str(e)}")
+                        if out is not None:
+                            out.release()
+                        if os.path.exists(temp_output_path):
+                            os.remove(temp_output_path)
+
+                # 如果OpenCV失败，尝试使用ffmpeg
+                if not success:
+                    logger.info("OpenCV编码器都失败，尝试使用ffmpeg")
+                    try:
+                        # 使用ffmpeg直接从图片序列生成视频
+                        cmd = f'ffmpeg -y -framerate 30 -i "{temp_dir}/frame_%04d.jpg" -c:v libx264 -preset medium -crf 23 "{output_path}"'
+                        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                        
+                        if result.returncode != 0:
+                            logger.error(f"ffmpeg命令失败: {result.stderr}")
+                            raise RuntimeError(f"ffmpeg生成视频失败: {result.stderr}")
+                        
+                        logger.info("使用ffmpeg成功生成视频")
+                        success = True
+                        
+                    except Exception as e:
+                        logger.error(f"使用ffmpeg生成视频失败: {str(e)}")
+                        raise
+
+                if not success:
+                    raise RuntimeError("所有视频生成方法都失败")
+
+                # 验证生成的视频文件
+                if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
+                    raise RuntimeError(f"生成的视频文件无效: {output_path}")
+
+                logger.info(f"视频生成完成: {output_path}")
+
+            finally:
+                # 清理临时目录
+                try:
+                    shutil.rmtree(temp_dir)
+                    logger.info(f"清理临时目录: {temp_dir}")
+                except Exception as e:
+                    logger.warning(f"清理临时目录失败: {str(e)}")
+
+        except Exception as e:
+            logger.error(f"生成视频失败: {str(e)}")
+            raise
 
     def process_by_raw_id(self, raw_id: str) -> Dict[str, Any]:
         """
