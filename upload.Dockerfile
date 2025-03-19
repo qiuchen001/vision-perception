@@ -44,3 +44,5 @@ COPY ./upload_wrapper.py ./custom_job_python.py
 # 清理不需要的文件
 RUN rm -rf *.whl && \
     rm -rf ~/.cache/pip/*
+
+# docker build -t images.51vr.local:5000/bdp/default/rtflink/vision-perception-upload:new -f upload.Dockerfile .
