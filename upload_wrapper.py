@@ -2,6 +2,14 @@ import json
 from app.services.video.upload import UploadVideoService
 
 
+def flink_job_init():
+    return True
+
+
+def flink_job_cleanup():
+    return True
+
+
 def flink_job_execute(inputMessageStr):
     global result
     inputMessage = json.loads(inputMessageStr)
