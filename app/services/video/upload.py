@@ -99,7 +99,7 @@ class UploadVideoService:
 
         return result
 
-    def _extract_frames(self, video_path: str) -> List[Image.Image]:
+    def _extract_frames(self, video_path: str) -> List[np.ndarray]:
         """
         提取视频帧。
 
@@ -107,7 +107,7 @@ class UploadVideoService:
             video_path: 视频文件路径
 
         Returns:
-            List[Image.Image]: 提取的视频帧列表
+            List[np.ndarray]: 提取的视频帧列表，BGR格式的numpy数组
         """
         frames = []
         cap = cv2.VideoCapture(video_path)
@@ -123,47 +123,52 @@ class UploadVideoService:
                     break
 
                 if frame_count % self.frame_interval == 0:
-                    # 转换为PIL Image
-                    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    pil_image = Image.fromarray(frame_rgb)
-                    frames.append(pil_image)
+                    # 直接使用BGR格式的frame
+                    if frame is None or frame.size == 0:
+                        logger.warning(f"跳过空帧: frame_count={frame_count}")
+                        continue
+                        
+                    logger.debug(f"提取帧: frame_count={frame_count}, shape={frame.shape}, dtype={frame.dtype}")
+                    frames.append(frame)
 
                 frame_count += 1
+            
+            logger.info(f"总共提取了 {len(frames)} 帧")
+            
         finally:
             cap.release()
 
+        if not frames:
+            raise ValueError("没有提取到任何有效帧")
+        
         return frames
 
-    def _process_frames(self, video_url: str, frames: List[Image.Image], resource_id: str) -> None:
+    def _process_frames(self, video_url: str, frames: List[np.ndarray], resource_id: str) -> None:
         """
         处理视频帧并存入向量数据库。
 
         Args:
             video_url: 视频文件URL
-            frames: 提取的视频帧列表
+            frames: 提取的视频帧列表，BGR格式的numpy数组
             resource_id: 资源ID，用于关联原始数据
         """
-        # 使用字典存储批处理数据，但保持字段名与服务器端一致
         batch_data = {
-            'm_ids': [],          # 帧ID
-            'embeddings': [],     # 向量嵌入
-            'paths': [],          # 视频路径
-            'resource_id': [],    # 资源ID (注意这里改成单数形式)
-            'at_seconds': []      # 时间戳
+            'm_ids': [],
+            'embeddings': [],
+            'paths': [],
+            'resource_id': [],
+            'at_seconds': []
         }
 
-        # 获取视频的FPS
         cap = cv2.VideoCapture(video_url)
         fps = cap.get(cv2.CAP_PROP_FPS)
         cap.release()
 
         def insert_batch(data: Dict[str, List]):
-            """辅助函数：插入一批数据"""
             if not data['m_ids']:
                 return
 
             try:
-                # 转换为列表格式，保持字段顺序与服务器端期望一致
                 insert_data = [
                     data['m_ids'],
                     data['embeddings'],
@@ -172,35 +177,71 @@ class UploadVideoService:
                     data['at_seconds']
                 ]
                 video_frame_operator.insert_data(insert_data)
-                logger.info(f"批量插入 {len(data['m_ids'])} 帧，时间戳范围: {data['at_seconds'][0]}-{data['at_seconds'][-1]}秒")
+                logger.info(f"批量插入 {len(data['m_ids'])} 帧")
             except Exception as e:
                 logger.error(f"插入数据失败: {str(e)}")
                 raise
 
         def clear_batch(data: Dict[str, List]):
-            """辅助函数：清空批处理数据"""
             for key in data:
                 data[key] = []
 
+        def prepare_image_for_embedding(frame: np.ndarray) -> Optional[Image.Image]:
+            """准备图片用于embedding"""
+            try:
+                # 确保frame是有效的numpy数组
+                if frame is None or frame.size == 0:
+                    return None
+                    
+                # 转换为RGB格式
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                
+                # 转换为PIL Image
+                pil_image = Image.fromarray(frame_rgb)
+                
+                # 检查图片模式
+                if pil_image.mode != 'RGB':
+                    pil_image = pil_image.convert('RGB')
+                
+                # 检查图片尺寸，如果太大则调整大小
+                max_size = 1024  # 设置最大尺寸
+                if pil_image.size[0] > max_size or pil_image.size[1] > max_size:
+                    ratio = max_size / max(pil_image.size)
+                    new_size = tuple(int(dim * ratio) for dim in pil_image.size)
+                    pil_image = pil_image.resize(new_size, Image.Resampling.LANCZOS)
+                    
+                logger.debug(f"准备好的图片: size={pil_image.size}, mode={pil_image.mode}")
+                return pil_image
+                
+            except Exception as e:
+                logger.error(f"准备图片失败: {str(e)}")
+                return None
+
         for idx, frame in enumerate(frames):
             try:
-                # 获取embedding实例
+                # 准备图片
+                pil_image = prepare_image_for_embedding(frame)
+                if pil_image is None:
+                    logger.warning(f"跳过无效帧: idx={idx}")
+                    continue
+                
+                # 获取embedding
                 embedding_model = EmbeddingFactory.create_embedding()
-                embedding = embedding_model.embedding_image(frame)
+                embedding = embedding_model.embedding_image(pil_image)
+                
                 if embedding is None:
+                    logger.warning(f"跳过无embedding的帧: idx={idx}")
                     continue
 
-                # 准备数据
                 batch_data['m_ids'].append(str(uuid.uuid4()))
                 batch_data['embeddings'].append(embedding)
                 batch_data['paths'].append(video_url)
-                batch_data['resource_id'].append(str(resource_id))  # 注意这里使用单数形式的键
+                batch_data['resource_id'].append(str(resource_id))
 
                 frame_number = idx * self.frame_interval
                 timestamp = int(frame_number / fps)
                 batch_data['at_seconds'].append(timestamp)
 
-                # 使用配置的批处理大小
                 if len(batch_data['m_ids']) >= self.batch_size:
                     insert_batch(batch_data)
                     clear_batch(batch_data)
@@ -209,7 +250,6 @@ class UploadVideoService:
                 logger.error(f"处理帧 {idx} 失败: {str(e)}")
                 continue
 
-        # 处理剩余的帧
         if batch_data['m_ids']:
             insert_batch(batch_data)
 
