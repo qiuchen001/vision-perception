@@ -20,6 +20,11 @@ from config.config import Config
 from app.utils.video_processor import VideoProcessor
 from app.prompt.title import system_instruction, prompt
 
+# 视频和图片处理相关的常量
+MAX_IMAGE_SIZE = 1024  # 图片最大尺寸限制
+VIDEO_FRAMERATE = 30   # 视频帧率
+VIDEO_CRF = 23        # 视频质量参数(0-51,越小质量越好)
+VIDEO_PRESET = 'medium'  # 编码速度预设
 
 class UploadVideoService:
     def __init__(self):
@@ -146,13 +151,43 @@ class UploadVideoService:
     def _process_frames(self, video_url: str, frames: List[np.ndarray], resource_id: str) -> None:
         """
         处理视频帧并存入向量数据库。
-
+        
+        处理流程:
+        1. 初始化批处理数据结构
+        2. 获取视频的fps信息
+        3. 对每一帧进行处理:
+           - 预处理图片(转换格式、调整大小等)
+           - 生成embedding
+           - 收集帧信息
+        4. 当累积足够的帧时进行批量插入
+        
         Args:
             video_url: 视频文件URL
-            frames: 提取的视频帧列表，BGR格式的numpy数组
-            resource_id: 资源ID，用于关联原始数据
+            frames: 提取的视频帧列表,BGR格式的numpy数组
+            resource_id: 资源ID,用于关联原始数据
         """
-        batch_data = {
+        batch_data = self._init_batch_data()
+        fps = self._get_video_fps(video_url)
+        
+        for idx, frame in enumerate(frames):
+            try:
+                processed_frame = self._process_single_frame(
+                    frame, idx, video_url, resource_id, fps, batch_data
+                )
+                if processed_frame and len(batch_data['m_ids']) >= self.batch_size:
+                    self._insert_batch(batch_data)
+                    self._clear_batch(batch_data)
+            except Exception as e:
+                logger.error(f"处理帧 {idx} 失败: {str(e)}")
+                continue
+
+        # 处理剩余的帧
+        if batch_data['m_ids']:
+            self._insert_batch(batch_data)
+
+    def _init_batch_data(self) -> Dict[str, List]:
+        """初始化批处理数据结构"""
+        return {
             'm_ids': [],
             'embeddings': [],
             'paths': [],
@@ -160,98 +195,132 @@ class UploadVideoService:
             'at_seconds': []
         }
 
+    def _get_video_fps(self, video_url: str) -> float:
+        """获取视频的帧率"""
         cap = cv2.VideoCapture(video_url)
         fps = cap.get(cv2.CAP_PROP_FPS)
         cap.release()
+        return fps
 
-        def insert_batch(data: Dict[str, List]):
-            if not data['m_ids']:
-                return
+    def _process_single_frame(
+        self, 
+        frame: np.ndarray,
+        idx: int,
+        video_url: str,
+        resource_id: str,
+        fps: float,
+        batch_data: Dict[str, List]
+    ) -> bool:
+        """
+        处理单个视频帧
+        
+        Args:
+            frame: 待处理的帧
+            idx: 帧索引
+            video_url: 视频URL
+            resource_id: 资源ID
+            fps: 视频帧率
+            batch_data: 批处理数据结构
+            
+        Returns:
+            bool: 处理是否成功
+        """
+        # 准备图片
+        pil_image = self.prepare_image_for_embedding(frame)
+        if pil_image is None:
+            logger.warning(f"跳过无效帧: idx={idx}")
+            return False
+        
+        # 获取embedding
+        embedding_model = EmbeddingFactory.create_embedding()
+        embedding = embedding_model.embedding_image(pil_image)
+        
+        if embedding is None:
+            logger.warning(f"跳过无embedding的帧: idx={idx}")
+            return False
 
-            try:
-                insert_data = [
-                    data['m_ids'],
-                    data['embeddings'],
-                    data['paths'],
-                    data['resource_id'],
-                    data['at_seconds']
-                ]
-                video_frame_operator.insert_data(insert_data)
-                logger.info(f"批量插入 {len(data['m_ids'])} 帧")
-            except Exception as e:
-                logger.error(f"插入数据失败: {str(e)}")
-                raise
+        # 收集帧信息
+        batch_data['m_ids'].append(str(uuid.uuid4()))
+        batch_data['embeddings'].append(embedding)
+        batch_data['paths'].append(video_url)
+        batch_data['resource_id'].append(str(resource_id))
 
-        def clear_batch(data: Dict[str, List]):
-            for key in data:
-                data[key] = []
+        frame_number = idx * self.frame_interval
+        timestamp = int(frame_number / fps)
+        batch_data['at_seconds'].append(timestamp)
+        
+        return True
 
-        def prepare_image_for_embedding(frame: np.ndarray) -> Optional[Image.Image]:
-            """准备图片用于embedding"""
-            try:
-                # 确保frame是有效的numpy数组
-                if frame is None or frame.size == 0:
-                    return None
-                    
-                # 转换为RGB格式
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                
-                # 转换为PIL Image
-                pil_image = Image.fromarray(frame_rgb)
-                
-                # 检查图片模式
-                if pil_image.mode != 'RGB':
-                    pil_image = pil_image.convert('RGB')
-                
-                # 检查图片尺寸，如果太大则调整大小
-                max_size = 1024  # 设置最大尺寸
-                if pil_image.size[0] > max_size or pil_image.size[1] > max_size:
-                    ratio = max_size / max(pil_image.size)
-                    new_size = tuple(int(dim * ratio) for dim in pil_image.size)
-                    pil_image = pil_image.resize(new_size, Image.Resampling.LANCZOS)
-                    
-                logger.debug(f"准备好的图片: size={pil_image.size}, mode={pil_image.mode}")
-                return pil_image
-                
-            except Exception as e:
-                logger.error(f"准备图片失败: {str(e)}")
+    def _insert_batch(self, data: Dict[str, List]) -> None:
+        """批量插入数据到向量数据库"""
+        if not data['m_ids']:
+            return
+
+        try:
+            insert_data = [
+                data['m_ids'],
+                data['embeddings'],
+                data['paths'],
+                data['resource_id'],
+                data['at_seconds']
+            ]
+            video_frame_operator.insert_data(insert_data)
+            logger.info(f"批量插入 {len(data['m_ids'])} 帧")
+        except Exception as e:
+            logger.error(f"插入数据失败: {str(e)}")
+            raise
+
+    def _clear_batch(self, data: Dict[str, List]) -> None:
+        """清空批处理数据"""
+        for key in data:
+            data[key] = []
+
+    def prepare_image_for_embedding(self, frame: np.ndarray) -> Optional[Image.Image]:
+        """
+        准备图片用于embedding。
+        
+        处理步骤:
+        1. 验证输入图片的有效性
+        2. 将BGR格式转换为RGB格式
+        3. 转换为PIL Image对象
+        4. 确保图片为RGB模式
+        5. 如果图片尺寸过大,进行等比例缩放
+        
+        Args:
+            frame: BGR格式的numpy数组图片
+            
+        Returns:
+            Optional[Image.Image]: 处理后的PIL Image对象,处理失败返回None
+        """
+        try:
+            # 1. 验证输入
+            if frame is None or frame.size == 0:
+                logger.error("输入图片为空或大小为0")
                 return None
-
-        for idx, frame in enumerate(frames):
-            try:
-                # 准备图片
-                pil_image = prepare_image_for_embedding(frame)
-                if pil_image is None:
-                    logger.warning(f"跳过无效帧: idx={idx}")
-                    continue
                 
-                # 获取embedding
-                embedding_model = EmbeddingFactory.create_embedding()
-                embedding = embedding_model.embedding_image(pil_image)
+            # 2. 颜色空间转换
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            
+            # 3. 转换为PIL Image
+            pil_image = Image.fromarray(frame_rgb)
+            
+            # 4. 确保RGB模式
+            if pil_image.mode != 'RGB':
+                pil_image = pil_image.convert('RGB')
+            
+            # 5. 尺寸调整
+            if pil_image.size[0] > MAX_IMAGE_SIZE or pil_image.size[1] > MAX_IMAGE_SIZE:
+                ratio = MAX_IMAGE_SIZE / max(pil_image.size)
+                new_size = tuple(int(dim * ratio) for dim in pil_image.size)
+                pil_image = pil_image.resize(new_size, Image.Resampling.LANCZOS)
+                logger.debug(f"调整图片尺寸到: {new_size}")
                 
-                if embedding is None:
-                    logger.warning(f"跳过无embedding的帧: idx={idx}")
-                    continue
-
-                batch_data['m_ids'].append(str(uuid.uuid4()))
-                batch_data['embeddings'].append(embedding)
-                batch_data['paths'].append(video_url)
-                batch_data['resource_id'].append(str(resource_id))
-
-                frame_number = idx * self.frame_interval
-                timestamp = int(frame_number / fps)
-                batch_data['at_seconds'].append(timestamp)
-
-                if len(batch_data['m_ids']) >= self.batch_size:
-                    insert_batch(batch_data)
-                    clear_batch(batch_data)
-
-            except Exception as e:
-                logger.error(f"处理帧 {idx} 失败: {str(e)}")
-                continue
-
-        if batch_data['m_ids']:
-            insert_batch(batch_data)
+            logger.debug(f"图片处理完成: size={pil_image.size}, mode={pil_image.mode}")
+            return pil_image
+            
+        except Exception as e:
+            logger.error(f"图片处理失败: {str(e)}")
+            return None
 
     def generate_title(self, video_path: str) -> str:
         """
@@ -517,34 +586,67 @@ class UploadVideoService:
             raise
 
     def _create_video_from_images(self, collection: str, image_files: List[Dict[str, Any]], output_path: str):
-        """从图片序列创建视频"""
+        """
+        从图片序列创建视频。
+        
+        处理流程:
+        1. 创建临时目录存放处理后的图片
+        2. 下载并保存所有图片
+        3. 使用ffmpeg生成视频,参数说明:
+           - framerate: 视频帧率
+           - c:v libx264: 使用H.264编码器
+           - preset: 编码速度与压缩率的平衡
+           - crf: 视频质量控制(0-51,越小质量越好)
+        4. 验证生成的视频文件
+        5. 清理临时文件
+        
+        Args:
+            collection: 图片集合名称
+            image_files: 图片文件信息列表
+            output_path: 输出视频路径
+        """
         if not image_files:
             raise ValueError("没有图片文件可以处理")
 
         try:
             logger.info("开始生成视频...")
-            # 创建临时目录存放图片
             temp_dir = tempfile.mkdtemp()
             
             try:
-                # 下载并保存所有图片
+                # 下载并保存图片
                 for i, file_info in enumerate(image_files):
                     image = self._download_image(collection, file_info["filename"])
-                    cv2.imwrite(os.path.join(temp_dir, f"frame_{i:04d}.jpg"), image)
+                    output_frame = os.path.join(temp_dir, f"frame_{i:04d}.jpg")
+                    cv2.imwrite(output_frame, image)
+                    logger.debug(f"保存图片: {output_frame}")
                 
-                # 使用ffmpeg生成视频
-                cmd = f'ffmpeg -y -framerate 30 -i "{temp_dir}/frame_%04d.jpg" -c:v libx264 -preset medium -crf 23 "{output_path}"'
+                # 构建ffmpeg命令
+                cmd = (
+                    f'ffmpeg -y '  # 覆盖已存在的文件
+                    f'-framerate {VIDEO_FRAMERATE} '  # 设置帧率
+                    f'-i "{temp_dir}/frame_%04d.jpg" '  # 输入图片序列
+                    f'-c:v libx264 '  # 使用H.264编码器
+                    f'-preset {VIDEO_PRESET} '  # 编码速度预设
+                    f'-crf {VIDEO_CRF} '  # 视频质量控制
+                    f'"{output_path}"'  # 输出文件
+                )
+                
+                # 执行ffmpeg命令
                 result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
                 
                 if result.returncode != 0:
                     raise RuntimeError(f"ffmpeg生成视频失败: {result.stderr}")
                     
+                # 验证输出文件
                 if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
                     raise RuntimeError("生成的视频文件无效")
                     
+                logger.info(f"视频生成成功: {output_path}")
+                    
             finally:
-                # 清理临时目录
+                # 清理临时文件
                 shutil.rmtree(temp_dir)
+                logger.debug(f"清理临时目录: {temp_dir}")
                 
         except Exception as e:
             logger.error(f"生成视频失败: {str(e)}")
