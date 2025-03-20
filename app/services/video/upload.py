@@ -472,7 +472,7 @@ class UploadVideoService:
         if not prefix.endswith('/'):
             prefix += '/'
 
-        # 添加avm-front子目录
+        # 添加CAM_FRONT子目录
         prefix += 'CAM_FRONT/'
 
         logger.info(f"解析数据路径: collection={collection}, prefix={prefix}")
