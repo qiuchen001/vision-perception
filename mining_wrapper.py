@@ -20,7 +20,7 @@ def flink_job_execute(inputMessageStr):
     try:
         service = MiningVideoService()
         result = service.mining_by_raw_id({"raw_id": raw_id})
-        print(f"视频挖掘完成: {result['video_url']}")
+        print(f"视频挖掘完成,共发现 {len(result)} 个行为片段")
         return json.dumps(result)
     except Exception as e:
         print(f"处理失败: {str(e)}")
