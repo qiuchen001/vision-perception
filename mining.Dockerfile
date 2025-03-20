@@ -45,4 +45,4 @@ COPY ./mining_wrapper.py ./custom_job_python.py
 RUN rm -rf *.whl && \
     rm -rf ~/.cache/pip/*
 
-# docker build -t images.51vr.local:5000/bdp/default/rtflink/vision-perception-upload:new -f upload.Dockerfile .
+# docker build -t images.51vr.local:5000/bdp/default/rtflink/vision-perception-mining:new -f mining.Dockerfile .
