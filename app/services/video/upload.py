@@ -473,7 +473,7 @@ class UploadVideoService:
             prefix += '/'
 
         # 添加avm-front子目录
-        prefix += 'avm-front/'
+        prefix += 'CAM_FRONT/'
 
         logger.info(f"解析数据路径: collection={collection}, prefix={prefix}")
         return collection, prefix
