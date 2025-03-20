@@ -20,6 +20,8 @@ def flink_job_execute(inputMessageStr):
     try:
         service = UploadVideoService()
         result = service.process_by_raw_id(raw_id)
+        result["taskid"] = taskid
+        result["raw_id"] = raw_id
         print(f"视频处理完成: {result['video_url']}")
         return json.dumps(result)
     except Exception as e:
