@@ -160,5 +160,5 @@ class MiningVideoService:
 
 if __name__ == "__main__":
     mining_video_service = MiningVideoService()
-    mining_result = mining_video_service.mining_by_raw_id({"raw_id": "bfa15196-04d3-4e46-8f2b-8df91d8db908"})
+    mining_result = mining_video_service.mining_by_raw_id({"raw_id": "1e9f6957-4097-4a20-a9cf-f07d91e44cf8"})
     print(mining_result)
