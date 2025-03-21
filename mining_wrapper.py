@@ -23,7 +23,7 @@ def flink_job_execute(inputMessageStr):
         print(f"视频挖掘完成,共发现 {len(result)} 个行为片段, result: {result}")
 
         message = {
-            "public-vision-perception-upload-success": [
+            "public-vision-perception-mining-success": [
                 result
             ]
         }
