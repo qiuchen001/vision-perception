@@ -21,7 +21,14 @@ def flink_job_execute(inputMessageStr):
         service = MiningVideoService()
         result = service.mining_by_raw_id({"raw_id": raw_id})
         print(f"视频挖掘完成,共发现 {len(result)} 个行为片段, result: {result}")
-        return json.dumps(result)
+
+        message = {
+            "public-vision-perception-upload-success": [
+                result
+            ]
+        }
+
+        return json.dumps(message)
     except Exception as e:
         print(f"处理失败: {str(e)}")
         return None

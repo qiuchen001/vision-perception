@@ -23,7 +23,14 @@ def flink_job_execute(inputMessageStr):
         result["taskid"] = taskid
         result["raw_id"] = raw_id
         print(f"视频处理完成: {result['video_url']}")
-        return json.dumps(result)
+
+        message = {
+            "public-vision-perception-upload-success": [
+                result
+            ]
+        }
+
+        return json.dumps(message)
     except Exception as e:
         print(f"处理失败: {str(e)}")
         return None
