@@ -22,7 +22,8 @@ from app.prompt.title import system_instruction, prompt
 
 # 视频和图片处理相关的常量
 MAX_IMAGE_SIZE = 1024  # 图片最大尺寸限制
-VIDEO_FRAMERATE = 30   # 视频帧率
+VIDEO_FRAMERATE = 2   # 视频帧率
+# VIDEO_FRAMERATE = 10   # 视频帧率
 VIDEO_CRF = 23        # 视频质量参数(0-51,越小质量越好)
 VIDEO_PRESET = 'medium'  # 编码速度预设
 
