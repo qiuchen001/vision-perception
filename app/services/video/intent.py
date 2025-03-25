@@ -2,31 +2,32 @@ import os
 import json
 import base64
 from typing import List, Dict, Any, Union
-import openai
+from openai import OpenAI
 from app.utils.logger import logger
 from app.prompt.intent import system_instruction
 
 # 从环境变量获取配置
-QWEN_API_KEY = os.getenv("DASHSCOPE_API_KEY")
-QWEN_API_ENDPOINT = os.getenv("QWEN_API_ENDPOINT", "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation")
+API_KEY = os.getenv("API_KEY")
+BASE_URL = os.getenv("BASE_URL")
+MODEL_NAME = os.getenv("VISION_MODEL_NAME")
 
 class IntentService:
     """意图识别服务类"""
 
     def __init__(self):
         """初始化意图识别服务"""
-        if not QWEN_API_KEY:
-            raise ValueError("请设置QWEN_API_KEY环境变量")
+        if not API_KEY:
+            raise ValueError("请设置API_KEY环境变量")
+            
+        # 初始化OpenAI客户端
+        self.client = OpenAI(
+            api_key=API_KEY,
+            base_url=BASE_URL,
+        )
 
-        # 配置OpenAI客户端
-        openai.api_key = QWEN_API_KEY
-        openai.api_base = QWEN_API_ENDPOINT
-        openai.api_type = "dashscope"
-        openai.api_version = "v1"
-
-    def _call_qwen_api(self, messages: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _call_api(self, messages: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
-        调用千问API。
+        调用API。
 
         Args:
             messages: 消息列表
@@ -35,11 +36,12 @@ class IntentService:
             Dict[str, Any]: API响应
         """
         try:
-            response = openai.ChatCompletion.create(
-                model="qwen-vl-max",
+            response = self.client.chat.completions.create(
+                model=MODEL_NAME,
                 messages=messages,
                 temperature=0.7,
-                max_tokens=1500
+                max_tokens=1500,
+                response_format={"type": "json_object"}
             )
             return response
 
@@ -69,12 +71,15 @@ class IntentService:
                 }
             ]
 
-            response = self._call_qwen_api(messages)
+            response = self._call_api(messages)
             if not response:
                 return []
 
             try:
-                result = json.loads(response.choices[0].message.content)
+                # 解析JSON响应
+                response_json = json.loads(response.choices[0].message.content)
+                result = response_json.get("result", [])
+                
                 if not isinstance(result, list):
                     logger.error(f"意图识别结果格式错误: {result}")
                     return []
@@ -142,12 +147,15 @@ class IntentService:
                 }
             ]
 
-            response = self._call_qwen_api(messages)
+            response = self._call_api(messages)
             if not response:
                 return []
 
             try:
-                result = json.loads(response.choices[0].message.content)
+                # 解析JSON响应
+                response_json = json.loads(response.choices[0].message.content)
+                result = response_json.get("result", [])
+                
                 if not isinstance(result, list):
                     logger.error(f"多模态意图识别结果格式错误: {result}")
                     return []
@@ -179,6 +187,11 @@ class IntentService:
 
 # 使用示例
 if __name__ == "__main__":
+    # 设置环境变量
+    os.environ["API_KEY"] = "your-api-key"
+    os.environ["BASE_URL"] = "your-base-url"
+    os.environ["VISION_MODEL_NAME"] = "your-model-name"
+    
     intent_service = IntentService()
 
     # 测试文本意图识别
