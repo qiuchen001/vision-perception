@@ -233,7 +233,8 @@ def search_videos(
         image_url="",
         search_mode="frame",
         page=1,
-        page_size=6
+        page_size=6,
+        tags_input=""  # 新增标签输入参数
 ):
     """处理视频搜索请求"""
     try:
@@ -241,7 +242,21 @@ def search_videos(
             search_service = SearchVideoService()
 
             # 根据搜索类型调用不同的搜索方法
-            if search_type == "文本搜索":
+            if search_type == "标签搜索":
+                if not tags_input.strip():
+                    return [], None, "请输入搜索标签"
+                    
+                # 将输入的标签字符串转换为列表
+                tags = [tag.strip() for tag in tags_input.split(',') if tag.strip()]
+                if not tags:
+                    return [], None, "请输入有效的标签"
+                    
+                results = search_service.search_by_tags(
+                    tags=tags,
+                    page=page,
+                    page_size=page_size
+                )
+            elif search_type == "文本搜索":
                 if not text_query.strip():
                     return [], None, "请输入搜索文本"
                 results = search_service.search_by_text(
@@ -256,8 +271,6 @@ def search_videos(
                 
                 try:
                     if image_url.strip():
-                        # 使用图片URL进行搜索
-                        print(f"Using image URL: {image_url}")  # 调试日志
                         results = search_service.search_by_image(
                             image_file=None,
                             image_url=image_url,
@@ -265,8 +278,6 @@ def search_videos(
                             page_size=page_size
                         )
                     elif isinstance(image_file, Image.Image):
-                        # 使用上传的图片进行搜索
-                        print("Using PIL Image directly")  # 调试日志
                         results = search_service.search_by_image(
                             image_file=image_file,
                             image_url=None,
@@ -274,10 +285,8 @@ def search_videos(
                             page_size=page_size
                         )
                     else:
-                        print(f"Unexpected image type: {type(image_file)}")  # 调试日志
                         return [], None, f"不支持的图片格式: {type(image_file)}"
                 except Exception as e:
-                    print(f"Error processing image: {str(e)}")  # 调试日志
                     return [], None, f"图片处理失败: {str(e)}"
 
             # 格式化输出结果
@@ -293,21 +302,18 @@ def search_videos(
                 if not thumbnail_url:
                     thumbnail_url = "path/to/default/thumbnail.jpg"
 
-                # 存储完整的视频信息
                 video_data[str(idx)] = {
                     'url': video.get('path', ''),
                     'title': video.get('title', '未知'),
-                    'info': format_video_info(video)[0],  # 只获取格式化后的HTML
-                    'raw_data': video  # 存储原始数据
+                    'info': format_video_info(video)[0],
+                    'raw_data': video
                 }
 
-                # 为Gallery组件准备数据
                 gallery_data.append((
-                    thumbnail_url,  # 图URL
-                    video.get('title', '未知')  # 只显示标题
+                    thumbnail_url,
+                    video.get('title', '未知')
                 ))
 
-            # 存储视频数据
             global _video_data
             _video_data = video_data
 
@@ -345,14 +351,24 @@ def update_input_visibility(search_type):
             gr.update(visible=True),   # 文本输入
             gr.update(visible=True),   # 搜索模式
             gr.update(visible=False),  # 图片上传
-            gr.update(visible=False)   # 图片URL
+            gr.update(visible=False),  # 图片URL
+            gr.update(visible=False)   # 标签输入
         )
-    else:  # 图片搜索
+    elif search_type == "图片搜索":
         return (
             gr.update(visible=False),  # 文本输入
             gr.update(visible=False),  # 搜索模式
             gr.update(visible=True),   # 图片上传
-            gr.update(visible=True)    # 图片URL
+            gr.update(visible=True),   # 图片URL
+            gr.update(visible=False)   # 标签输入
+        )
+    else:  # 标签搜索
+        return (
+            gr.update(visible=False),  # 文本输入
+            gr.update(visible=False),  # 搜索模式
+            gr.update(visible=False),  # 图片上传
+            gr.update(visible=False),  # 图片URL
+            gr.update(visible=True)    # 标签输入
         )
 
 
@@ -505,7 +521,7 @@ def create_interface():
             gr.Markdown("## 搜索条件")
             with gr.Row():
                 search_type = gr.Radio(
-                    choices=["文本搜索", "图片搜索"],
+                    choices=["文本搜索", "图片搜索", "标签搜索"],  # 添加标签搜索选项
                     label="搜索类型",
                     value="文本搜索",
                     container=False
@@ -542,6 +558,16 @@ def create_interface():
                     placeholder="请输入图片URL",
                     container=True,
                     visible=False
+                )
+                
+            # 标签搜索相关组件
+            with gr.Row() as tag_search_row:
+                tags_input = gr.Textbox(
+                    label="标签搜索",
+                    placeholder="请输入标签，多个标签用逗号分隔",
+                    lines=1,
+                    visible=False,
+                    container=True
                 )
 
             with gr.Row():
@@ -697,7 +723,7 @@ def create_interface():
         search_type.change(
             fn=update_input_visibility,
             inputs=[search_type],
-            outputs=[text_query, search_mode, image_file, image_url]
+            outputs=[text_query, search_mode, image_file, image_url, tags_input]
         )
 
         # 添加图片输入互斥处理
@@ -722,7 +748,8 @@ def create_interface():
                 image_url,
                 search_mode,
                 page,
-                page_size
+                page_size,
+                tags_input  # 添加标签输入
             ],
             outputs=[gallery, video_area, status]
         )
