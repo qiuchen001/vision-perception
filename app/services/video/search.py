@@ -170,7 +170,7 @@ class SearchVideoService:
 if __name__ == "__main__":
     search_service = SearchVideoService()
     # 使用单个标签搜索
-    results = search_service.search_by_tags("白天")
+    results = search_service.search_by_tags("晚上")
     print(results)
 
     # # 使用多个标签搜索
@@ -178,4 +178,7 @@ if __name__ == "__main__":
     #
     # # 带分页的搜索
     # results = search_service.search_by_tags(["教育", "科技"], page=2, page_size=10)
+    #
+    # results = search_service.search_by_text("主干道")
+    # print(results)
 

@@ -95,7 +95,7 @@ class VideoDAO:
             "title": video['title'],
             "summary_txt": video['summary_txt'],
             "tags": tags,  # 更新tags字段
-            "mining_results": json.dumps(mining_results),  # 存储完整的挖掘结果
+            "mining_results": json.dumps(mining_results, ensure_ascii=False),  # 不转义中文字符
             "resource_id": video['resource_id']
         }
         return self.milvus_client.upsert(self.collection_name, [user_data])
@@ -146,7 +146,7 @@ class VideoDAO:
 
     def search_by_tags(self, tags: List[str], page: int = 1, page_size: int = 6) -> List[Dict[str, Any]]:
         """
-        根据标签列表搜索视频
+        根据标签列表搜索视频，使用ARRAY_CONTAINS操作符查询tags字段
 
         Args:
             tags: 标签列表
@@ -161,11 +161,13 @@ class VideoDAO:
         # 构建标签过滤条件
         tag_filters = []
         for tag in tags:
-            # 使用tags字段进行搜索
-            tag_filters.append(f"array_contains(tags, '{tag}')")
+            # 使用ARRAY_CONTAINS操作符
+            tag_filters.append(f'ARRAY_CONTAINS(tags, "{tag}")')
 
-        # 组合多个标签的过滤条件
-        filter_expr = " and ".join(tag_filters)
+        # 组合多个标签的过滤条件(使用OR连接)
+        filter_expr = " or ".join(tag_filters)
+        
+        logger.info(f"Generated filter expression: {filter_expr}")  # 添加日志记录
 
         # 执行查询
         result = self.milvus_client.query(
@@ -179,13 +181,11 @@ class VideoDAO:
         # 处理结果
         for item in result:
             item['timestamp'] = 0
-            # 解析mining_results
-            if item.get('mining_results'):
-                try:
-                    item['mining_results'] = json.loads(item['mining_results'])
-                except json.JSONDecodeError:
-                    item['mining_results'] = []
-            else:
+            if item.get('mining_results') is None:
                 item['mining_results'] = []
+            else:
+                # 确保mining_results是JSON对象而不是字符串
+                if isinstance(item['mining_results'], str):
+                    item['mining_results'] = json.loads(item['mining_results'])
 
         return result

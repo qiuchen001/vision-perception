@@ -697,7 +697,7 @@ class UploadVideoService:
 if __name__ == "__main__":
     try:
         service = UploadVideoService()
-        result = service.process_by_raw_id("1e9f6957-4097-4a20-a9cf-f07d91e44cf8")
+        result = service.process_by_raw_id("9a8afc7e-19de-4e13-8b3c-44794ccb49c6")
         print(f"视频处理完成: {result['video_url']}")
     except Exception as e:
         print(f"处理失败: {str(e)}")
