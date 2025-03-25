@@ -44,9 +44,10 @@ class AddVideoService:
 
     def process_mining(self, video, video_url):
         mining_service = MiningVideoService()
-        mining_result = mining_service.mining(video_url)
-        tags = self.parse_mining_result(mining_result)
+        mining_results = mining_service.mining(video_url)
+        tags = self.parse_mining_result(mining_results)
         video['tags'] = tags
+        video['mining_results'] = mining_results
 
     def process_summary(self, video, video_url):
         summary_service = SummaryVideoService()

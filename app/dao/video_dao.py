@@ -6,6 +6,7 @@ from ..utils.logger import logger
 import uuid
 from flask import current_app
 import os
+import json
 
 
 class VideoDAO:
@@ -69,13 +70,22 @@ class VideoDAO:
             "thumbnail_path": thumbnail_oss_url,
             "title": title,
             "summary_txt": None,
-            "tags": None,
+            "tags": None,  # 保留tags字段
+            "mining_results": None,  # 添加mining_results字段
             "resource_id": resource_id
         }
         res = self.milvus_client.insert(self.collection_name, [video_data])
         return res
 
     def upsert_video(self, video):
+        # 从mining_results中提取behaviourName作为tags
+        mining_results = video.get('mining_results', [])
+        tags = list(set([
+            result['behaviour']['behaviourName']
+            for result in mining_results
+            if result.get('behaviour', {}).get('behaviourName')
+        ])) if mining_results else []
+
         user_data = {
             "m_id": video['m_id'],
             "embedding": video['embedding'],
@@ -84,7 +94,8 @@ class VideoDAO:
             "thumbnail_path": video['thumbnail_path'],
             "title": video['title'],
             "summary_txt": video['summary_txt'],
-            "tags": video['tags'],
+            "tags": tags,  # 更新tags字段
+            "mining_results": json.dumps(mining_results),  # 存储完整的挖掘结果
             "resource_id": video['resource_id']
         }
         return self.milvus_client.upsert(self.collection_name, [user_data])
@@ -150,6 +161,7 @@ class VideoDAO:
         # 构建标签过滤条件
         tag_filters = []
         for tag in tags:
+            # 使用tags字段进行搜索
             tag_filters.append(f"array_contains(tags, '{tag}')")
 
         # 组合多个标签的过滤条件
@@ -161,11 +173,19 @@ class VideoDAO:
             filter=filter_expr,
             offset=offset,
             limit=page_size,
-            output_fields=['m_id', 'path', 'thumbnail_path', 'summary_txt', 'tags', 'title']
+            output_fields=['m_id', 'path', 'thumbnail_path', 'summary_txt', 'tags', 'mining_results', 'title']
         )
 
-        # 添加timestamp字段以保持与其他搜索结果格式一致
+        # 处理结果
         for item in result:
             item['timestamp'] = 0
+            # 解析mining_results
+            if item.get('mining_results'):
+                try:
+                    item['mining_results'] = json.loads(item['mining_results'])
+                except json.JSONDecodeError:
+                    item['mining_results'] = []
+            else:
+                item['mining_results'] = []
 
         return result

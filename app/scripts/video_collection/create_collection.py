@@ -107,6 +107,14 @@ def create_schema():
         nullable=True
     )
 
+    collection_schema.add_field(
+        field_name="mining_results",
+        datatype=DataType.VARCHAR,
+        max_length=10240,  # 设置足够大的长度以存储完整的挖掘结果
+        description="视频挖掘结果，包含场景分析、行为标签、时间范围和缩略图URL",
+        nullable=True
+    )
+
     return collection_schema
 
 
