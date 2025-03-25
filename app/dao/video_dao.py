@@ -81,7 +81,8 @@ class VideoDAO:
             "thumbnail_path": video['thumbnail_path'],
             "title": video['title'],
             "summary_txt": video['summary_txt'],
-            "tags": video['tags']
+            "tags": video['tags'],
+            "resource_id": video['resource_id']
         }
         return self.milvus_client.upsert(self.collection_name, [user_data])
 
