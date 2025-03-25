@@ -138,3 +138,44 @@ class SearchVideoService:
             logger.error(f"获取视频详情失败: {str(e)}")
             return []
 
+    def search_by_tags(self, tags: Union[str, List[str]], page: int = 1, page_size: int = 6) -> List[Dict[str, Any]]:
+        """
+        通过标签搜索视频。
+
+        Args:
+            tags: 单个标签字符串或标签列表
+            page: 页码
+            page_size: 每页数量
+
+        Returns:
+            List[Dict[str, Any]]: 视频列表
+        """
+        try:
+            # 将单个标签转换为列表
+            if isinstance(tags, str):
+                tags = [tags]
+
+            # 调用DAO层进行搜索
+            return self.video_dao.search_by_tags(
+                tags=tags,
+                page=page,
+                page_size=page_size
+            )
+
+        except Exception as e:
+            logger.error(f"标签搜索失败: {str(e)}")
+            return []
+
+
+if __name__ == "__main__":
+    search_service = SearchVideoService()
+    # 使用单个标签搜索
+    results = search_service.search_by_tags("白天")
+    print(results)
+
+    # # 使用多个标签搜索
+    # results = search_service.search_by_tags(["教育", "科技"])
+    #
+    # # 带分页的搜索
+    # results = search_service.search_by_tags(["教育", "科技"], page=2, page_size=10)
+

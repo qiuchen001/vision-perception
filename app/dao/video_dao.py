@@ -1,3 +1,5 @@
+from typing import List, Dict, Any
+
 from pymilvus import MilvusClient
 from ..models.video import Video
 from ..utils.logger import logger
@@ -10,7 +12,8 @@ class VideoDAO:
     def __init__(self):
         MILVUS_HOST = os.getenv("MILVUS_HOST")
         MILVUS_PORT = os.getenv("MILVUS_PORT")
-        self.milvus_client = MilvusClient(uri=f"http://{MILVUS_HOST}:{MILVUS_PORT}", db_name=os.getenv("MILVUS_DB_NAME"))
+        self.milvus_client = MilvusClient(uri=f"http://{MILVUS_HOST}:{MILVUS_PORT}",
+                                          db_name=os.getenv("MILVUS_DB_NAME"))
         # self.milvus_client = current_app.config['MILVUS_CLIENT']
         self.collection_name = "video_collection"
 
@@ -129,3 +132,40 @@ class VideoDAO:
             for item in result:
                 item['timestamp'] = 0
             return result
+
+    def search_by_tags(self, tags: List[str], page: int = 1, page_size: int = 6) -> List[Dict[str, Any]]:
+        """
+        根据标签列表搜索视频
+
+        Args:
+            tags: 标签列表
+            page: 页码
+            page_size: 每页数量
+
+        Returns:
+            List[Dict[str, Any]]: 匹配的视频列表
+        """
+        offset = (page - 1) * page_size
+
+        # 构建标签过滤条件
+        tag_filters = []
+        for tag in tags:
+            tag_filters.append(f"array_contains(tags, '{tag}')")
+
+        # 组合多个标签的过滤条件
+        filter_expr = " and ".join(tag_filters)
+
+        # 执行查询
+        result = self.milvus_client.query(
+            collection_name=self.collection_name,
+            filter=filter_expr,
+            offset=offset,
+            limit=page_size,
+            output_fields=['m_id', 'path', 'thumbnail_path', 'summary_txt', 'tags', 'title']
+        )
+
+        # 添加timestamp字段以保持与其他搜索结果格式一致
+        for item in result:
+            item['timestamp'] = 0
+
+        return result
