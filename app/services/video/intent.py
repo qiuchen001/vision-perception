@@ -77,8 +77,7 @@ class IntentService:
 
             try:
                 # 解析JSON响应
-                response_json = json.loads(response.choices[0].message.content)
-                result = response_json.get("result", [])
+                result = json.loads(response.choices[0].message.content)
                 
                 if not isinstance(result, list):
                     logger.error(f"意图识别结果格式错误: {result}")
@@ -153,8 +152,7 @@ class IntentService:
 
             try:
                 # 解析JSON响应
-                response_json = json.loads(response.choices[0].message.content)
-                result = response_json.get("result", [])
+                result = json.loads(response.choices[0].message.content)
                 
                 if not isinstance(result, list):
                     logger.error(f"多模态意图识别结果格式错误: {result}")
