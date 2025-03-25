@@ -2,6 +2,7 @@ import logging
 
 import gradio as gr
 from app.services.video.search import SearchVideoService
+from app.services.video.integrated_search import IntegratedSearchService
 from app import create_app
 from PIL import Image
 import json
@@ -234,15 +235,24 @@ def search_videos(
         search_mode="frame",
         page=1,
         page_size=6,
-        tags_input=""  # 新增标签输入参数
+        tags_input=""
 ):
     """处理视频搜索请求"""
     try:
         with app.app_context():
             search_service = SearchVideoService()
+            integrated_service = IntegratedSearchService()
 
             # 根据搜索类型调用不同的搜索方法
-            if search_type == "标签搜索":
+            if search_type == "智能搜索":
+                if not text_query.strip():
+                    return [], None, "请输入搜索文本"
+                results = integrated_service.search(
+                    query=text_query,
+                    page=page,
+                    page_size=page_size
+                )
+            elif search_type == "标签搜索":
                 if not tags_input.strip():
                     return [], None, "请输入搜索标签"
                     
@@ -346,7 +356,15 @@ def on_select(evt: gr.SelectData):
 
 def update_input_visibility(search_type):
     """更新输入组件的可见性"""
-    if search_type == "文本搜索":
+    if search_type == "智能搜索":
+        return (
+            gr.update(visible=True),   # 文本输入
+            gr.update(visible=False),  # 搜索模式
+            gr.update(visible=False),  # 图片上传
+            gr.update(visible=False),  # 图片URL
+            gr.update(visible=False)   # 标签输入
+        )
+    elif search_type == "文本搜索":
         return (
             gr.update(visible=True),   # 文本输入
             gr.update(visible=True),   # 搜索模式
@@ -521,9 +539,9 @@ def create_interface():
             gr.Markdown("## 搜索条件")
             with gr.Row():
                 search_type = gr.Radio(
-                    choices=["文本搜索", "图片搜索", "标签搜索"],  # 添加标签搜索选项
+                    choices=["智能搜索", "文本搜索", "图片搜索", "标签搜索"],
                     label="搜索类型",
-                    value="文本搜索",
+                    value="智能搜索",
                     container=False
                 )
 
