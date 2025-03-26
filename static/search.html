@@ -261,29 +261,42 @@
         }
         /* 按钮 */
         .button {
-            padding: 0.75rem 1.5rem;
+            padding: 1rem 2rem;
             border: none;
-            border-radius: 0.5rem;
-            font-weight: 500;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 1.1rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .button.primary {
             background: #2563eb;
-            color: white;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            transform: translateY(0);
         }
         .button.primary:hover {
             background: #1d4ed8;
+            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.4);
+            transform: translateY(-3px);
+        }
+        .button.primary:active {
+            background: #1e40af;
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
         }
         .button.primary:disabled {
             background: #9ca3af;
             cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
         }
         .button .material-icons {
-            margin-right: 0.5rem;
+            margin-right: 0.75rem;
+            font-size: 1.4rem;
         }
         /* Toast消息 */
         .toast {
