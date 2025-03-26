@@ -464,32 +464,8 @@
                         </div>
                         
                         <div v-if="isProcessing" class="result-content">
-                            <template v-if="uploadProgress < 100">
-                                <div>正在上传文件...</div>
-                                <div class="progress-bar">
-                                    <div 
-                                        class="progress-bar-fill"
-                                        :style="{ width: uploadProgress + '%' }"
-                                    ></div>
-                                </div>
-                                <div class="progress-text">{{ uploadProgress }}%</div>
-                            </template>
-                            <template v-else>
-                                <div>正在处理视频...</div>
-                                <div class="progress-bar">
-                                    <div 
-                                        class="progress-bar-fill"
-                                        :style="{ width: (result.data.processed_frames / result.data.frame_count * 100 || 0) + '%' }"
-                                    ></div>
-                                </div>
-                                <div class="progress-text" v-if="result.data.frame_count">
-                                    已处理 {{ result.data.processed_frames }}/{{ result.data.frame_count }} 帧
-                                    ({{ Math.round(result.data.processed_frames / result.data.frame_count * 100) }}%)
-                                </div>
-                                <div class="progress-text" v-else>
-                                    正在准备处理...
-                                </div>
-                            </template>
+                            <div>正在处理视频...</div>
+                            <div class="loading-spinner"></div>
                         </div>
                         
                         <div v-else-if="result" class="result-content">
@@ -577,9 +553,7 @@
                         text: '',
                         timeout: null
                     },
-                    uploadProgress: 0,
-                    processingProgress: 0,
-                    pollInterval: null
+                    uploadProgress: 0
                 };
             },
             computed: {
@@ -644,41 +618,78 @@
                     this.uploadProgress = 0;
                     
                     try {
-                        // 创建FormData对象
                         const formData = new FormData();
                         formData.append('file', this.selectedFile);
 
-                        // 发送上传请求
                         const response = await fetch('/api/upload', {
                             method: 'POST',
-                            body: formData,
-                            onUploadProgress: (progressEvent) => {
-                                this.uploadProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                            }
+                            body: formData
                         });
 
                         if (!response.ok) {
-                            throw new Error('上传失败');
+                            throw new Error(`上传失败: ${response.status} ${response.statusText}`);
                         }
 
-                        const data = await response.json();
-                        
-                        if (data.status === 'success') {
-                            this.result = {
-                                status: 'success',
-                                data: {
-                                    task_id: data.task_id,
-                                    file_name: this.selectedFile.name,
-                                    processed_frames: 0,
-                                    frame_count: 0
-                                }
-                            };
-                            this.startPolling(data.task_id);
+                        // 获取响应的Content-Type
+                        const contentType = response.headers.get('content-type');
+                        let data;
+
+                        if (contentType && contentType.includes('application/json')) {
+                            // JSON格式响应
+                            data = await response.json();
+                            console.log('JSON格式响应:', data)
+                            if (data.status === 'success') {
+                                this.result = {
+                                    status: 'success',
+                                    data: {
+                                        status: 'completed',
+                                        file_name: data.data.file_name,
+                                        video_url: data.data.video_url,
+                                        title: data.data.title,
+                                        frame_count: data.data.frame_count,
+                                        processed_frames: data.data.processed_frames
+                                    }
+                                };
+                            } else {
+                                throw new Error(data.message || '处理失败');
+                            }
                         } else {
-                            throw new Error(data.message || '上传失败');
+                            // 文本格式响应
+                            const text = await response.text();
+                            const resultLines = text.trim().split('\n');
+                            console.log('文本格式响应:', text)
+                            
+                            if (resultLines[0].includes('处理完成') || resultLines[0].includes('success')) {
+                                // 尝试从文本中提取信息
+                                const fileNameMatch = text.match(/文件名:\s*(.+)/i);
+                                const videoUrlMatch = text.match(/视频URL:\s*(.+)/i);
+                                const titleMatch = text.match(/标题:\s*(.+)/i);
+                                const framesMatch = text.match(/处理帧数:\s*(\d+)\/(\d+)/i);
+                                
+                                this.result = {
+                                    status: 'success',
+                                    data: {
+                                        status: 'completed',
+                                        file_name: fileNameMatch ? fileNameMatch[1].trim() : this.selectedFile.name,
+                                        video_url: videoUrlMatch ? videoUrlMatch[1].trim() : '',
+                                        title: titleMatch ? titleMatch[1].trim() : '',
+                                        frame_count: framesMatch ? parseInt(framesMatch[2]) : 0,
+                                        processed_frames: framesMatch ? parseInt(framesMatch[1]) : 0
+                                    }
+                                };
+                            } else {
+                                throw new Error(text || '处理失败');
+                            }
                         }
+                        
+                        this.isProcessing = false;
                     } catch (error) {
-                        this.showMessage(error.message);
+                        console.error('Upload error:', error);
+                        this.showMessage(error.message || '上传处理失败');
+                        this.result = {
+                            status: 'error',
+                            message: error.message || '上传处理失败'
+                        };
                         this.isProcessing = false;
                     }
                 },
@@ -702,27 +713,71 @@
                         });
 
                         if (!response.ok) {
-                            throw new Error('处理请求失败');
+                            throw new Error(`处理请求失败: ${response.status} ${response.statusText}`);
                         }
 
-                        const data = await response.json();
-                        
-                        if (data.status === 'success') {
-                            this.result = {
-                                status: 'success',
-                                data: {
-                                    task_id: data.task_id,
-                                    file_name: '视频处理任务',
-                                    processed_frames: 0,
-                                    frame_count: 0
-                                }
-                            };
-                            this.startPolling(data.task_id);
+                        // 获取响应的Content-Type
+                        const contentType = response.headers.get('content-type');
+                        let data;
+
+                        if (contentType && contentType.includes('application/json')) {
+                            // JSON格式响应
+                            data = await response.json();
+                            if (data.status === 'success') {
+                                this.result = {
+                                    status: 'success',
+                                    data: {
+                                        status: 'completed',
+                                        file_name: data.data.file_name || '视频处理任务',
+                                        video_url: data.data.video_url || '',
+                                        title: data.data.title || '',
+                                        frame_count: data.data.frame_count || 0,
+                                        duration: data.data.duration || 0,
+                                        resolution: data.data.resolution || ''
+                                    }
+                                };
+                            } else {
+                                throw new Error(data.message || '处理失败');
+                            }
                         } else {
-                            throw new Error(data.message || '处理请求失败');
+                            // 文本格式响应
+                            const text = await response.text();
+                            const resultLines = text.trim().split('\n');
+                            
+                            if (resultLines[0].includes('处理完成') || resultLines[0].includes('success')) {
+                                // 尝试从文本中提取信息
+                                const fileNameMatch = text.match(/文件名:\s*(.+)/i);
+                                const videoUrlMatch = text.match(/视频URL:\s*(.+)/i);
+                                const titleMatch = text.match(/标题:\s*(.+)/i);
+                                const framesMatch = text.match(/处理帧数:\s*(\d+)\/(\d+)/i);
+                                const durationMatch = text.match(/时长:\s*(\d+(\.\d+)?)/i);
+                                const resolutionMatch = text.match(/分辨率:\s*(.+)/i);
+                                
+                                this.result = {
+                                    status: 'success',
+                                    data: {
+                                        status: 'completed',
+                                        file_name: fileNameMatch ? fileNameMatch[1].trim() : '视频处理任务',
+                                        video_url: videoUrlMatch ? videoUrlMatch[1].trim() : '',
+                                        title: titleMatch ? titleMatch[1].trim() : '',
+                                        frame_count: framesMatch ? parseInt(framesMatch[2]) : 0,
+                                        duration: durationMatch ? parseFloat(durationMatch[1]) : 0,
+                                        resolution: resolutionMatch ? resolutionMatch[1].trim() : ''
+                                    }
+                                };
+                            } else {
+                                throw new Error(text || '处理失败');
+                            }
                         }
+                        
+                        this.isProcessing = false;
                     } catch (error) {
-                        this.showMessage(error.message);
+                        console.error('RawId process error:', error);
+                        this.showMessage(error.message || '处理失败');
+                        this.result = {
+                            status: 'error',
+                            message: error.message || '处理失败'
+                        };
                         this.isProcessing = false;
                     }
                 },
