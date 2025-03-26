@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, redirect, url_for
 from flask_cors import CORS
 from app.services.video.upload import UploadVideoService
 import tempfile
@@ -25,7 +25,11 @@ print(f"Static Directory: {STATIC_DIR}")
 
 @app.route('/')
 def index():
-    """返回主页"""
+    return redirect(url_for('upload'))
+
+@app.route('/upload')
+def upload():
+    """返回上传页面"""
     try:
         print(f"Trying to serve index.html from {STATIC_DIR}")
         if not os.path.exists(os.path.join(STATIC_DIR, 'index.html')):
