@@ -315,6 +315,54 @@
         .fade-enter-from, .fade-leave-to {
             opacity: 0;
         }
+        /* 进度条样式 */
+        .progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background: #e5e7eb;
+            border-radius: 0.25rem;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #2563eb;
+            transition: width 0.3s ease;
+        }
+        .progress-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        /* 结果信息样式 */
+        .result-info {
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .info-item .material-icons {
+            color: #2563eb;
+            font-size: 1.25rem;
+        }
+        .error-message {
+            display: flex;
+            align-items: center;
+            color: #dc2626;
+            background: #fef2f2;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -416,32 +464,70 @@
                         </div>
                         
                         <div v-if="isProcessing" class="result-content">
-                            <div class="loading-placeholder space-y-2">
-                                <div class="loading-bar w-1/3"></div>
-                                <div class="loading-bar w-full"></div>
-                            </div>
+                            <template v-if="uploadProgress < 100">
+                                <div>正在上传文件...</div>
+                                <div class="progress-bar">
+                                    <div 
+                                        class="progress-bar-fill"
+                                        :style="{ width: uploadProgress + '%' }"
+                                    ></div>
+                                </div>
+                                <div class="progress-text">{{ uploadProgress }}%</div>
+                            </template>
+                            <template v-else>
+                                <div>正在处理视频...</div>
+                                <div class="progress-bar">
+                                    <div 
+                                        class="progress-bar-fill"
+                                        :style="{ width: (result.data.processed_frames / result.data.frame_count * 100 || 0) + '%' }"
+                                    ></div>
+                                </div>
+                                <div class="progress-text" v-if="result.data.frame_count">
+                                    已处理 {{ result.data.processed_frames }}/{{ result.data.frame_count }} 帧
+                                    ({{ Math.round(result.data.processed_frames / result.data.frame_count * 100) }}%)
+                                </div>
+                                <div class="progress-text" v-else>
+                                    正在准备处理...
+                                </div>
+                            </template>
                         </div>
                         
                         <div v-else-if="result" class="result-content">
-                            <div v-if="result.status === 'success'">
+                            <div v-if="result.status === 'success' && result.data.status === 'completed'">
                                 <div class="space-y-4">
                                     <div class="flex items-center">
                                         <span class="material-icons text-green-600 mr-2">check_circle</span>
-                                        <span class="font-medium">{{ result.data.file_name }}</span>
+                                        <span class="font-medium">处理完成</span>
                                     </div>
-                                    <div>
-                                        <a :href="result.data.video_url" target="_blank" class="text-blue-600 hover:underline">
-                                            {{ result.data.video_url }}
-                                        </a>
-                                    </div>
-                                    <div>{{ result.data.title }}</div>
-                                    <div v-if="result.data.processed_frames">
-                                        处理进度: {{ result.data.processed_frames }}/{{ result.data.frame_count }} 帧
+                                    <div class="result-info">
+                                        <div class="info-item">
+                                            <span class="material-icons">movie</span>
+                                            <span>{{ result.data.file_name }}</span>
+                                        </div>
+                                        <div class="info-item" v-if="result.data.video_url">
+                                            <span class="material-icons">link</span>
+                                            <a :href="result.data.video_url" target="_blank" class="text-blue-600 hover:underline">
+                                                查看视频
+                                            </a>
+                                        </div>
+                                        <div class="info-item" v-if="result.data.duration">
+                                            <span class="material-icons">schedule</span>
+                                            <span>时长: {{ result.data.duration }}秒</span>
+                                        </div>
+                                        <div class="info-item" v-if="result.data.frame_count">
+                                            <span class="material-icons">filter_frames</span>
+                                            <span>总帧数: {{ result.data.frame_count }}</span>
+                                        </div>
+                                        <div class="info-item" v-if="result.data.resolution">
+                                            <span class="material-icons">aspect_ratio</span>
+                                            <span>分辨率: {{ result.data.resolution }}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div v-else class="text-red-600">
-                                {{ result.message }}
+                            <div v-else-if="result.status === 'error'" class="error-message">
+                                <span class="material-icons text-red-600 mr-2">error</span>
+                                <span>{{ result.message || '处理失败' }}</span>
                             </div>
                         </div>
                         
@@ -491,6 +577,9 @@
                         text: '',
                         timeout: null
                     },
+                    uploadProgress: 0,
+                    processingProgress: 0,
+                    pollInterval: null
                 };
             },
             computed: {
@@ -545,43 +634,140 @@
                         this.handleRawId();
                     }
                 },
-                handleUpload() {
+                async handleUpload() {
                     if (!this.selectedFile) {
                         this.showMessage('请先选择视频文件');
                         return;
                     }
+
                     this.isProcessing = true;
-                    // 这里应该调用上传视频的逻辑
-                    this.result = {
-                        status: 'success',
-                        data: {
-                            file_name: this.selectedFile.name,
-                            video_url: 'https://example.com/video.mp4',
-                            title: '视频标题',
-                            processed_frames: 0,
-                            frame_count: 1000
+                    this.uploadProgress = 0;
+                    
+                    try {
+                        // 创建FormData对象
+                        const formData = new FormData();
+                        formData.append('file', this.selectedFile);
+
+                        // 发送上传请求
+                        const response = await fetch('/api/upload', {
+                            method: 'POST',
+                            body: formData,
+                            onUploadProgress: (progressEvent) => {
+                                this.uploadProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('上传失败');
                         }
-                    };
-                    this.isProcessing = false;
+
+                        const data = await response.json();
+                        
+                        if (data.status === 'success') {
+                            this.result = {
+                                status: 'success',
+                                data: {
+                                    task_id: data.task_id,
+                                    file_name: this.selectedFile.name,
+                                    processed_frames: 0,
+                                    frame_count: 0
+                                }
+                            };
+                            this.startPolling(data.task_id);
+                        } else {
+                            throw new Error(data.message || '上传失败');
+                        }
+                    } catch (error) {
+                        this.showMessage(error.message);
+                        this.isProcessing = false;
+                    }
                 },
-                handleRawId() {
+                async handleRawId() {
                     if (!this.rawId.trim()) {
                         this.showMessage('请输入有效的raw_id');
                         return;
                     }
+
                     this.isProcessing = true;
-                    // 这里应该调用通过raw_id处理数据的逻辑
-                    this.result = {
-                        status: 'success',
-                        data: {
-                            file_name: '视频名称',
-                            video_url: 'https://example.com/video.mp4',
-                            title: '视频标题',
-                            processed_frames: 0,
-                            frame_count: 1000
+                    
+                    try {
+                        const response = await fetch('/api/process', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                raw_id: this.rawId.trim()
+                            })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('处理请求失败');
                         }
-                    };
-                    this.isProcessing = false;
+
+                        const data = await response.json();
+                        
+                        if (data.status === 'success') {
+                            this.result = {
+                                status: 'success',
+                                data: {
+                                    task_id: data.task_id,
+                                    file_name: '视频处理任务',
+                                    processed_frames: 0,
+                                    frame_count: 0
+                                }
+                            };
+                            this.startPolling(data.task_id);
+                        } else {
+                            throw new Error(data.message || '处理请求失败');
+                        }
+                    } catch (error) {
+                        this.showMessage(error.message);
+                        this.isProcessing = false;
+                    }
+                },
+                startPolling(taskId) {
+                    // 清除之前的轮询
+                    if (this.pollInterval) {
+                        clearInterval(this.pollInterval);
+                    }
+
+                    // 开始新的轮询
+                    this.pollInterval = setInterval(async () => {
+                        try {
+                            const response = await fetch(`/api/status/${taskId}`);
+                            const data = await response.json();
+
+                            if (data.status === 'success') {
+                                this.result.data = {
+                                    ...this.result.data,
+                                    ...data.data
+                                };
+
+                                // 如果处理完成或失败，停止轮询
+                                if (['completed', 'failed'].includes(data.data.status)) {
+                                    clearInterval(this.pollInterval);
+                                    this.isProcessing = false;
+                                    
+                                    if (data.data.status === 'failed') {
+                                        this.showMessage('处理失败: ' + data.data.error || '未知错误');
+                                    }
+                                }
+                            } else {
+                                throw new Error(data.message || '获取状态失败');
+                            }
+                        } catch (error) {
+                            this.showMessage(error.message);
+                            clearInterval(this.pollInterval);
+                            this.isProcessing = false;
+                        }
+                    }, 2000); // 每2秒轮询一次
+                },
+                beforeDestroy() {
+                    // 组件销毁前清除轮询
+                    if (this.pollInterval) {
+                        clearInterval(this.pollInterval);
+                    }
                 }
             }
         });
