@@ -363,6 +363,23 @@
             padding: 1rem;
             border-radius: 0.5rem;
         }
+        /* 处理完成状态样式 */
+        .status-success {
+            display: flex;
+            align-items: center;
+            background-color: #ecfdf5;
+            color: #047857;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+        }
+        .status-success .material-icons {
+            color: #059669;
+            margin-right: 0.5rem;
+        }
+        .status-success span {
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -471,11 +488,11 @@
                         <div v-else-if="result" class="result-content">
                             <div v-if="result.status === 'success' && result.data.status === 'completed'">
                                 <div class="space-y-4">
-                                    <div class="flex items-center">
-                                        <span class="material-icons text-green-600 mr-2">check_circle</span>
-                                        <span class="font-medium">处理完成</span>
+                                    <div class="status-success">
+                                        <span class="material-icons">check_circle</span>
+                                        <span>处理完成</span>
                                     </div>
-                                    <div class="result-info">
+                                    <div class="result-info mt-4">
                                         <div class="info-item">
                                             <span class="material-icons">movie</span>
                                             <span>{{ result.data.file_name }}</span>
