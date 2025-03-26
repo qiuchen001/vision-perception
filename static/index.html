@@ -486,6 +486,10 @@
                                                 查看视频
                                             </a>
                                         </div>
+                                        <div class="info-item" v-if="result.data.title">
+                                            <span class="material-icons">title</span>
+                                            <span>标题: {{ result.data.title }}</span>
+                                        </div>
                                         <div class="info-item" v-if="result.data.duration">
                                             <span class="material-icons">schedule</span>
                                             <span>时长: {{ result.data.duration }}秒</span>
