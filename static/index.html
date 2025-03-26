@@ -495,13 +495,7 @@
                                     <div class="result-info mt-4">
                                         <div class="info-item">
                                             <span class="material-icons">movie</span>
-                                            <span>{{ result.data.file_name }}</span>
-                                        </div>
-                                        <div class="info-item" v-if="result.data.video_url">
-                                            <span class="material-icons">link</span>
-                                            <a :href="result.data.video_url" target="_blank" class="text-blue-600 hover:underline">
-                                                查看视频
-                                            </a>
+                                            <span>地址: {{ result.data.file_name }}</span>
                                         </div>
                                         <div class="info-item" v-if="result.data.title">
                                             <span class="material-icons">title</span>
@@ -518,6 +512,12 @@
                                         <div class="info-item" v-if="result.data.resolution">
                                             <span class="material-icons">aspect_ratio</span>
                                             <span>分辨率: {{ result.data.resolution }}</span>
+                                        </div>
+                                        <div class="info-item" v-if="result.data.video_url">
+                                            <span class="material-icons">link</span>
+                                            <a :href="result.data.video_url" target="_blank" class="text-blue-600 hover:underline">
+                                                查看视频
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
