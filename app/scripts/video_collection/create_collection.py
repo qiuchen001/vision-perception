@@ -109,7 +109,8 @@ def create_schema():
 
     collection_schema.add_field(
         field_name="mining_results",
-        datatype=DataType.JSON,
+        datatype=DataType.VARCHAR,
+        max_length=3072,
         description="视频挖掘结果，包含场景分析、行为标签、时间范围和缩略图URL",
         nullable=True
     )
