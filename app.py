@@ -311,5 +311,60 @@ def search_videos():
             'message': f'搜索失败: {str(e)}'
         }), 500
 
+@app.route('/api/add', methods=['POST'])
+def add_video():
+    """处理视频添加"""
+    data = request.get_json()
+    if not data or 'video_url' not in data or 'action_type' not in data:
+        return jsonify({
+            'status': 'error',
+            'message': '请提供视频URL和处理类型'
+        }), 400
+        
+    video_url = data['video_url']
+    action_type = data['action_type']
+
+    if not video_url or not video_url.strip():
+        return jsonify({
+            'status': 'error',
+            'message': '请输入有效的视频URL'
+        }), 400
+
+    try:
+        # 创建服务实例
+        from app.services.video.add import AddVideoService
+        add_service = AddVideoService()
+
+        # 处理视频
+        m_id = add_service.add(video_url, action_type)
+
+        # 获取处理类型描述
+        action_type_desc = {
+            1: "视频内容挖掘",
+            2: "视频内容总结",
+            3: "内容挖掘和总结"
+        }.get(action_type, "未知操作")
+
+        return jsonify({
+            'status': 'success',
+            'data': {
+                'video_url': video_url,
+                'action_type_desc': action_type_desc,
+                'm_id': m_id
+            }
+        })
+
+    except ValueError as ve:
+        return jsonify({
+            'status': 'error',
+            'message': str(ve)
+        }), 400
+    except Exception as e:
+        print(f"Add video error: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'处理失败: {str(e)}'
+        }), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True) 
