@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频处理系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.js"></script>
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+        body {
+            background-color: #f3f4f6;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 48rem;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+        /* 标题卡片 */
+        .title-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .title-card h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            margin: 0 0 0.5rem;
+        }
+        .title-card .material-icons {
+            color: #2563eb;
+            margin-right: 0.5rem;
+            font-size: 2rem;
+        }
+        .title-card p {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin: 0;
+        }
+        /* 主卡片 */
+        .main-card {
+            background: white;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* 内容区域 */
+        .content {
+            padding: 2rem;
+        }
+        /* Material输入框 */
+        .material-input-group {
+            position: relative;
+            border-bottom: 2px solid #e5e7eb;
+            margin-bottom: 1.5rem;
+        }
+        .material-input-group:focus-within {
+            border-color: #2563eb;
+        }
+        .material-input {
+            width: 100%;
+            padding: 1.5rem 1rem 0.5rem;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 1rem;
+        }
+        .material-input-label {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            transition: all 0.2s;
+            pointer-events: none;
+        }
+        .material-input:focus + .material-input-label,
+        .material-input:not(:placeholder-shown) + .material-input-label {
+            top: 0.5rem;
+            transform: none;
+            font-size: 0.75rem;
+            color: #2563eb;
+        }
+        /* 处理类型选择 */
+        .process-type {
+            margin-top: 2rem;
+        }
+        .process-type-title {
+            font-weight: 500;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .process-type-title .material-icons {
+            color: #6b7280;
+            margin-right: 0.5rem;
+        }
+        .radio-group {
+            display: grid;
+            gap: 1rem;
+        }
+        .radio-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .radio-card:hover {
+            border-color: #2563eb;
+            transform: translateY(-2px);
+        }
+        .radio-card.selected {
+            border-color: #2563eb;
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+        .radio-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .radio-card-header .material-icons {
+            color: #2563eb;
+            margin-right: 0.5rem;
+            font-size: 1.25rem;
+        }
+        .radio-card-title {
+            font-weight: 500;
+            color: #1f2937;
+        }
+        .radio-card-desc {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        /* 结果区域 */
+        .result-section {
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            padding: 1.5rem;
+        }
+        .result-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .result-title {
+            font-weight: 500;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .result-title .material-icons {
+            margin-right: 0.5rem;
+            color: #2563eb;
+        }
+        .result-content {
+            color: #6b7280;
+            font-size: 0.875rem;
+            white-space: pre-line;
+        }
+        /* 底部操作区 */
+        .actions {
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+        .action-button {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-button .material-icons {
+            margin-right: 0.5rem;
+            font-size: 1.25rem;
+        }
+        .action-button.secondary {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+        .action-button.secondary:hover {
+            background: #e5e7eb;
+        }
+        .action-button.primary {
+            background: #2563eb;
+            color: white;
+        }
+        .action-button.primary:hover {
+            background: #1d4ed8;
+        }
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        /* Toast消息 */
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            min-width: 280px;
+            text-align: center;
+        }
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.3s;
+        }
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak>
+        <div class="container">
+            <!-- 标题卡片 -->
+            <div class="title-card">
+                <h1>
+                    <span class="material-icons">video_library</span>
+                    视频处理系统
+                </h1>
+                <p>输入视频URL并选择处理类型</p>
+            </div>
+
+            <!-- 主卡片 -->
+            <div class="main-card">
+                <!-- 内容区域 -->
+                <div class="content">
+                    <!-- URL输入 -->
+                    <div class="material-input-group">
+                        <input 
+                            type="url" 
+                            class="material-input" 
+                            v-model="videoUrl"
+                            placeholder=" "
+                        >
+                        <label class="material-input-label">请输入视频URL</label>
+                    </div>
+
+                    <!-- 处理类型选择 -->
+                    <div class="process-type">
+                        <div class="process-type-title">
+                            <span class="material-icons">tune</span>
+                            处理类型
+                        </div>
+                        <div class="radio-group">
+                            <div 
+                                v-for="type in processTypes" 
+                                :key="type.value"
+                                class="radio-card"
+                                :class="{ selected: selectedType === type.value }"
+                                @click="selectedType = type.value"
+                            >
+                                <div class="radio-card-header">
+                                    <span class="material-icons">{{ type.icon }}</span>
+                                    <span class="radio-card-title">{{ type.title }}</span>
+                                </div>
+                                <div class="radio-card-desc">{{ type.description }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 结果区域 -->
+                <div class="result-section">
+                    <div class="result-card">
+                        <div class="result-title">
+                            <span class="material-icons">assignment_turned_in</span>
+                            处理结果
+                        </div>
+                        <div v-if="isProcessing" class="result-content">
+                            处理中...
+                        </div>
+                        <div v-else-if="result" class="result-content">
+                            {{ result }}
+                        </div>
+                        <div v-else class="result-content">
+                            等待处理...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 底部操作区 -->
+                <div class="actions">
+                    <button 
+                        class="action-button secondary"
+                        @click="handleClear"
+                    >
+                        <span class="material-icons">delete</span>
+                        清除
+                    </button>
+                    <button 
+                        class="action-button primary"
+                        :disabled="!canSubmit || isProcessing"
+                        @click="handleSubmit"
+                    >
+                        <span class="material-icons">settings</span>
+                        开始处理
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast消息 -->
+        <transition name="fade">
+            <div v-if="snackbar.show" class="toast">
+                {{ snackbar.text }}
+            </div>
+        </transition>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        const app = createApp({
+            data() {
+                return {
+                    videoUrl: '',
+                    selectedType: '1',
+                    isProcessing: false,
+                    result: null,
+                    processTypes: [
+                        {
+                            value: '1',
+                            title: '内容挖掘',
+                            description: '分析视频内容并提取标签',
+                            icon: 'tag'
+                        },
+                        {
+                            value: '2',
+                            title: '内容总结',
+                            description: '生成视频内容的文字总结',
+                            icon: 'summarize'
+                        },
+                        {
+                            value: '3',
+                            title: '两者都做',
+                            description: '同时进行内容挖掘和总结',
+                            icon: 'layers'
+                        }
+                    ],
+                    snackbar: {
+                        show: false,
+                        text: '',
+                        timeout: null
+                    }
+                };
+            },
+            computed: {
+                canSubmit() {
+                    return this.videoUrl.trim() && this.selectedType;
+                }
+            },
+            methods: {
+                showMessage(text) {
+                    if (this.snackbar.timeout) {
+                        clearTimeout(this.snackbar.timeout);
+                    }
+                    
+                    this.snackbar = {
+                        show: true,
+                        text,
+                        timeout: setTimeout(() => {
+                            this.snackbar.show = false;
+                        }, 3000)
+                    };
+                },
+                handleClear() {
+                    this.videoUrl = '';
+                    this.selectedType = '1';
+                    this.result = null;
+                },
+                async handleSubmit() {
+                    if (!this.canSubmit) {
+                        this.showMessage('请输入视频URL并选择处理类型');
+                        return;
+                    }
+
+                    this.isProcessing = true;
+                    try {
+                        const response = await fetch('/api/process', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                video_url: this.videoUrl,
+                                action_type: this.selectedType
+                            })
+                        });
+
+                        const data = await response.json();
+                        
+                        if (data.status === 'success') {
+                            this.result = `处理完成!\n\n视频URL: ${data.data.video_url}\n处理类型: ${data.data.action_type_desc}\n视频ID: ${data.data.m_id}`;
+                            this.showMessage('处理成功');
+                        } else {
+                            this.result = `处理失败: ${data.message}`;
+                            this.showMessage('处理失败');
+                        }
+                    } catch (error) {
+                        this.result = `处理失败: ${error.message}`;
+                        this.showMessage('处理失败');
+                    } finally {
+                        this.isProcessing = false;
+                    }
+                }
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html> 

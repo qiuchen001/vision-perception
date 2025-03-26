@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频处理系统 - Material Design</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen p-6">
+    <div class="max-w-xl mx-auto">
+        <!-- 主卡片 -->
+        <div class="bg-white rounded-xl shadow-lg p-8">
+            <!-- 标题区 -->
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+                    <span class="material-icons text-blue-600 mr-2">videocam</span>
+                    视频处理系统
+                </h1>
+                <p class="text-gray-600 mt-2 text-sm">请输入要处理的视频URL，并选择处理类型</p>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="space-y-6">
+                <!-- URL输入 -->
+                <div class="relative">
+                    <input type="url" id="videoUrl" 
+                           class="w-full px-4 py-3 border border-gray-200 rounded-lg 
+                                  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                                  peer transition-all" 
+                           placeholder=" ">
+                    <label for="videoUrl" 
+                           class="absolute left-4 top-3 text-gray-400 pointer-events-none
+                                  transition-all peer-placeholder-shown:top-3 
+                                  peer-focus:-top-3 peer-focus:text-sm peer-focus:text-blue-600 
+                                  bg-white px-1 -top-3 text-sm">
+                        视频URL
+                    </label>
+                </div>
+
+                <!-- 处理类型选择 -->
+                <div class="space-y-4">
+                    <h3 class="text-gray-700 font-medium flex items-center">
+                        <span class="material-icons text-gray-500 mr-2">tune</span>
+                        处理类型
+                    </h3>
+                    <div class="grid gap-4">
+                        <!-- 选项卡片 -->
+                        <label class="option-card">
+                            <input type="radio" name="processType" class="hidden peer">
+                            <div class="p-4 border-2 border-gray-200 rounded-lg 
+                                      peer-checked:border-blue-500 transition-all">
+                                <div class="flex items-center">
+                                    <span class="material-icons text-blue-500 mr-2">tag</span>
+                                    <h4 class="font-medium">内容挖掘</h4>
+                                </div>
+                                <p class="text-gray-500 text-sm mt-2">分析视频内容并提取标签</p>
+                            </div>
+                        </label>
+
+                        <label class="option-card">
+                            <input type="radio" name="processType" class="hidden peer">
+                            <div class="p-4 border-2 border-gray-200 rounded-lg 
+                                      peer-checked:border-blue-500 transition-all">
+                                <div class="flex items-center">
+                                    <span class="material-icons text-blue-500 mr-2">summarize</span>
+                                    <h4 class="font-medium">内容总结</h4>
+                                </div>
+                                <p class="text-gray-500 text-sm mt-2">生成视频内容的文字总结</p>
+                            </div>
+                        </label>
+
+                        <label class="option-card">
+                            <input type="radio" name="processType" class="hidden peer">
+                            <div class="p-4 border-2 border-gray-200 rounded-lg 
+                                      peer-checked:border-blue-500 transition-all">
+                                <div class="flex items-center">
+                                    <span class="material-icons text-blue-500 mr-2">layers</span>
+                                    <h4 class="font-medium">两者都做</h4>
+                                </div>
+                                <p class="text-gray-500 text-sm mt-2">同时进行内容挖掘和总结</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 按钮组 -->
+                <div class="flex gap-4 mt-8">
+                    <button class="flex-1 px-6 py-3 bg-gray-100 text-gray-600 rounded-lg
+                                 hover:bg-gray-200 transition-colors flex items-center justify-center">
+                        <span class="material-icons mr-2">delete</span>
+                        清除
+                    </button>
+                    <button class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg
+                                 hover:bg-blue-700 transition-colors flex items-center justify-center">
+                        <span class="material-icons mr-2">send</span>
+                        提交
+                    </button>
+                </div>
+            </div>
+
+            <!-- 处理结果 -->
+            <div class="mt-8 pt-6 border-t border-gray-100">
+                <h3 class="text-gray-700 font-medium flex items-center mb-4">
+                    <span class="material-icons text-gray-500 mr-2">flag</span>
+                    处理结果
+                </h3>
+                <div class="bg-gray-50 rounded-lg p-4 min-h-[120px]">
+                    <div class="animate-pulse space-y-2">
+                        <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+                        <div class="h-4 bg-gray-200 rounded"></div>
+                        <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .option-card {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .option-card:hover {
+            transform: translateY(-2px);
+        }
+        .option-card input:checked + div {
+            border-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+    </style>
+</body>
+</html>

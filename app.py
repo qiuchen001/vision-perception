@@ -40,6 +40,19 @@ def upload():
         print(f"Error serving index.html: {str(e)}")
         return str(e), 500
 
+@app.route('/add')
+def add():
+    """返回添加页面"""
+    try:
+        print(f"Trying to serve add.html from {STATIC_DIR}")
+        if not os.path.exists(os.path.join(STATIC_DIR, 'add.html')):
+            print("Warning: add.html not found!")
+            return "Error: add.html not found", 404
+        return send_from_directory(STATIC_DIR, 'add.html')
+    except Exception as e:
+        print(f"Error serving add.html: {str(e)}")
+        return str(e), 500
+
 # 添加静态文件路由
 @app.route('/<path:path>')
 def serve_static(path):
