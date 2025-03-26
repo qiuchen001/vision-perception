@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频搜索系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.js"></script>
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+        body {
+            background-color: #f3f4f6;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 90rem;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+        /* 标题卡片 */
+        .title-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .title-card h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            margin: 0 0 0.5rem;
+        }
+        .title-card .material-icons {
+            color: #2563eb;
+            margin-right: 0.5rem;
+            font-size: 2rem;
+        }
+        .title-card p {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin: 0;
+        }
+        /* 搜索控制区域 */
+        .search-controls {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        /* 搜索类型选择 */
+        .search-type {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .type-card {
+            flex: 1;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .type-card:hover {
+            border-color: #2563eb;
+            transform: translateY(-2px);
+        }
+        .type-card.selected {
+            border-color: #2563eb;
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+        .type-card .material-icons {
+            color: #2563eb;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .type-card-title {
+            font-weight: 500;
+            color: #1f2937;
+        }
+        /* 搜索输入区域 */
+        .search-inputs {
+            display: grid;
+            gap: 1.5rem;
+        }
+        /* Material输入框 */
+        .material-input-group {
+            position: relative;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .material-input-group:focus-within {
+            border-color: #2563eb;
+        }
+        .material-input {
+            width: 100%;
+            padding: 1.5rem 1rem 0.5rem;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 1rem;
+        }
+        .material-input-label {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            transition: all 0.2s;
+            pointer-events: none;
+        }
+        .material-input:focus + .material-input-label,
+        .material-input:not(:placeholder-shown) + .material-input-label {
+            top: 0.5rem;
+            transform: none;
+            font-size: 0.75rem;
+            color: #2563eb;
+        }
+        /* 图片上传区域 */
+        .image-upload {
+            border: 2px dashed #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .image-upload:hover {
+            border-color: #2563eb;
+            background: rgba(37, 99, 235, 0.05);
+        }
+        .image-upload .material-icons {
+            font-size: 2rem;
+            color: #2563eb;
+            margin-bottom: 0.5rem;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+        }
+        /* 分页控制 */
+        .pagination {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 1rem;
+        }
+        .pagination-input {
+            width: 5rem;
+        }
+        /* 搜索结果区域 */
+        .results-container {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .gallery-area {
+            flex: 2;
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .video-area {
+            flex: 1;
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 1.5rem;
+            max-height: calc(100vh - 3rem);
+            overflow-y: auto;
+        }
+        /* Gallery网格 */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        .video-card {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .video-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        .video-thumbnail {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+        }
+        .video-info {
+            padding: 1rem;
+        }
+        .video-title {
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .video-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .tag {
+            background: #f3f4f6;
+            color: #4b5563;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+        }
+        /* 视频播放器 */
+        .video-player {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: black;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .video-details {
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+        /* 按钮 */
+        .button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .button.primary {
+            background: #2563eb;
+            color: white;
+        }
+        .button.primary:hover {
+            background: #1d4ed8;
+        }
+        .button .material-icons {
+            margin-right: 0.5rem;
+        }
+        /* Toast消息 */
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            min-width: 280px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak>
+        <div class="container">
+            <!-- 标题卡片 -->
+            <div class="title-card">
+                <h1>
+                    <span class="material-icons">search</span>
+                    视频搜索系统
+                </h1>
+                <p>支持智能搜索、文本搜索、图片搜索和标签搜索</p>
+            </div>
+
+            <!-- 搜索控制区域 -->
+            <div class="search-controls">
+                <!-- 搜索类型选择 -->
+                <div class="search-type">
+                    <div
+                        v-for="type in searchTypes"
+                        :key="type.value"
+                        class="type-card"
+                        :class="{ selected: selectedType === type.value }"
+                        @click="handleTypeSelect(type.value)"
+                    >
+                        <span class="material-icons">{{ type.icon }}</span>
+                        <div class="type-card-title">{{ type.label }}</div>
+                    </div>
+                </div>
+
+                <!-- 搜索输入区域 -->
+                <div class="search-inputs">
+                    <!-- 文本搜索输入 -->
+                    <div v-if="showTextInput" class="material-input-group">
+                        <input
+                            type="text"
+                            class="material-input"
+                            v-model="textQuery"
+                            placeholder=" "
+                        >
+                        <label class="material-input-label">请输入搜索关键词</label>
+                    </div>
+
+                    <!-- 搜索模式选择 -->
+                    <div v-if="selectedType === 'text'" class="search-mode">
+                        <label>
+                            <input
+                                type="radio"
+                                v-model="searchMode"
+                                value="frame"
+                            > 搜索视频帧
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                v-model="searchMode"
+                                value="summary"
+                            > 搜索视频摘要
+                        </label>
+                    </div>
+
+                    <!-- 图片搜索输入 -->
+                    <template v-if="selectedType === 'image'">
+                        <div
+                            class="image-upload"
+                            @click="$refs.imageInput.click()"
+                            @dragover.prevent
+                            @drop.prevent="handleImageDrop"
+                        >
+                            <input
+                                type="file"
+                                ref="imageInput"
+                                @change="handleImageSelect"
+                                accept="image/*"
+                                style="display: none"
+                            >
+                            <span class="material-icons">cloud_upload</span>
+                            <div>点击或拖放图片到此处</div>
+                            <img
+                                v-if="imagePreview"
+                                :src="imagePreview"
+                                class="image-preview"
+                            >
+                        </div>
+                        <div class="material-input-group">
+                            <input
+                                type="url"
+                                class="material-input"
+                                v-model="imageUrl"
+                                placeholder=" "
+                            >
+                            <label class="material-input-label">或输入图片URL</label>
+                        </div>
+                    </template>
+
+                    <!-- 标签搜索输入 -->
+                    <div v-if="selectedType === 'tags'" class="material-input-group">
+                        <input
+                            type="text"
+                            class="material-input"
+                            v-model="tagsInput"
+                            placeholder=" "
+                        >
+                        <label class="material-input-label">请输入标签，多个标签用逗号分隔</label>
+                    </div>
+
+                    <!-- 分页控制 -->
+                    <div class="pagination">
+                        <div class="material-input-group pagination-input">
+                            <input
+                                type="number"
+                                class="material-input"
+                                v-model="page"
+                                min="1"
+                                placeholder=" "
+                            >
+                            <label class="material-input-label">页码</label>
+                        </div>
+                        <div class="material-input-group pagination-input">
+                            <input
+                                type="number"
+                                class="material-input"
+                                v-model="pageSize"
+                                min="1"
+                                max="20"
+                                placeholder=" "
+                            >
+                            <label class="material-input-label">每页数量</label>
+                        </div>
+                        <button class="button primary" @click="handleSearch">
+                            <span class="material-icons">search</span>
+                            搜索
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 搜索结果区域 -->
+            <div class="results-container" v-if="searchResults.length > 0">
+                <!-- Gallery区域 -->
+                <div class="gallery-area">
+                    <div class="gallery-grid">
+                        <div
+                            v-for="(video, index) in searchResults"
+                            :key="index"
+                            class="video-card"
+                            @click="handleVideoSelect(video)"
+                        >
+                            <img
+                                :src="video.thumbnail_url"
+                                :alt="video.title"
+                                class="video-thumbnail"
+                            >
+                            <div class="video-info">
+                                <div class="video-title">{{ video.title }}</div>
+                                <div class="video-tags">
+                                    <span
+                                        v-for="tag in video.tags"
+                                        :key="tag"
+                                        class="tag"
+                                    >{{ tag }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 视频播放区域 -->
+                <div class="video-area" v-if="selectedVideo">
+                    <div class="video-player">
+                        <video
+                            controls
+                            :src="selectedVideo.video_url"
+                            style="width: 100%; height: 100%;"
+                        ></video>
+                    </div>
+                    <div class="video-details">
+                        <h3>{{ selectedVideo.title }}</h3>
+                        <div v-if="selectedVideo.summary" class="summary">
+                            {{ selectedVideo.summary }}
+                        </div>
+                        <div class="video-tags">
+                            <span
+                                v-for="tag in selectedVideo.tags"
+                                :key="tag"
+                                class="tag"
+                            >{{ tag }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast消息 -->
+        <transition name="fade">
+            <div v-if="toast.show" class="toast">
+                {{ toast.message }}
+            </div>
+        </transition>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        const app = createApp({
+            data() {
+                return {
+                    // 搜索类型
+                    searchTypes: [
+                        { value: 'smart', label: '智能搜索', icon: 'psychology' },
+                        { value: 'text', label: '文本搜索', icon: 'description' },
+                        { value: 'image', label: '图片搜索', icon: 'image_search' },
+                        { value: 'tags', label: '标签搜索', icon: 'label' }
+                    ],
+                    selectedType: 'smart',
+                    
+                    // 搜索参数
+                    textQuery: '',
+                    searchMode: 'frame',
+                    imageFile: null,
+                    imageUrl: '',
+                    imagePreview: null,
+                    tagsInput: '',
+                    page: 1,
+                    pageSize: 6,
+
+                    // 搜索结果
+                    searchResults: [],
+                    selectedVideo: null,
+
+                    // 状态
+                    isSearching: false,
+                    toast: {
+                        show: false,
+                        message: '',
+                        timeout: null
+                    }
+                };
+            },
+            computed: {
+                showTextInput() {
+                    return ['smart', 'text'].includes(this.selectedType);
+                }
+            },
+            methods: {
+                handleTypeSelect(type) {
+                    this.selectedType = type;
+                    this.clearInputs();
+                },
+                clearInputs() {
+                    this.textQuery = '';
+                    this.imageFile = null;
+                    this.imageUrl = '';
+                    this.imagePreview = null;
+                    this.tagsInput = '';
+                },
+                async handleImageSelect(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.imageFile = file;
+                        this.imagePreview = URL.createObjectURL(file);
+                        this.imageUrl = '';
+                    }
+                },
+                async handleImageDrop(event) {
+                    const file = event.dataTransfer.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        this.imageFile = file;
+                        this.imagePreview = URL.createObjectURL(file);
+                        this.imageUrl = '';
+                    }
+                },
+                showToast(message) {
+                    if (this.toast.timeout) {
+                        clearTimeout(this.toast.timeout);
+                    }
+                    this.toast = {
+                        show: true,
+                        message,
+                        timeout: setTimeout(() => {
+                            this.toast.show = false;
+                        }, 3000)
+                    };
+                },
+                async handleSearch() {
+                    if (!this.validateSearch()) {
+                        return;
+                    }
+
+                    this.isSearching = true;
+                    try {
+                        const formData = new FormData();
+                        formData.append('search_type', this.selectedType);
+                        formData.append('page', this.page);
+                        formData.append('page_size', this.pageSize);
+
+                        if (this.showTextInput) {
+                            formData.append('text_query', this.textQuery);
+                        }
+                        if (this.selectedType === 'text') {
+                            formData.append('search_mode', this.searchMode);
+                        }
+                        if (this.selectedType === 'image') {
+                            if (this.imageFile) {
+                                formData.append('image_file', this.imageFile);
+                            } else if (this.imageUrl) {
+                                formData.append('image_url', this.imageUrl);
+                            }
+                        }
+                        if (this.selectedType === 'tags') {
+                            formData.append('tags', this.tagsInput);
+                        }
+
+                        const response = await fetch('/api/search', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            this.searchResults = data.data;
+                            if (this.searchResults.length === 0) {
+                                this.showToast('未找到匹配的视频');
+                            }
+                        } else {
+                            this.showToast(data.message || '搜索失败');
+                        }
+                    } catch (error) {
+                        this.showToast('搜索请求失败');
+                        console.error('Search error:', error);
+                    } finally {
+                        this.isSearching = false;
+                    }
+                },
+                validateSearch() {
+                    if (this.showTextInput && !this.textQuery.trim()) {
+                        this.showToast('请输入搜索关键词');
+                        return false;
+                    }
+                    if (this.selectedType === 'image' && !this.imageFile && !this.imageUrl) {
+                        this.showToast('请上传图片或输入图片URL');
+                        return false;
+                    }
+                    if (this.selectedType === 'tags' && !this.tagsInput.trim()) {
+                        this.showToast('请输入搜索标签');
+                        return false;
+                    }
+                    return true;
+                },
+                handleVideoSelect(video) {
+                    this.selectedVideo = video;
+                }
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html> 

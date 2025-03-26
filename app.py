@@ -1,9 +1,13 @@
 from flask import Flask, request, jsonify, send_from_directory, redirect, url_for
 from flask_cors import CORS
 from app.services.video.upload import UploadVideoService
+from app.services.video.search import SearchVideoService
+from app.services.video.integrated_search import IntegratedSearchService
 import tempfile
 import os
 from werkzeug.datastructures import FileStorage
+from PIL import Image
+import io
 
 # 获取当前文件所在目录的绝对路径
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -51,6 +55,19 @@ def add():
         return send_from_directory(STATIC_DIR, 'add.html')
     except Exception as e:
         print(f"Error serving add.html: {str(e)}")
+        return str(e), 500
+
+@app.route('/search')
+def search():
+    """返回搜索页面"""
+    try:
+        print(f"Trying to serve search.html from {STATIC_DIR}")
+        if not os.path.exists(os.path.join(STATIC_DIR, 'search.html')):
+            print("Warning: search.html not found!")
+            return "Error: search.html not found", 404
+        return send_from_directory(STATIC_DIR, 'search.html')
+    except Exception as e:
+        print(f"Error serving search.html: {str(e)}")
         return str(e), 500
 
 # 添加静态文件路由
@@ -167,6 +184,131 @@ def process_raw_id():
         return jsonify({
             'status': 'error',
             'message': str(e)
+        }), 500
+
+@app.route('/api/search', methods=['POST'])
+def search_videos():
+    """处理视频搜索"""
+    try:
+        search_type = request.form.get('search_type')
+        page = int(request.form.get('page', 1))
+        page_size = int(request.form.get('page_size', 6))
+
+        search_service = SearchVideoService()
+        integrated_service = IntegratedSearchService()
+
+        if search_type == 'smart':
+            text_query = request.form.get('text_query', '').strip()
+            if not text_query:
+                return jsonify({
+                    'status': 'error',
+                    'message': '请输入搜索关键词'
+                }), 400
+            results = integrated_service.search(
+                query=text_query,
+                page=page,
+                page_size=page_size
+            )
+
+        elif search_type == 'text':
+            text_query = request.form.get('text_query', '').strip()
+            search_mode = request.form.get('search_mode', 'frame')
+            if not text_query:
+                return jsonify({
+                    'status': 'error',
+                    'message': '请输入搜索关键词'
+                }), 400
+            results = search_service.search_by_text(
+                text_query,
+                page=page,
+                page_size=page_size,
+                search_mode=search_mode
+            )
+
+        elif search_type == 'image':
+            image_file = request.files.get('image_file')
+            image_url = request.form.get('image_url', '').strip()
+            
+            if not image_file and not image_url:
+                return jsonify({
+                    'status': 'error',
+                    'message': '请上传图片或输入图片URL'
+                }), 400
+
+            if image_file:
+                # 将文件内容转换为PIL Image对象
+                image_data = image_file.read()
+                image = Image.open(io.BytesIO(image_data))
+            else:
+                image = None
+
+            results = search_service.search_by_image(
+                image_file=image,
+                image_url=image_url,
+                page=page,
+                page_size=page_size
+            )
+
+        elif search_type == 'tags':
+            tags_input = request.form.get('tags', '').strip()
+            if not tags_input:
+                return jsonify({
+                    'status': 'error',
+                    'message': '请输入搜索标签'
+                }), 400
+                
+            tags = [tag.strip() for tag in tags_input.split(',') if tag.strip()]
+            if not tags:
+                return jsonify({
+                    'status': 'error',
+                    'message': '请输入有效的标签'
+                }), 400
+
+            results = search_service.search_by_tags(
+                tags=tags,
+                page=page,
+                page_size=page_size
+            )
+
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': '不支持的搜索类型'
+            }), 400
+
+        if not results:
+            return jsonify({
+                'status': 'success',
+                'data': []
+            })
+
+        # 格式化返回结果
+        formatted_results = []
+        for video in results:
+            formatted_video = {
+                'title': video.get('title', '未知'),
+                'video_url': video.get('path', ''),
+                'thumbnail_url': video.get('thumbnail_path', ''),
+                'tags': video.get('tags', []),
+                'summary': video.get('summary_txt', '')
+            }
+            formatted_results.append(formatted_video)
+
+        return jsonify({
+            'status': 'success',
+            'data': formatted_results
+        })
+
+    except ValueError as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'参数错误: {str(e)}'
+        }), 400
+    except Exception as e:
+        print(f"Search error: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'搜索失败: {str(e)}'
         }), 500
 
 if __name__ == '__main__':
