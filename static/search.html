@@ -28,7 +28,7 @@
             border-radius: 0.75rem;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         .title-card h1 {
             font-size: 1.875rem;
@@ -54,7 +54,7 @@
             border-radius: 0.75rem;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         /* 搜索类型选择 */
         .search-type {
@@ -149,15 +149,31 @@
             margin-top: 1rem;
             border-radius: 0.5rem;
         }
-        /* 分页控制 */
-        .pagination {
+        /* 搜索模式选择 */
+        .search-mode {
             display: flex;
-            gap: 1rem;
+            gap: 2rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+        }
+        .search-mode label {
+            display: flex;
             align-items: center;
-            margin-top: 1rem;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+        /* 分页控制 */
+        .pagination-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+            align-items: end;
         }
         .pagination-input {
-            width: 5rem;
+            width: 100%;
         }
         /* 搜索结果区域 */
         .results-container {
@@ -170,14 +186,14 @@
             background: white;
             border-radius: 0.75rem;
             padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         .video-area {
             flex: 1;
             background: white;
             border-radius: 0.75rem;
             padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             position: sticky;
             top: 1.5rem;
             max-height: calc(100vh - 3rem);
@@ -186,19 +202,20 @@
         /* Gallery网格 */
         .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1rem;
         }
         .video-card {
             border-radius: 0.5rem;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             cursor: pointer;
             transition: transform 0.2s;
+            background: white;
         }
         .video-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .video-thumbnail {
             width: 100%;
@@ -261,6 +278,10 @@
         .button.primary:hover {
             background: #1d4ed8;
         }
+        .button.primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
         .button .material-icons {
             margin-right: 0.5rem;
         }
@@ -279,6 +300,58 @@
             z-index: 50;
             min-width: 280px;
             text-align: center;
+        }
+        /* 加载状态 */
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+        .empty-state .material-icons {
+            font-size: 48px;
+            margin-bottom: 1rem;
+            color: #9ca3af;
+        }
+        /* 响应式布局 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            .search-type {
+                flex-direction: column;
+            }
+            .results-container {
+                flex-direction: column;
+            }
+            .video-area {
+                position: static;
+                margin-top: 1.5rem;
+            }
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
         }
     </style>
 </head>
@@ -387,31 +460,38 @@
                     </div>
 
                     <!-- 分页控制 -->
-                    <div class="pagination">
-                        <div class="material-input-group pagination-input">
+                    <div class="pagination-controls">
+                        <div class="input-group">
+                            <label class="input-label" for="page-input">页码</label>
                             <input
+                                id="page-input"
                                 type="number"
                                 class="material-input"
                                 v-model="page"
                                 min="1"
-                                placeholder=" "
+                                aria-label="当前页码"
                             >
-                            <label class="material-input-label">页码</label>
                         </div>
-                        <div class="material-input-group pagination-input">
+                        <div class="input-group">
+                            <label class="input-label" for="page-size-input">每页数量</label>
                             <input
+                                id="page-size-input"
                                 type="number"
                                 class="material-input"
                                 v-model="pageSize"
                                 min="1"
                                 max="20"
-                                placeholder=" "
+                                aria-label="每页显示数量"
                             >
-                            <label class="material-input-label">每页数量</label>
                         </div>
-                        <button class="button primary" @click="handleSearch">
-                            <span class="material-icons">search</span>
-                            搜索
+                        <button 
+                            class="button button-primary"
+                            @click="handleSearch"
+                            :disabled="isSearching"
+                            aria-label="开始搜索"
+                        >
+                            <span class="material-icons" aria-hidden="true">search</span>
+                            <span>搜索</span>
                         </button>
                     </div>
                 </div>
@@ -427,19 +507,25 @@
                             :key="index"
                             class="video-card"
                             @click="handleVideoSelect(video)"
+                            @keydown.enter="handleVideoSelect(video)"
+                            tabindex="0"
+                            role="button"
+                            :aria-label="'播放视频: ' + video.title"
                         >
                             <img
                                 :src="video.thumbnail_url"
-                                :alt="video.title"
+                                :alt="video.title + ' 的缩略图'"
                                 class="video-thumbnail"
+                                loading="lazy"
                             >
                             <div class="video-info">
-                                <div class="video-title">{{ video.title }}</div>
-                                <div class="video-tags">
+                                <h3 class="video-title">{{ video.title }}</h3>
+                                <div class="video-tags" aria-label="视频标签">
                                     <span
                                         v-for="tag in video.tags"
                                         :key="tag"
                                         class="tag"
+                                        role="listitem"
                                     >{{ tag }}</span>
                                 </div>
                             </div>
@@ -470,6 +556,21 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- 添加加载状态 -->
+            <div v-if="isSearching" class="loading-state">
+                <div class="loading-spinner" role="status">
+                    <span class="sr-only">正在加载...</span>
+                </div>
+                <p>正在搜索视频...</p>
+            </div>
+
+            <!-- 添加空状态 -->
+            <div v-if="!isSearching && searchResults.length === 0" class="empty-state">
+                <span class="material-icons" aria-hidden="true">search_off</span>
+                <h3>暂无搜索结果</h3>
+                <p>试试其他搜索条件吧</p>
             </div>
         </div>
 
