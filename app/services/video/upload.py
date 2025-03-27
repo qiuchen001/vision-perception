@@ -193,7 +193,8 @@ class UploadVideoService:
             'embeddings': [],
             'paths': [],
             'resource_id': [],
-            'at_seconds': []
+            'at_seconds': [],
+            'frame_urls': []  # 添加frame_url列表
         }
 
     def _get_video_fps(self, video_url: str) -> float:
@@ -226,31 +227,56 @@ class UploadVideoService:
         Returns:
             bool: 处理是否成功
         """
-        # 准备图片
-        pil_image = self.prepare_image_for_embedding(frame)
-        if pil_image is None:
-            logger.warning(f"跳过无效帧: idx={idx}")
-            return False
-        
-        # 获取embedding
-        embedding_model = EmbeddingFactory.create_embedding()
-        embedding = embedding_model.embedding_image(pil_image)
-        
-        if embedding is None:
-            logger.warning(f"跳过无embedding的帧: idx={idx}")
-            return False
+        try:
+            # 准备图片
+            pil_image = self.prepare_image_for_embedding(frame)
+            if pil_image is None:
+                logger.warning(f"跳过无效帧: idx={idx}")
+                return False
+            
+            # 获取embedding
+            embedding_model = EmbeddingFactory.create_embedding()
+            embedding = embedding_model.embedding_image(pil_image)
+            
+            if embedding is None:
+                logger.warning(f"跳过无embedding的帧: idx={idx}")
+                return False
 
-        # 收集帧信息
-        batch_data['m_ids'].append(str(uuid.uuid4()))
-        batch_data['embeddings'].append(embedding)
-        batch_data['paths'].append(video_url)
-        batch_data['resource_id'].append(str(resource_id))
+            # 生成帧图片文件名
+            frame_filename = f"{resource_id}_frame_{idx}.jpg"
+            
+            # 创建临时文件保存帧图片
+            with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as temp_frame:
+                # 将PIL Image转换回BGR格式并保存
+                frame_bgr = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+                cv2.imwrite(temp_frame.name, frame_bgr)
+                
+                try:
+                    # 上传帧图片到OSS
+                    frame_url = upload_thumbnail_to_oss(frame_filename, temp_frame.name)
+                    logger.info(f"帧图片上传成功: {frame_url}")
+                    
+                    # 收集帧信息
+                    batch_data['m_ids'].append(str(uuid.uuid4()))
+                    batch_data['embeddings'].append(embedding)
+                    batch_data['paths'].append(video_url)
+                    batch_data['resource_id'].append(str(resource_id))
+                    batch_data['frame_urls'].append(frame_url)
 
-        frame_number = idx * self.frame_interval
-        timestamp = int(frame_number / fps)
-        batch_data['at_seconds'].append(timestamp)
-        
-        return True
+                    frame_number = idx * self.frame_interval
+                    timestamp = int(frame_number / fps)
+                    batch_data['at_seconds'].append(timestamp)
+                    
+                    return True
+                    
+                finally:
+                    # 清理临时文件
+                    os.unlink(temp_frame.name)
+                    logger.debug(f"删除临时帧图片: {temp_frame.name}")
+                
+        except Exception as e:
+            logger.error(f"处理帧 {idx} 失败: {str(e)}")
+            return False
 
     def _insert_batch(self, data: Dict[str, List]) -> None:
         """批量插入数据到向量数据库"""
@@ -263,7 +289,8 @@ class UploadVideoService:
                 data['embeddings'],
                 data['paths'],
                 data['resource_id'],
-                data['at_seconds']
+                data['at_seconds'],
+                data['frame_urls']  # 添加frame_urls
             ]
             video_frame_operator.insert_data(insert_data)
             logger.info(f"批量插入 {len(data['m_ids'])} 帧")

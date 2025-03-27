@@ -47,6 +47,12 @@ def create_schema():
         datatype=DataType.INT32,
         description="视频时间点(秒)"
     )
+    collection_schema.add_field(
+        field_name="frame_url",
+        datatype=DataType.VARCHAR,
+        max_length=1024,
+        description="帧图片OSS地址"
+    )
 
     return collection_schema
 
