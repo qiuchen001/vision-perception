@@ -16,18 +16,77 @@ class MultiModalEmbedding(EmbeddingBase):
         """初始化DashScope配置"""
         dashscope.api_key = os.getenv("API_KEY")
 
+    def prepare_image(self, image: Image.Image) -> Image.Image:
+        """
+        准备图片用于embedding。
+        
+        处理步骤:
+        1. 验证输入图片的有效性
+        2. 确保图片为RGB模式
+        3. 如果图片尺寸过大,进行等比例缩放
+        
+        Args:
+            image: PIL Image对象
+            
+        Returns:
+            Image.Image: 处理后的PIL Image对象
+            
+        Raises:
+            ValueError: 当输入无效或处理失败时
+        """
+        try:
+            # 1. 验证输入
+            if not isinstance(image, Image.Image):
+                raise ValueError("输入必须是PIL Image对象")
+                
+            # 2. 确保RGB模式
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
+            
+            # 3. 尺寸调整
+            MAX_IMAGE_SIZE = 1024  # 图片最大尺寸限制
+            if image.size[0] > MAX_IMAGE_SIZE or image.size[1] > MAX_IMAGE_SIZE:
+                ratio = MAX_IMAGE_SIZE / max(image.size)
+                new_size = tuple(int(dim * ratio) for dim in image.size)
+                image = image.resize(new_size, Image.Resampling.LANCZOS)
+                logger.debug(f"调整图片尺寸到: {new_size}")
+                
+            logger.debug(f"图片处理完成: size={image.size}, mode={image.mode}")
+            return image
+            
+        except Exception as e:
+            logger.error(f"图片预处理失败: {str(e)}")
+            raise ValueError(f"图片预处理失败: {str(e)}")
+
     def _image_to_base64(self, image: Image.Image) -> str:
         """将PIL Image转换为base64编码"""
-        buffer = io.BytesIO()
-        image.save(buffer, format="PNG")
-        return base64.b64encode(buffer.getvalue()).decode('utf-8')
+        try:
+            # 验证输入
+            if not isinstance(image, Image.Image):
+                raise ValueError("输入必须是PIL Image对象")
+                
+            # 确保图片是RGB模式
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
+                
+            # 保存为JPEG格式(更稳定,文件更小)
+            buffer = io.BytesIO()
+            image.save(buffer, format="JPEG", quality=95)
+            return base64.b64encode(buffer.getvalue()).decode('utf-8')
+            
+        except Exception as e:
+            logger.error(f"图片转base64失败: {str(e)}")
+            raise ValueError(f"图片转base64失败: {str(e)}")
 
     def embedding_image(self, image: Image.Image) -> List[float]:
         """生成图片的embedding向量"""
         try:
+            # 预处理图片
+            processed_image = self.prepare_image(image)
+            
             # 将图片转换为base64
-            image_b64 = self._image_to_base64(image)
-            image_data = f"data:image/png;base64,{image_b64}"
+            image_b64 = self._image_to_base64(processed_image)
+            image_data = f"data:image/jpeg;base64,{image_b64}"
 
             # 调用DashScope API
             resp = dashscope.MultiModalEmbedding.call(
