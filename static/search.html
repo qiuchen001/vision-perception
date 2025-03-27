@@ -524,7 +524,7 @@
                                 type="radio"
                                 v-model="searchMode"
                                 value="frame"
-                            > 搜索视频帧（显示相似度）
+                            > 搜索视频帧
                         </label>
                         <label>
                             <input
@@ -533,6 +533,11 @@
                                 value="summary"
                             > 搜索视频摘要
                         </label>
+                        <!-- 添加相似度提示 -->
+                        <div class="search-mode-hint">
+                            <span class="material-icons">info</span>
+                            搜索结果将显示相似度分数
+                        </div>
                     </div>
 
                     <!-- 图片搜索输入 -->
@@ -632,7 +637,7 @@
                             :aria-label="'播放视频: ' + video.title"
                         >
                             <div 
-                                v-if="video.similarity && (selectedType === 'image' || (selectedType === 'text' && searchMode === 'frame'))"
+                                v-if="video.similarity && (selectedType === 'image' || selectedType === 'text')"
                                 class="similarity-tag"
                                 :class="getSimilarityClass(video.similarity)"
                             >
@@ -724,7 +729,7 @@
                         </div>
 
                         <!-- 相似度区块 -->
-                        <div class="info-block" v-if="selectedVideo.similarity && (selectedType === 'image' || (selectedType === 'text' && searchMode === 'frame'))">
+                        <div class="info-block" v-if="selectedVideo.similarity && (selectedType === 'image' || selectedType === 'text')">
                             <div class="info-block-title">
                                 <span class="material-icons">analytics</span>
                                 相似度

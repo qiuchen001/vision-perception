@@ -240,7 +240,7 @@ def search_videos():
                         'tags': list(video.get('tags', [])) if video.get('tags') else [],
                         'summary_txt': str(video.get('summary_txt', '')),
                         'timestamp': video.get('timestamp', 0),
-                        'similarity': video.get('similarity', 0),
+                        'similarity': str(video.get('similarity', '0.0000')),
                     } for video in results]
             except Exception as e:
                 print(f"Text search error: {str(e)}")
@@ -316,7 +316,7 @@ def search_videos():
                 'tags': video.get('tags', []),
                 'summary': video.get('summary_txt', ''),
                 'timestamp': video.get('timestamp', 0),
-                'similarity': video.get('similarity', 0),
+                'similarity': str(video.get('similarity', '0.0000')),
             }
             formatted_results.append(formatted_video)
 
