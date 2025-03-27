@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, List, Dict, Any, Union, Tuple
 from werkzeug.datastructures import FileStorage
 from PIL import Image
 import requests
@@ -8,6 +8,7 @@ from app.dao.video_dao import VideoDAO
 from app.services.video.video_frame_search import image_to_frame, text_to_frame
 from app.utils.embedding.text_embedding import embed_fn
 from app.utils.logger import logger
+from app.utils.milvus_operator import video_frame_operator
 
 
 class SearchVideoService:
@@ -30,9 +31,9 @@ class SearchVideoService:
         """
         try:
             if search_mode == "frame":
-                # 现有的帧级搜索逻辑
-                video_paths, timestamps = text_to_frame(txt)
-                return self._get_video_details(video_paths, timestamps, page, page_size)
+                # 使用新的方法获取帧图片URL
+                video_paths, timestamps, frame_urls = self.text_to_frame_with_url(txt)
+                return self._get_video_details_with_frame(video_paths, timestamps, frame_urls, page, page_size)
             else:
                 # 直接搜索视频摘要
                 summary_embedding = embed_fn(txt)  # 使用文本embedding函数
@@ -165,6 +166,86 @@ class SearchVideoService:
         except Exception as e:
             logger.error(f"标签搜索失败: {str(e)}")
             return []
+
+    def text_to_frame_with_url(self, txt: str) -> Tuple[List[str], List[int], List[str]]:
+        """
+        通过文本搜索视频帧，返回视频路径、时间戳和帧图片URL。
+        
+        Args:
+            txt: 搜索文本
+            
+        Returns:
+            Tuple[List[str], List[int], List[str]]: 视频路径列表、时间戳列表和帧图片URL列表
+        """
+        try:
+            # 获取文本embedding
+            embedding = embed_fn(txt)
+            
+            # 搜索相似的视频帧
+            results = video_frame_operator.search_frame(embedding)
+            
+            if not results:
+                return [], [], []
+            
+            # 提取视频路径、时间戳和帧图片URL
+            video_paths = []
+            timestamps = []
+            frame_urls = []
+            
+            for result in results:
+                video_paths.append(result.get('video_id', ''))
+                timestamps.append(result.get('at_seconds', 0))
+                frame_urls.append(result.get('frame_url', ''))
+            
+            return video_paths, timestamps, frame_urls
+            
+        except Exception as e:
+            logger.error(f"文本到帧搜索失败: {str(e)}")
+            return [], [], []
+
+    def _get_video_details_with_frame(self, video_paths: List[str], timestamps: List[int], frame_urls: List[str], page: int = 1, page_size: int = 6) -> List[Dict[str, Any]]:
+        """
+        获取视频详细信息，使用帧图片作为封面。
+        
+        Args:
+            video_paths: 视频路径列表
+            timestamps: 时间戳列表
+            frame_urls: 帧图片URL列表
+            page: 页码
+            page_size: 每页数量
+            
+        Returns:
+            List[Dict[str, Any]]: 视频详细信息列表
+        """
+        if not video_paths:
+            return []
+        
+        # 计算分页
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        
+        # 获取当前页的数据
+        current_paths = video_paths[start_idx:end_idx]
+        current_timestamps = timestamps[start_idx:end_idx]
+        current_frame_urls = frame_urls[start_idx:end_idx]
+        
+        results = []
+        for path, timestamp, frame_url in zip(current_paths, current_timestamps, current_frame_urls):
+            # 获取视频信息
+            video_info = self.video_dao.get_by_path(path)
+            if video_info and len(video_info) > 0:  # 确保有返回结果
+                video_data = video_info[0]  # 获取第一个结果
+                result = {
+                    'title': video_data.get('title', '未知'),
+                    'path': path,
+                    'thumbnail_path': frame_url,  # 使用帧图片URL作为封面
+                    'tags': video_data.get('tags', []),
+                    'summary_txt': video_data.get('summary_txt', ''),
+                    'timestamp': timestamp
+                }
+                results.append(result)
+            
+        return results
 
 
 if __name__ == "__main__":

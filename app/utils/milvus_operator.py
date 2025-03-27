@@ -163,13 +163,21 @@ class MilvusOperator:
                 "params": {"nprobe": 5}
             }
 
+            # 确保返回frame_url字段
+            default_fields = ['m_id', 'video_id', 'at_seconds', 'frame_url']
+            if output_fields:
+                if 'frame_url' not in output_fields:
+                    output_fields.append('frame_url')
+            else:
+                output_fields = default_fields
+
             results = collection.search(
                 data=[embedding],
                 anns_field="embedding",
                 param=search_params,
                 limit=limit,
                 expr=expr,
-                output_fields=output_fields or ['m_id', 'video_id', 'at_seconds'],
+                output_fields=output_fields,
                 consistency_level="Strong"
             )
 
@@ -200,12 +208,18 @@ class MilvusOperator:
                     entity = {
                         'm_id': hit.id,  # 使用 hit.id 替代 ids[idx]
                         'distance': hit.distance,  # 使用 hit.distance 替代 distances[idx]
+                        'video_id': "",  # 设置默认值
+                        'at_seconds': 0,  # 设置默认值
+                        'frame_url': ""  # 设置默认值
                     }
                     
                     # 添加实体的其他字段
-                    if hasattr(hit, 'entity'):
-                        entity['video_id'] = hit.entity.get('video_id')
-                        entity['at_seconds'] = hit.entity.get('at_seconds')
+                    if hasattr(hit, 'fields'):
+                        entity.update({
+                            'video_id': hit.fields.get('video_id', ''),
+                            'at_seconds': hit.fields.get('at_seconds', 0),
+                            'frame_url': hit.fields.get('frame_url', '')
+                        })
                     
                     entity_list.append(entity)
 
@@ -260,6 +274,29 @@ class MilvusOperator:
             raise Exception(f"删除数据失败: {str(e)}")
         finally:
             collection.release()
+
+    def search_frame(self, embedding: List[float], limit: int = 50) -> List[Dict[str, Any]]:
+        """
+        搜索视频帧。
+
+        Args:
+            embedding: 查询向量
+            limit: 返回结果数量
+
+        Returns:
+            List[Dict[str, Any]]: 搜索结果列表，包含视频ID、时间戳和帧图片URL
+        """
+        try:
+            # 调用search_data方法进行搜索
+            results = self.search_data(
+                embedding=embedding,
+                limit=limit,
+                output_fields=['m_id', 'video_id', 'at_seconds', 'frame_url']
+            )
+            return results
+        except Exception as e:
+            print(f"搜索视频帧失败: {str(e)}")
+            return []
 
 
 # 示例使用方式
