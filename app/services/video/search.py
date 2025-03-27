@@ -193,10 +193,21 @@ class SearchVideoService:
             timestamps = []
             frame_urls = []
             
+            # 设置相似度阈值 (IP距离越大表示越相似)
+            SIMILARITY_THRESHOLD = 0.01
+            
             for result in results:
-                video_paths.append(result.get('video_id', ''))
-                timestamps.append(result.get('at_seconds', 0))
-                frame_urls.append(result.get('frame_url', ''))
+                # 获取相似度值(IP距离)
+                similarity = result.get('distance', float('-inf'))
+                
+                # 保留相似度高于阈值的结果
+                if similarity >= SIMILARITY_THRESHOLD:
+                    video_paths.append(result.get('video_id', ''))
+                    timestamps.append(result.get('at_seconds', 0))
+                    frame_urls.append(result.get('frame_url', ''))
+                    logger.info(f"匹配结果 - 视频: {result.get('video_id', '')}, 相似度: {similarity:.4f}")
+                else:
+                    logger.info(f"过滤掉低相似度结果 - 视频: {result.get('video_id', '')}, 相似度: {similarity:.4f}")
             
             return video_paths, timestamps, frame_urls
             
@@ -274,10 +285,21 @@ class SearchVideoService:
             timestamps = []
             frame_urls = []
             
+            # 设置相似度阈值 (IP距离越大表示越相似)
+            SIMILARITY_THRESHOLD = 0.01
+            
             for result in results:
-                video_paths.append(result.get('video_id', ''))
-                timestamps.append(result.get('at_seconds', 0))
-                frame_urls.append(result.get('frame_url', ''))
+                # 获取相似度值(IP距离)
+                similarity = result.get('distance', float('-inf'))
+                
+                # 保留相似度高于阈值的结果
+                if similarity >= SIMILARITY_THRESHOLD:
+                    video_paths.append(result.get('video_id', ''))
+                    timestamps.append(result.get('at_seconds', 0))
+                    frame_urls.append(result.get('frame_url', ''))
+                    logger.info(f"匹配结果 - 视频: {result.get('video_id', '')}, 相似度: {similarity:.4f}")
+                else:
+                    logger.info(f"过滤掉低相似度结果 - 视频: {result.get('video_id', '')}, 相似度: {similarity:.4f}")
             
             return video_paths, timestamps, frame_urls
             
