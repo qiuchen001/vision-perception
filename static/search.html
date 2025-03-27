@@ -404,9 +404,8 @@
                             type="text"
                             class="material-input"
                             v-model="textQuery"
-                            placeholder=" "
+                            :placeholder="textQuery ? '' : '请输入搜索关键词'"
                         >
-                        <label class="material-input-label">请输入搜索关键词</label>
                     </div>
 
                     <!-- 搜索模式选择 -->
@@ -455,9 +454,8 @@
                                 type="url"
                                 class="material-input"
                                 v-model="imageUrl"
-                                placeholder=" "
+                                :placeholder="imageUrl ? '' : '或输入图片URL'"
                             >
-                            <label class="material-input-label">或输入图片URL</label>
                         </div>
                     </template>
 
@@ -467,9 +465,8 @@
                             type="text"
                             class="material-input"
                             v-model="tagsInput"
-                            placeholder=" "
+                            :placeholder="tagsInput ? '' : '请输入标签，多个标签用逗号分隔'"
                         >
-                        <label class="material-input-label">请输入标签，多个标签用逗号分隔</label>
                     </div>
 
                     <!-- 分页控制 -->
