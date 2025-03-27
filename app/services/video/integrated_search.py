@@ -93,11 +93,10 @@ class IntegratedSearchService:
                     page=1,  # 先获取所有结果再合并
                     page_size=100
                 )
-                # 在这里为tag_results添加上similarity，统统为1
+                # 为标签搜索结果添加相似度分数
                 for result in tag_results:
-                    result["similarity"] = 1
+                    result['similarity'] = '1.0000'  # 标签完全匹配设为1.0
 
-                text_results = []
                 text_results = []
                 for text in search_params["text"]:
                     text_results.extend(
@@ -116,11 +115,15 @@ class IntegratedSearchService:
 
             elif has_tags:
                 # 纯标签搜索
-                return self.search_service.search_by_tags(
+                results = self.search_service.search_by_tags(
                     tags=search_params["tags"],
                     page=page,
                     page_size=page_size
                 )
+                # 为标签搜索结果添加相似度分数
+                for result in results:
+                    result['similarity'] = '1.0000'  # 标签完全匹配设为1.0
+                return results
 
             elif has_text:
                 # 纯文本搜索
