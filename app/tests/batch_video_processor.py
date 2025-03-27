@@ -183,7 +183,7 @@ def main():
         return
         
     # 示例2: 直接在代码中指定目录
-    video_directory = "E:/workspace/ai-ground/videos-new"  # 在这里指定你的视频目录
+    video_directory = "E:/workspace/ai-ground/removed-video-mark-clear"  # 在这里指定你的视频目录
     processor = BatchVideoProcessor()
     processor.process_videos(video_directory)
     

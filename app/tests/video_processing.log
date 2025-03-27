@@ -123,3 +123,42 @@
 2025-03-27 14:30:40,728 - ERROR - 处理视频失败 http://10.66.8.51:9000/perception-mining/b7ec1001240181ceb5ec3e448c7f9b78.mp4: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
 2025-03-27 14:30:57,584 - INFO - 上传成功: b7ec1001240181ceb5ec3e448c7f9b78.mp4
 2025-03-27 14:31:32,165 - INFO - 处理成功: http://10.66.8.51:9000/perception-mining/b7ec1001240181ceb5ec3e448c7f9b78.mp4
+2025-03-27 17:55:59,202 - INFO - 找到 38 个视频文件
+2025-03-27 17:57:04,342 - INFO - 上传成功: processed_58fa05cf51e916ad2b824867b92060c7.mp4
+2025-03-27 17:57:04,376 - ERROR - 处理视频失败 http://10.66.8.51:9000/perception-mining/processed_58fa05cf51e916ad2b824867b92060c7.mp4: 400 Client Error: BAD REQUEST for url: http://localhost:5000/api/add
+2025-03-27 17:57:57,535 - INFO - 上传成功: processed_58fa05cf51e916ad2b824867b92060c7.mp4
+2025-03-27 17:59:09,473 - INFO - 处理成功: http://10.66.8.51:9000/perception-mining/processed_58fa05cf51e916ad2b824867b92060c7.mp4
+2025-03-27 18:01:05,510 - INFO - 上传成功: processed_5994428260466ae3f48c816ca8f8d68b.mp4
+2025-03-27 18:01:05,522 - ERROR - 处理视频失败 http://10.66.8.51:9000/perception-mining/processed_5994428260466ae3f48c816ca8f8d68b.mp4: 400 Client Error: BAD REQUEST for url: http://localhost:5000/api/add
+2025-03-27 18:01:54,124 - INFO - 上传成功: processed_5994428260466ae3f48c816ca8f8d68b.mp4
+2025-03-27 18:03:03,411 - INFO - 处理成功: http://10.66.8.51:9000/perception-mining/processed_5994428260466ae3f48c816ca8f8d68b.mp4
+2025-03-27 18:04:07,768 - INFO - 上传成功: processed_ad_03e6922c-0b26-4d2e-a85a-0677fb7af2a3.mp4
+2025-03-27 18:04:07,790 - ERROR - 处理视频失败 http://10.66.8.51:9000/perception-mining/processed_ad_03e6922c-0b26-4d2e-a85a-0677fb7af2a3.mp4: 400 Client Error: BAD REQUEST for url: http://localhost:5000/api/add
+2025-03-27 18:04:58,333 - INFO - 上传成功: processed_ad_03e6922c-0b26-4d2e-a85a-0677fb7af2a3.mp4
+2025-03-27 18:06:00,547 - INFO - 处理成功: http://10.66.8.51:9000/perception-mining/processed_ad_03e6922c-0b26-4d2e-a85a-0677fb7af2a3.mp4
+2025-03-27 18:06:22,852 - ERROR - 上传视频失败 processed_ad_03efae9d-5fde-4449-a0de-a3026f8f0d85.mp4: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+2025-03-27 18:06:22,852 - WARNING - 处理失败,将重试 (1/3): processed_ad_03efae9d-5fde-4449-a0de-a3026f8f0d85.mp4
+2025-03-27 18:07:32,943 - INFO - 上传成功: processed_ad_03efae9d-5fde-4449-a0de-a3026f8f0d85.mp4
+2025-03-27 18:07:32,978 - ERROR - 处理视频失败 http://10.66.8.51:9000/perception-mining/processed_ad_03efae9d-5fde-4449-a0de-a3026f8f0d85.mp4: 400 Client Error: BAD REQUEST for url: http://localhost:5000/api/add
+2025-03-27 18:08:45,599 - INFO - 上传成功: processed_ad_03efae9d-5fde-4449-a0de-a3026f8f0d85.mp4
+2025-03-27 18:09:26,268 - ERROR - 处理视频失败 http://10.66.8.51:9000/perception-mining/processed_ad_03efae9d-5fde-4449-a0de-a3026f8f0d85.mp4: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+2025-03-27 18:09:51,023 - ERROR - 上传视频失败 processed_ad_03efae9d-5fde-4449-a0de-a3026f8f0d85.mp4: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+2025-03-27 18:09:51,024 - WARNING - 处理失败,将重试 (2/3): processed_ad_03efae9d-5fde-4449-a0de-a3026f8f0d85.mp4
+2025-03-27 18:10:35,010 - ERROR - 上传视频失败 processed_ad_03efae9d-5fde-4449-a0de-a3026f8f0d85.mp4: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+2025-03-27 18:10:35,010 - ERROR - 处理视频失败,已达到最大重试次数: processed_ad_03efae9d-5fde-4449-a0de-a3026f8f0d85.mp4
+2025-03-27 18:12:00,408 - INFO - 上传成功: processed_ad_2eb56ccc-09cb-4af2-bece-5a98dcd29655.mp4
+2025-03-27 18:12:00,443 - ERROR - 处理视频失败 http://10.66.8.51:9000/perception-mining/processed_ad_2eb56ccc-09cb-4af2-bece-5a98dcd29655.mp4: 400 Client Error: BAD REQUEST for url: http://localhost:5000/api/add
+2025-03-27 18:14:12,843 - INFO - 上传成功: processed_ad_2eb56ccc-09cb-4af2-bece-5a98dcd29655.mp4
+2025-03-27 18:15:41,495 - INFO - 处理成功: http://10.66.8.51:9000/perception-mining/processed_ad_2eb56ccc-09cb-4af2-bece-5a98dcd29655.mp4
+2025-03-27 18:16:51,728 - INFO - 上传成功: processed_ad_2ed454bc-c688-448d-a059-c22804bed866.mp4
+2025-03-27 18:16:51,744 - ERROR - 处理视频失败 http://10.66.8.51:9000/perception-mining/processed_ad_2ed454bc-c688-448d-a059-c22804bed866.mp4: 400 Client Error: BAD REQUEST for url: http://localhost:5000/api/add
+2025-03-27 18:17:51,160 - INFO - 上传成功: processed_ad_2ed454bc-c688-448d-a059-c22804bed866.mp4
+2025-03-27 18:18:54,053 - INFO - 处理成功: http://10.66.8.51:9000/perception-mining/processed_ad_2ed454bc-c688-448d-a059-c22804bed866.mp4
+2025-03-27 18:19:52,418 - INFO - 上传成功: processed_ad_2ee74e79-a9da-4865-aa2f-970d4c5fcdee.mp4
+2025-03-27 18:19:52,432 - ERROR - 处理视频失败 http://10.66.8.51:9000/perception-mining/processed_ad_2ee74e79-a9da-4865-aa2f-970d4c5fcdee.mp4: 400 Client Error: BAD REQUEST for url: http://localhost:5000/api/add
+2025-03-27 18:20:44,620 - INFO - 上传成功: processed_ad_2ee74e79-a9da-4865-aa2f-970d4c5fcdee.mp4
+2025-03-27 18:21:53,256 - INFO - 处理成功: http://10.66.8.51:9000/perception-mining/processed_ad_2ee74e79-a9da-4865-aa2f-970d4c5fcdee.mp4
+2025-03-27 18:22:50,477 - ERROR - 上传视频失败 processed_ad_2eede657-db1c-4e6a-a06e-9d41aa52fc0f.mp4: ('Connection aborted.', ConnectionResetError(10054, '远程主机强迫关闭了一个现有的连接。', None, 10054, None))
+2025-03-27 18:22:50,477 - WARNING - 处理失败,将重试 (1/3): processed_ad_2eede657-db1c-4e6a-a06e-9d41aa52fc0f.mp4
+2025-03-27 18:22:56,623 - ERROR - 上传视频失败 processed_ad_2eede657-db1c-4e6a-a06e-9d41aa52fc0f.mp4: HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/upload (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x00000169416E6290>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。'))
+2025-03-27 18:22:56,623 - WARNING - 处理失败,将重试 (2/3): processed_ad_2eede657-db1c-4e6a-a06e-9d41aa52fc0f.mp4
