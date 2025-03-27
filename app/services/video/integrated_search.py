@@ -52,8 +52,9 @@ class IntegratedSearchService:
         merged_results = []
 
         for result in results1 + results2:
-            if result.get("path") not in seen_paths:
-                seen_paths.add(result.get("path"))
+            if result.get("thumbnail_path") not in seen_paths:
+                seen_paths.add(result.get("thumbnail_path"))
+                # seen_paths.add(result.get("path"))
                 merged_results.append(result)
 
         return merged_results
