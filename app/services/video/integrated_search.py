@@ -93,7 +93,11 @@ class IntegratedSearchService:
                     page=1,  # 先获取所有结果再合并
                     page_size=100
                 )
-                
+                # 在这里为tag_results添加上similarity，统统为1
+                for result in tag_results:
+                    result["similarity"] = 1
+
+                text_results = []
                 text_results = []
                 for text in search_params["text"]:
                     text_results.extend(
