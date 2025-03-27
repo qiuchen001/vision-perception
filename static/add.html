@@ -407,14 +407,14 @@
 
                     this.isProcessing = true;
                     try {
-                        const response = await fetch('/api/process', {
+                        const response = await fetch('/api/add', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
                                 video_url: this.videoUrl,
-                                action_type: this.selectedType
+                                action_type: parseInt(this.selectedType)
                             })
                         });
 
