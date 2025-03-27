@@ -246,33 +246,39 @@ class UploadVideoService:
             frame_filename = f"{resource_id}_frame_{idx}.jpg"
             
             # 创建临时文件保存帧图片
-            with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as temp_frame:
+            temp_frame = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
+            temp_frame_path = temp_frame.name
+            temp_frame.close()  # 立即关闭文件句柄
+            
+            try:
                 # 将PIL Image转换回BGR格式并保存
                 frame_bgr = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
-                cv2.imwrite(temp_frame.name, frame_bgr)
+                cv2.imwrite(temp_frame_path, frame_bgr)
                 
-                try:
-                    # 上传帧图片到OSS
-                    frame_url = upload_thumbnail_to_oss(frame_filename, temp_frame.name)
-                    logger.info(f"帧图片上传成功: {frame_url}")
-                    
-                    # 收集帧信息
-                    batch_data['m_ids'].append(str(uuid.uuid4()))
-                    batch_data['embeddings'].append(embedding)
-                    batch_data['paths'].append(video_url)
-                    batch_data['resource_id'].append(str(resource_id))
-                    batch_data['frame_urls'].append(frame_url)
+                # 上传帧图片到OSS
+                frame_url = upload_thumbnail_to_oss(frame_filename, temp_frame_path)
+                logger.info(f"帧图片上传成功: {frame_url}")
+                
+                # 收集帧信息
+                batch_data['m_ids'].append(str(uuid.uuid4()))
+                batch_data['embeddings'].append(embedding)
+                batch_data['paths'].append(video_url)
+                batch_data['resource_id'].append(str(resource_id))
+                batch_data['frame_urls'].append(frame_url)
 
-                    frame_number = idx * self.frame_interval
-                    timestamp = int(frame_number / fps)
-                    batch_data['at_seconds'].append(timestamp)
-                    
-                    return True
-                    
-                finally:
-                    # 清理临时文件
-                    os.unlink(temp_frame.name)
-                    logger.debug(f"删除临时帧图片: {temp_frame.name}")
+                frame_number = idx * self.frame_interval
+                timestamp = int(frame_number / fps)
+                batch_data['at_seconds'].append(timestamp)
+                
+                return True
+                
+            finally:
+                # 清理临时文件
+                try:
+                    os.unlink(temp_frame_path)
+                    logger.debug(f"删除临时帧图片: {temp_frame_path}")
+                except Exception as e:
+                    logger.warning(f"删除临时文件失败: {str(e)}")
                 
         except Exception as e:
             logger.error(f"处理帧 {idx} 失败: {str(e)}")
