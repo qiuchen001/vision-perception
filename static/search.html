@@ -154,7 +154,8 @@
         /* 搜索模式选择 */
         .search-mode {
             display: flex;
-            gap: 2rem;
+            flex-direction: column;
+            gap: 1rem;
             margin: 1rem 0;
             padding: 1rem;
             background: #f9fafb;
@@ -165,6 +166,17 @@
             align-items: center;
             gap: 0.5rem;
             cursor: pointer;
+        }
+        /* 添加搜索模式提示样式 */
+        .search-mode-hint {
+            font-size: 0.875rem;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            background: rgba(37, 99, 235, 0.1);
+            border-radius: 0.25rem;
+            margin-top: 0.5rem;
         }
         /* 分页控制 */
         .pagination-controls {
@@ -208,6 +220,7 @@
             gap: 1rem;
         }
         .video-card {
+            position: relative;
             border-radius: 0.5rem;
             overflow: hidden;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -441,6 +454,27 @@
                 grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             }
         }
+        /* 相似度标签样式 */
+        .similarity-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1;
+        }
+        .similarity-high {
+            background: rgba(52, 211, 153, 0.9);  /* 绿色 */
+        }
+        .similarity-medium {
+            background: rgba(251, 191, 36, 0.9);  /* 黄色 */
+        }
+        .similarity-low {
+            background: rgba(239, 68, 68, 0.9);  /* 红色 */
+        }
     </style>
 </head>
 <body>
@@ -490,7 +524,7 @@
                                 type="radio"
                                 v-model="searchMode"
                                 value="frame"
-                            > 搜索视频帧
+                            > 搜索视频帧（显示相似度）
                         </label>
                         <label>
                             <input
@@ -597,6 +631,13 @@
                             role="button"
                             :aria-label="'播放视频: ' + video.title"
                         >
+                            <div 
+                                v-if="video.similarity && (selectedType === 'image' || (selectedType === 'text' && searchMode === 'frame'))"
+                                class="similarity-tag"
+                                :class="getSimilarityClass(video.similarity)"
+                            >
+                                相似度: {{ formatSimilarity(video.similarity) }}%
+                            </div>
                             <img
                                 :src="video.thumbnail_url"
                                 :alt="video.title + ' 的缩略图'"
@@ -679,6 +720,23 @@
                             </div>
                             <div class="info-block-content">
                                 {{ selectedVideo.summary }}
+                            </div>
+                        </div>
+
+                        <!-- 相似度区块 -->
+                        <div class="info-block" v-if="selectedVideo.similarity && (selectedType === 'image' || (selectedType === 'text' && searchMode === 'frame'))">
+                            <div class="info-block-title">
+                                <span class="material-icons">analytics</span>
+                                相似度
+                            </div>
+                            <div class="info-block-content">
+                                <div 
+                                    class="similarity-tag"
+                                    :class="getSimilarityClass(selectedVideo.similarity)"
+                                    style="position: static; display: inline-block; margin-top: 5px;"
+                                >
+                                    {{ formatSimilarity(selectedVideo.similarity) }}%
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -876,6 +934,16 @@
                         this.$refs.videoPlayer.currentTime = this.selectedVideo.timestamp;
                         this.$refs.videoPlayer.play();
                     }
+                },
+                formatSimilarity(similarity) {
+                    // 将字符串转换为数字并格式化为百分比
+                    return (parseFloat(similarity) * 100).toFixed(2);
+                },
+                getSimilarityClass(similarity) {
+                    const value = parseFloat(similarity);
+                    if (value >= 0.8) return 'similarity-high';
+                    if (value >= 0.6) return 'similarity-medium';
+                    return 'similarity-low';
                 }
             }
         });

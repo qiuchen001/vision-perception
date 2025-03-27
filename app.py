@@ -240,6 +240,7 @@ def search_videos():
                         'tags': list(video.get('tags', [])) if video.get('tags') else [],
                         'summary_txt': str(video.get('summary_txt', '')),
                         'timestamp': video.get('timestamp', 0),
+                        'similarity': video.get('similarity', 0),
                     } for video in results]
             except Exception as e:
                 print(f"Text search error: {str(e)}")
