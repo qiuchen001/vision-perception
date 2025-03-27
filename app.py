@@ -218,12 +218,34 @@ def search_videos():
                     'status': 'error',
                     'message': '请输入搜索关键词'
                 }), 400
-            results = search_service.search_by_text(
-                text_query,
-                page=page,
-                page_size=page_size,
-                search_mode=search_mode
-            )
+            
+            try:
+                results = search_service.search_by_text(
+                    text_query,
+                    page=page,
+                    page_size=page_size,
+                    search_mode=search_mode
+                )
+                
+                # 如果结果为None，返回空列表
+                if results is None:
+                    results = []
+                    
+                # 确保结果可以被JSON序列化
+                if results:
+                    results = [{
+                        'title': str(video.get('title', '未知')),
+                        'path': str(video.get('path', '')),
+                        'thumbnail_path': str(video.get('thumbnail_path', '')),
+                        'tags': list(video.get('tags', [])) if video.get('tags') else [],
+                        'summary_txt': str(video.get('summary_txt', ''))
+                    } for video in results]
+            except Exception as e:
+                print(f"Text search error: {str(e)}")
+                return jsonify({
+                    'status': 'error',
+                    'message': f'文本搜索失败: {str(e)}'
+                }), 500
 
         elif search_type == 'image':
             image_file = request.files.get('image_file')
