@@ -148,11 +148,17 @@ def create_mask(frame_shape, bbox):
     """创建水印区域的掩码"""
     x1, y1, x2, y2 = bbox
     mask = np.zeros(frame_shape[:2], dtype=np.uint8)
-    # 扩大一点去除区域，确保完全覆盖水印
-    x1 = max(0, x1 - 2)
-    y1 = max(0, y1 - 2)
-    x2 = min(frame_shape[1], x2 + 2)
-    y2 = min(frame_shape[0], y2 + 2)
+    
+    # 扩大去除区域，水平和垂直方向使用不同的扩展范围
+    padding_x = 10  # 水平方向扩展10像素
+    padding_y = 5   # 垂直方向扩展5像素
+    
+    # 确保不超出图片边界
+    x1 = max(0, x1 - padding_x)
+    y1 = max(0, y1 - padding_y)
+    x2 = min(frame_shape[1], x2 + padding_x)
+    y2 = min(frame_shape[0], y2 + padding_y)
+    
     mask[y1:y2, x1:x2] = 255
     return mask
 
