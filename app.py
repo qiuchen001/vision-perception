@@ -238,7 +238,8 @@ def search_videos():
                         'path': str(video.get('path', '')),
                         'thumbnail_path': str(video.get('thumbnail_path', '')),
                         'tags': list(video.get('tags', [])) if video.get('tags') else [],
-                        'summary_txt': str(video.get('summary_txt', ''))
+                        'summary_txt': str(video.get('summary_txt', '')),
+                        'timestamp': video.get('timestamp', 0),
                     } for video in results]
             except Exception as e:
                 print(f"Text search error: {str(e)}")
@@ -312,7 +313,8 @@ def search_videos():
                 'video_url': video.get('path', ''),
                 'thumbnail_url': video.get('thumbnail_path', ''),
                 'tags': video.get('tags', []),
-                'summary': video.get('summary_txt', '')
+                'summary': video.get('summary_txt', ''),
+                'timestamp': video.get('timestamp', 0),
             }
             formatted_results.append(formatted_video)
 

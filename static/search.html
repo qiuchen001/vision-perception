@@ -255,6 +255,30 @@
             background: black;
             border-radius: 0.5rem;
             margin-bottom: 1rem;
+            position: relative;
+        }
+        /* 时间点跳转按钮 */
+        .time-jump {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            background: rgba(37, 99, 235, 0.9);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        .time-jump:hover {
+            background: rgba(29, 78, 216, 0.9);
+        }
+        .time-jump .material-icons {
+            font-size: 1.25rem;
+            margin-right: 0.25rem;
         }
         .video-details {
             background: #f9fafb;
@@ -598,10 +622,15 @@
                 <div class="video-area" v-if="selectedVideo">
                     <div class="video-player">
                         <video
+                            ref="videoPlayer"
                             controls
                             :src="selectedVideo.video_url"
                             style="width: 100%; height: 100%;"
                         ></video>
+                        <div v-if="selectedVideo.timestamp" class="time-jump" @click="jumpToTime">
+                            <span class="material-icons">timer</span>
+                            跳转到 {{ formatTime(selectedVideo.timestamp) }}
+                        </div>
                     </div>
                     <div class="video-details">
                         <!-- 标题区块 -->
@@ -612,6 +641,17 @@
                             </div>
                             <div class="info-block-content">
                                 {{ selectedVideo.title }}
+                            </div>
+                        </div>
+
+                        <!-- 时间点区块 -->
+                        <div class="info-block" v-if="selectedVideo.timestamp">
+                            <div class="info-block-title">
+                                <span class="material-icons">schedule</span>
+                                匹配时间点
+                            </div>
+                            <div class="info-block-content">
+                                {{ formatTime(selectedVideo.timestamp) }}
                             </div>
                         </div>
 
@@ -819,6 +859,23 @@
                 },
                 handleVideoSelect(video) {
                     this.selectedVideo = video;
+                    // 重置视频播放器时间
+                    if (this.$refs.videoPlayer) {
+                        this.$refs.videoPlayer.currentTime = 0;
+                    }
+                },
+                // 格式化时间
+                formatTime(seconds) {
+                    const minutes = Math.floor(seconds / 60);
+                    const remainingSeconds = seconds % 60;
+                    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+                },
+                // 跳转到指定时间点
+                jumpToTime() {
+                    if (this.$refs.videoPlayer && this.selectedVideo.timestamp) {
+                        this.$refs.videoPlayer.currentTime = this.selectedVideo.timestamp;
+                        this.$refs.videoPlayer.play();
+                    }
                 }
             }
         });
