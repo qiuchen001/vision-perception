@@ -112,6 +112,9 @@ class VideoDAO:
         }
 
         if summary_embedding is not None:
+            # 设置相似度阈值
+            SIMILARITY_THRESHOLD = 0.01
+
             result = self.milvus_client.search(
                 collection_name=self.collection_name,
                 anns_field="summary_embedding",
@@ -124,12 +127,17 @@ class VideoDAO:
 
             new_result_list = []
             if result[0] is not None:
-                for idx in range(len(result[0])):
-                    hit = result[0][idx]
-                    entity = hit.get('entity')
-                    if entity:
-                        entity['timestamp'] = 0
-                    new_result_list.append(entity)
+                for hit in result[0]:
+                    similarity = hit.get("distance", 0)  # 获取相似度分数
+                    if similarity >= SIMILARITY_THRESHOLD:  # 过滤低相似度结果
+                        entity = hit.get("entity", {})
+                        if entity:
+                            entity['timestamp'] = 0
+                            entity['similarity'] = f"{similarity:.4f}"  # 添加相似度分数，保留4位小数
+                            new_result_list.append(entity)
+                
+                # 按相似度降序排序
+                new_result_list.sort(key=lambda x: float(x['similarity']), reverse=True)
             return new_result_list
 
         else:
