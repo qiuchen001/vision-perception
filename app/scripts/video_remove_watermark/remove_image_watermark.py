@@ -194,9 +194,9 @@ def remove_image_watermark(input_path, output_path):
 
 if __name__ == "__main__":
     # 测试代码
-    input_image = "first_frame.png"  # 输入图片路径
+    input_image = "qiyewx_20250327155329.png"  # 输入图片路径
     # input_image = "360_watermark.png"  # 输入图片路径
-    output_image = "first_frame_removed_01.png"  # 输出图片路径
+    output_image = "qiyewx_20250327155329_removed_01.png"  # 输出图片路径
     
     try:
         remove_image_watermark(input_image, output_image)

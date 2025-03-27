@@ -1,3 +1,8 @@
+# 文件夹配置
+INPUT_DIR = r"E:\workspace\ai-ground\videos-new"  # 输入视频文件夹
+OUTPUT_DIR = r"E:\workspace\ai-ground\remove-video-mark"  # 输出视频文件夹
+TRIM_SECONDS = 3  # 需要截取的结尾秒数
+
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
@@ -184,25 +189,111 @@ def trim_video(video_path, output_path, trim_seconds):
     print(f"已去除最后 {trim_seconds} 秒，处理了 {processed_frames} 帧")
 
 
-if __name__ == "__main__":
-    input_video = "4cf55cb9b1a4313ebac796d83482f9ef.mp4"
-    # 创建临时文件路径用于存储中间结果
-    temp_output = "temp_no_watermark.mp4"
-    final_output = "output_video.mp4"
-    
+def process_video(input_video, output_video, trim_seconds=3):
+    """处理单个视频：去水印并截取"""
     try:
-        # 第一步：去除水印
-        print("开始去除水印...")
-        remove_video_watermark(input_video, temp_output)
+        # 创建临时文件路径
+        temp_output = os.path.join(os.path.dirname(output_video), f"temp_{os.path.basename(output_video)}")
         
-        # 第二步：截取视频
-        print("\n开始截取视频...")
-        trim_video(temp_output, final_output, trim_seconds=3)
+        try:
+            # 第一步：去除水印
+            print(f"\n开始处理视频: {os.path.basename(input_video)}")
+            print("1. 去除水印...")
+            remove_video_watermark(input_video, temp_output)
+            
+            # 第二步：截取视频
+            print("2. 截取视频...")
+            trim_video(temp_output, output_video, trim_seconds)
+            
+            return True
+            
+        finally:
+            # 清理临时文件
+            if os.path.exists(temp_output):
+                os.remove(temp_output)
+                
+    except Exception as e:
+        print(f"处理视频 {input_video} 时出错: {str(e)}")
+        return False
+
+
+def process_directory(input_dir, output_dir, trim_seconds=3):
+    """批量处理文件夹中的视频"""
+    # 支持的视频格式
+    video_extensions = ('.mp4', '.avi', '.mov', '.mkv', '.flv', '.wmv')
+    
+    # 确保输出目录存在
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # 获取所有视频文件
+    video_files = [f for f in os.listdir(input_dir) 
+                  if os.path.isfile(os.path.join(input_dir, f)) 
+                  and f.lower().endswith(video_extensions)]
+    
+    if not video_files:
+        print(f"在目录 {input_dir} 中未找到视频文件")
+        return
+    
+    print(f"找到 {len(video_files)} 个视频文件")
+    
+    # 处理统计
+    successful = 0
+    failed = 0
+    
+    # 处理每个视频
+    for i, video_file in enumerate(video_files, 1):
+        input_path = os.path.join(input_dir, video_file)
+        output_path = os.path.join(output_dir, f"processed_{video_file}")
         
-        print("\n所有处理完成!")
+        print(f"\n[{i}/{len(video_files)}] 正在处理: {video_file}")
         
-    finally:
-        # 清理临时文件
-        if os.path.exists(temp_output):
-            os.remove(temp_output)
-            print("已清理临时文件")
+        if process_video(input_path, output_path, trim_seconds):
+            successful += 1
+        else:
+            failed += 1
+    
+    # 打印处理统计
+    print("\n处理完成!")
+    print(f"总计: {len(video_files)} 个视频")
+    print(f"成功: {successful} 个")
+    print(f"失败: {failed} 个")
+
+
+if __name__ == "__main__":
+    import argparse
+    
+    # 命令行参数解析
+    parser = argparse.ArgumentParser(description='视频批量去水印和截取处理工具')
+    parser.add_argument('--input', '-i', help='输入视频文件或目录的路径')
+    parser.add_argument('--output', '-o', help='输出视频文件或目录的路径')
+    parser.add_argument('--trim', '-t', type=int, default=TRIM_SECONDS, help=f'需要截取的结尾秒数（默认{TRIM_SECONDS}秒）')
+    
+    args = parser.parse_args()
+    
+    if args.input:
+        # 如果提供了命令行参数,使用命令行参数
+        input_path = os.path.abspath(args.input)
+        if os.path.isfile(input_path):
+            output_path = args.output if args.output else "processed_" + os.path.basename(input_path)
+            process_video(input_path, output_path, args.trim)
+        else:
+            output_dir = args.output if args.output else OUTPUT_DIR
+            process_directory(input_path, output_dir, args.trim)
+    else:
+        # 没有命令行参数时,使用配置的文件夹
+        print(f"使用配置的输入文件夹: {INPUT_DIR}")
+        print(f"输出文件夹: {OUTPUT_DIR}")
+        print(f"截取结尾: {TRIM_SECONDS} 秒")
+        
+        # 检查输入文件夹是否存在
+        if not os.path.exists(INPUT_DIR):
+            print(f"错误: 输入文件夹 {INPUT_DIR} 不存在")
+            os.makedirs(INPUT_DIR)
+            print(f"已创建输入文件夹: {INPUT_DIR}")
+        
+        # 检查输出文件夹是否存在
+        if not os.path.exists(OUTPUT_DIR):
+            os.makedirs(OUTPUT_DIR)
+            print(f"已创建输出文件夹: {OUTPUT_DIR}")
+            
+        process_directory(INPUT_DIR, OUTPUT_DIR, TRIM_SECONDS)
