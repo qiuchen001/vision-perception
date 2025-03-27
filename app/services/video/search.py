@@ -33,8 +33,8 @@ class SearchVideoService:
         try:
             if search_mode == "frame":
                 # 使用新的方法获取帧图片URL
-                video_paths, timestamps, frame_urls = self.text_to_frame_with_url(txt)
-                return self._get_video_details_with_frame(video_paths, timestamps, frame_urls, page, page_size)
+                video_paths, timestamps, frame_urls, similarities = self.text_to_frame_with_url(txt)
+                return self._get_video_details_with_frame(video_paths, timestamps, frame_urls, similarities, page, page_size)
             else:
                 # 直接搜索视频摘要
                 summary_embedding = embed_fn(txt)  # 使用文本embedding函数
@@ -82,10 +82,10 @@ class SearchVideoService:
                 raise ValueError("No image provided")
 
             # 使用图片搜索视频帧,获取frame_url
-            video_paths, timestamps, frame_urls = self.image_to_frame_with_url(image)
+            video_paths, timestamps, frame_urls, similarities = self.image_to_frame_with_url(image)
             
             # 获取视频详细信息
-            return self._get_video_details_with_frame(video_paths, timestamps, frame_urls, page, page_size)
+            return self._get_video_details_with_frame(video_paths, timestamps, frame_urls, similarities, page, page_size)
             
         except Exception as e:
             logger.error(f"图片搜索失败: {str(e)}")
@@ -168,16 +168,16 @@ class SearchVideoService:
             logger.error(f"标签搜索失败: {str(e)}")
             return []
 
-    def text_to_frame_with_url(self, txt: str) -> Tuple[List[str], List[int], List[str]]:
+    def text_to_frame_with_url(self, txt: str) -> Tuple[List[str], List[int], List[str], List[float]]:
         """
-        通过文本搜索视频帧，返回视频路径、时间戳和帧图片URL。
+        通过文本搜索视频帧，返回视频路径、时间戳、帧图片URL和相似度分数。
         结果按相似度从大到小排序。
         
         Args:
             txt: 搜索文本
             
         Returns:
-            Tuple[List[str], List[int], List[str]]: 视频路径列表、时间戳列表和帧图片URL列表
+            Tuple[List[str], List[int], List[str], List[float]]: 视频路径列表、时间戳列表、帧图片URL列表和相似度分数列表
         """
         try:
             # 获取文本embedding
@@ -187,7 +187,7 @@ class SearchVideoService:
             results = video_frame_operator.search_frame(embedding)
             
             if not results:
-                return [], [], []
+                return [], [], [], []
             
             # 设置相似度阈值 (IP距离越大表示越相似)
             SIMILARITY_THRESHOLD = 0.01
@@ -215,14 +215,23 @@ class SearchVideoService:
             video_paths = [r['video_id'] for r in sorted_results]
             timestamps = [r['at_seconds'] for r in sorted_results]
             frame_urls = [r['frame_url'] for r in sorted_results]
+            similarities = [r['similarity'] for r in sorted_results]
             
-            return video_paths, timestamps, frame_urls
+            return video_paths, timestamps, frame_urls, similarities
             
         except Exception as e:
             logger.error(f"文本到帧搜索失败: {str(e)}")
-            return [], [], []
+            return [], [], [], []
 
-    def _get_video_details_with_frame(self, video_paths: List[str], timestamps: List[int], frame_urls: List[str], page: int = 1, page_size: int = 6) -> List[Dict[str, Any]]:
+    def _get_video_details_with_frame(
+            self,
+            video_paths: List[str],
+            timestamps: List[int],
+            frame_urls: List[str],
+            similarities: List[float],
+            page: int = 1,
+            page_size: int = 6
+    ) -> List[Dict[str, Any]]:
         """
         获取视频详细信息，使用帧图片作为封面。
         
@@ -230,11 +239,12 @@ class SearchVideoService:
             video_paths: 视频路径列表
             timestamps: 时间戳列表
             frame_urls: 帧图片URL列表
+            similarities: 相似度分数列表
             page: 页码
             page_size: 每页数量
             
         Returns:
-            List[Dict[str, Any]]: 视频详细信息列表
+            List[Dict[str, Any]]: 视频详细信息列表，包含相似度分数
         """
         if not video_paths:
             return []
@@ -247,9 +257,10 @@ class SearchVideoService:
         current_paths = video_paths[start_idx:end_idx]
         current_timestamps = timestamps[start_idx:end_idx]
         current_frame_urls = frame_urls[start_idx:end_idx]
+        current_similarities = similarities[start_idx:end_idx]
         
         results = []
-        for path, timestamp, frame_url in zip(current_paths, current_timestamps, current_frame_urls):
+        for path, timestamp, frame_url, similarity in zip(current_paths, current_timestamps, current_frame_urls, current_similarities):
             # 获取视频信息
             video_info = self.video_dao.get_by_path(path)
             if video_info and len(video_info) > 0:  # 确保有返回结果
@@ -260,22 +271,23 @@ class SearchVideoService:
                     'thumbnail_path': frame_url,  # 使用帧图片URL作为封面
                     'tags': video_data.get('tags', []),
                     'summary_txt': video_data.get('summary_txt', ''),
-                    'timestamp': timestamp
+                    'timestamp': timestamp,
+                    'similarity': f"{similarity:.4f}"  # 添加相似度分数，保留4位小数
                 }
                 results.append(result)
             
         return results
 
-    def image_to_frame_with_url(self, image: Image.Image) -> Tuple[List[str], List[int], List[str]]:
+    def image_to_frame_with_url(self, image: Image.Image) -> Tuple[List[str], List[int], List[str], List[float]]:
         """
-        通过图片搜索视频帧，返回视频路径、时间戳和帧图片URL。
+        通过图片搜索视频帧，返回视频路径、时间戳、帧图片URL和相似度分数。
         结果按相似度从大到小排序。
         
         Args:
             image: PIL Image对象
             
         Returns:
-            Tuple[List[str], List[int], List[str]]: 视频路径列表、时间戳列表和帧图片URL列表
+            Tuple[List[str], List[int], List[str], List[float]]: 视频路径列表、时间戳列表、帧图片URL列表和相似度分数列表
         """
         try:
             # 获取图片embedding
@@ -286,7 +298,7 @@ class SearchVideoService:
             results = video_frame_operator.search_frame(embedding)
             
             if not results:
-                return [], [], []
+                return [], [], [], []
             
             # 设置相似度阈值 (IP距离越大表示越相似)
             SIMILARITY_THRESHOLD = 0.01
@@ -314,12 +326,13 @@ class SearchVideoService:
             video_paths = [r['video_id'] for r in sorted_results]
             timestamps = [r['at_seconds'] for r in sorted_results]
             frame_urls = [r['frame_url'] for r in sorted_results]
+            similarities = [r['similarity'] for r in sorted_results]
             
-            return video_paths, timestamps, frame_urls
+            return video_paths, timestamps, frame_urls, similarities
             
         except Exception as e:
             logger.error(f"图片到帧搜索失败: {str(e)}")
-            return [], [], []
+            return [], [], [], []
 
 
 if __name__ == "__main__":
