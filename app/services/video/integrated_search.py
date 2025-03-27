@@ -76,6 +76,7 @@ class IntegratedSearchService:
             if not intent_result:
                 logger.warning(f"意图识别结果为空: {query}")
                 return []
+            logger.info(f"意图识别结果: {intent_result}")
 
             # 2. 提取搜索参数
             search_params = self._extract_search_params(intent_result)
