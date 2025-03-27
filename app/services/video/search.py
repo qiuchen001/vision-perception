@@ -205,7 +205,7 @@ class SearchVideoService:
                     video_paths.append(result.get('video_id', ''))
                     timestamps.append(result.get('at_seconds', 0))
                     frame_urls.append(result.get('frame_url', ''))
-                    logger.info(f"匹配结果 - 视频: {result.get('video_id', '')}, 相似度: {similarity:.4f}")
+                    logger.info(f"匹配结果 - 图片: {result.get('frame_url', '')}, 相似度: {similarity:.4f}")
                 else:
                     logger.info(f"过滤掉低相似度结果 - 视频: {result.get('video_id', '')}, 相似度: {similarity:.4f}")
             
@@ -297,7 +297,7 @@ class SearchVideoService:
                     video_paths.append(result.get('video_id', ''))
                     timestamps.append(result.get('at_seconds', 0))
                     frame_urls.append(result.get('frame_url', ''))
-                    logger.info(f"匹配结果 - 视频: {result.get('video_id', '')}, 相似度: {similarity:.4f}")
+                    logger.info(f"匹配结果 - 图片: {result.get('frame_url', '')}, 相似度: {similarity:.4f}")
                 else:
                     logger.info(f"过滤掉低相似度结果 - 视频: {result.get('video_id', '')}, 相似度: {similarity:.4f}")
             
