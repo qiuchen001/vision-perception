@@ -171,6 +171,7 @@ class SearchVideoService:
     def text_to_frame_with_url(self, txt: str) -> Tuple[List[str], List[int], List[str]]:
         """
         通过文本搜索视频帧，返回视频路径、时间戳和帧图片URL。
+        结果按相似度从大到小排序。
         
         Args:
             txt: 搜索文本
@@ -188,26 +189,32 @@ class SearchVideoService:
             if not results:
                 return [], [], []
             
-            # 提取视频路径、时间戳和帧图片URL
-            video_paths = []
-            timestamps = []
-            frame_urls = []
-            
             # 设置相似度阈值 (IP距离越大表示越相似)
             SIMILARITY_THRESHOLD = 0.01
             
+            # 收集满足阈值的结果
+            valid_results = []
             for result in results:
-                # 获取相似度值(IP距离)
                 similarity = result.get('distance', float('-inf'))
-                
-                # 保留相似度高于阈值的结果
                 if similarity >= SIMILARITY_THRESHOLD:
-                    video_paths.append(result.get('video_id', ''))
-                    timestamps.append(result.get('at_seconds', 0))
-                    frame_urls.append(result.get('frame_url', ''))
-                    logger.info(f"匹配结果 - 图片: {result.get('frame_url', '')}, 相似度: {similarity:.4f}")
+                    # 将结果和相似度一起保存
+                    valid_results.append({
+                        'video_id': result.get('video_id', ''),
+                        'at_seconds': result.get('at_seconds', 0),
+                        'frame_url': result.get('frame_url', ''),
+                        'similarity': similarity
+                    })
+                    logger.info(f"匹配结果 - 视频: {result.get('video_id', '')}, 相似度: {similarity:.4f}")
                 else:
                     logger.info(f"过滤掉低相似度结果 - 视频: {result.get('video_id', '')}, 相似度: {similarity:.4f}")
+            
+            # 按相似度降序排序
+            sorted_results = sorted(valid_results, key=lambda x: x['similarity'], reverse=True)
+            
+            # 分离排序后的结果
+            video_paths = [r['video_id'] for r in sorted_results]
+            timestamps = [r['at_seconds'] for r in sorted_results]
+            frame_urls = [r['frame_url'] for r in sorted_results]
             
             return video_paths, timestamps, frame_urls
             
@@ -262,6 +269,7 @@ class SearchVideoService:
     def image_to_frame_with_url(self, image: Image.Image) -> Tuple[List[str], List[int], List[str]]:
         """
         通过图片搜索视频帧，返回视频路径、时间戳和帧图片URL。
+        结果按相似度从大到小排序。
         
         Args:
             image: PIL Image对象
@@ -280,26 +288,32 @@ class SearchVideoService:
             if not results:
                 return [], [], []
             
-            # 提取视频路径、时间戳和帧图片URL
-            video_paths = []
-            timestamps = []
-            frame_urls = []
-            
             # 设置相似度阈值 (IP距离越大表示越相似)
             SIMILARITY_THRESHOLD = 0.01
             
+            # 收集满足阈值的结果
+            valid_results = []
             for result in results:
-                # 获取相似度值(IP距离)
                 similarity = result.get('distance', float('-inf'))
-                
-                # 保留相似度高于阈值的结果
                 if similarity >= SIMILARITY_THRESHOLD:
-                    video_paths.append(result.get('video_id', ''))
-                    timestamps.append(result.get('at_seconds', 0))
-                    frame_urls.append(result.get('frame_url', ''))
-                    logger.info(f"匹配结果 - 图片: {result.get('frame_url', '')}, 相似度: {similarity:.4f}")
+                    # 将结果和相似度一起保存
+                    valid_results.append({
+                        'video_id': result.get('video_id', ''),
+                        'at_seconds': result.get('at_seconds', 0),
+                        'frame_url': result.get('frame_url', ''),
+                        'similarity': similarity
+                    })
+                    logger.info(f"匹配结果 - 视频: {result.get('video_id', '')}, 相似度: {similarity:.4f}")
                 else:
                     logger.info(f"过滤掉低相似度结果 - 视频: {result.get('video_id', '')}, 相似度: {similarity:.4f}")
+            
+            # 按相似度降序排序
+            sorted_results = sorted(valid_results, key=lambda x: x['similarity'], reverse=True)
+            
+            # 分离排序后的结果
+            video_paths = [r['video_id'] for r in sorted_results]
+            timestamps = [r['at_seconds'] for r in sorted_results]
+            frame_urls = [r['frame_url'] for r in sorted_results]
             
             return video_paths, timestamps, frame_urls
             
