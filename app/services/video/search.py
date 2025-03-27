@@ -9,6 +9,7 @@ from app.services.video.video_frame_search import image_to_frame, text_to_frame
 from app.utils.embedding.text_embedding import embed_fn
 from app.utils.logger import logger
 from app.utils.milvus_operator import video_frame_operator
+from app.utils.embedding.embedding_factory import EmbeddingFactory
 
 
 class SearchVideoService:
@@ -80,11 +81,11 @@ class SearchVideoService:
             else:
                 raise ValueError("No image provided")
 
-            # 使用图片搜索视频帧
-            video_paths, timestamps = image_to_frame(image)
+            # 使用图片搜索视频帧,获取frame_url
+            video_paths, timestamps, frame_urls = self.image_to_frame_with_url(image)
             
             # 获取视频详细信息
-            return self._get_video_details(video_paths, timestamps, page, page_size)
+            return self._get_video_details_with_frame(video_paths, timestamps, frame_urls, page, page_size)
             
         except Exception as e:
             logger.error(f"图片搜索失败: {str(e)}")
@@ -246,6 +247,43 @@ class SearchVideoService:
                 results.append(result)
             
         return results
+
+    def image_to_frame_with_url(self, image: Image.Image) -> Tuple[List[str], List[int], List[str]]:
+        """
+        通过图片搜索视频帧，返回视频路径、时间戳和帧图片URL。
+        
+        Args:
+            image: PIL Image对象
+            
+        Returns:
+            Tuple[List[str], List[int], List[str]]: 视频路径列表、时间戳列表和帧图片URL列表
+        """
+        try:
+            # 获取图片embedding
+            embedding_model = EmbeddingFactory.create_embedding()
+            embedding = embedding_model.embedding_image(image)
+            
+            # 搜索相似的视频帧
+            results = video_frame_operator.search_frame(embedding)
+            
+            if not results:
+                return [], [], []
+            
+            # 提取视频路径、时间戳和帧图片URL
+            video_paths = []
+            timestamps = []
+            frame_urls = []
+            
+            for result in results:
+                video_paths.append(result.get('video_id', ''))
+                timestamps.append(result.get('at_seconds', 0))
+                frame_urls.append(result.get('frame_url', ''))
+            
+            return video_paths, timestamps, frame_urls
+            
+        except Exception as e:
+            logger.error(f"图片到帧搜索失败: {str(e)}")
+            return [], [], []
 
 
 if __name__ == "__main__":
