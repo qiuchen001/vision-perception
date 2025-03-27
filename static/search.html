@@ -261,6 +261,55 @@
             border-radius: 0.5rem;
             padding: 1rem;
         }
+        /* 视频信息区块样式 */
+        .info-block {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .info-block:last-child {
+            margin-bottom: 0;
+        }
+        .info-block-title {
+            display: flex;
+            align-items: center;
+            color: #1f2937;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .info-block-title .material-icons {
+            margin-right: 0.5rem;
+            color: #2563eb;
+            font-size: 1.25rem;
+        }
+        .info-block-content {
+            color: #4b5563;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        .video-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .tag {
+            background: #f3f4f6;
+            color: #4b5563;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+        .tag .material-icons {
+            font-size: 1rem;
+            margin-right: 0.25rem;
+            color: #6b7280;
+        }
         /* 按钮 */
         .button {
             padding: 1rem 2rem;
@@ -555,16 +604,42 @@
                         ></video>
                     </div>
                     <div class="video-details">
-                        <h3>{{ selectedVideo.title }}</h3>
-                        <div v-if="selectedVideo.summary" class="summary">
-                            {{ selectedVideo.summary }}
+                        <!-- 标题区块 -->
+                        <div class="info-block">
+                            <div class="info-block-title">
+                                <span class="material-icons">title</span>
+                                视频标题
+                            </div>
+                            <div class="info-block-content">
+                                {{ selectedVideo.title }}
+                            </div>
                         </div>
-                        <div class="video-tags">
-                            <span
-                                v-for="tag in selectedVideo.tags"
-                                :key="tag"
-                                class="tag"
-                            >{{ tag }}</span>
+
+                        <!-- 标签区块 -->
+                        <div class="info-block">
+                            <div class="info-block-title">
+                                <span class="material-icons">label</span>
+                                视频标签
+                            </div>
+                            <div class="info-block-content">
+                                <div class="video-tags">
+                                    <span v-for="tag in selectedVideo.tags" :key="tag" class="tag">
+                                        <span class="material-icons">local_offer</span>
+                                        {{ tag }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 摘要区块 -->
+                        <div class="info-block" v-if="selectedVideo.summary">
+                            <div class="info-block-title">
+                                <span class="material-icons">description</span>
+                                视频摘要
+                            </div>
+                            <div class="info-block-content">
+                                {{ selectedVideo.summary }}
+                            </div>
                         </div>
                     </div>
                 </div>
