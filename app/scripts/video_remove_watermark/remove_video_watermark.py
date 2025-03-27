@@ -123,7 +123,7 @@ def remove_video_watermark(video_path, output_path):
         # 在原图上画出检测框并保存
         debug_image = first_frame.copy()
         x1, y1, x2, y2 = bbox
-        cv2.rectangle(debug_image, (x1, y1), (x2, y2), (0, 255, 0), 2)  # BGR格式，(0, 255, 0)是绿色
+        cv2.rectangle(debug_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
         bbox_path = first_frame_path.replace('.png', '_bbox.png')
         cv2.imwrite(bbox_path, debug_image)
         print(f"已保存检测框图片到: {bbox_path}")
@@ -134,34 +134,61 @@ def remove_video_watermark(video_path, output_path):
         cv2.imwrite(processed_path, processed_first_frame)
         print(f"已保存处理后的首帧到: {processed_path}")
 
-    # 创建视频写入器
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    # 创建临时文件路径用于中间处理
+    temp_output = output_path + '.temp.mp4'
 
-    # 重置视频到开始
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    try:
+        # 使用H.264编码器
+        if os.name == 'nt':  # Windows系统
+            fourcc = cv2.VideoWriter_fourcc(*'H264')
+        else:  # Linux/Mac系统
+            fourcc = cv2.VideoWriter_fourcc(*'avc1')
+            
+        # 创建视频写入器
+        out = cv2.VideoWriter(temp_output, fourcc, fps, (width, height))
 
-    # 处理每一帧
-    processed_frames = 0
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+        # 重置视频到开始
+        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-        # 去除水印
-        processed_frame = remove_watermark_frame(frame, bbox)
-        out.write(processed_frame)
+        # 处理每一帧
+        processed_frames = 0
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
 
-        # 更新进度
-        processed_frames += 1
-        if processed_frames % 100 == 0:
-            print(f"已处理 {processed_frames}/{total_frames} 帧 "
-                  f"({processed_frames / total_frames * 100:.1f}%)")
+            # 去除水印
+            processed_frame = remove_watermark_frame(frame, bbox)
+            out.write(processed_frame)
 
-    # 释放资源
-    cap.release()
-    out.release()
-    print(f"视频去水印完成，已保存到: {output_path}")
+            # 更新进度
+            processed_frames += 1
+            if processed_frames % 100 == 0:
+                print(f"已处理 {processed_frames}/{total_frames} 帧 "
+                      f"({processed_frames / total_frames * 100:.1f}%)")
+
+        # 释放资源
+        cap.release()
+        out.release()
+
+        # 使用ffmpeg重新编码，确保兼容性
+        import subprocess
+        ffmpeg_cmd = [
+            'ffmpeg', '-y',
+            '-i', temp_output,
+            '-c:v', 'libx264',
+            '-preset', 'medium',
+            '-crf', '23',
+            '-movflags', '+faststart',
+            output_path
+        ]
+        subprocess.run(ffmpeg_cmd, check=True)
+        print(f"视频去水印完成，已保存到: {output_path}")
+
+    finally:
+        # 清理临时文件
+        if os.path.exists(temp_output):
+            os.remove(temp_output)
 
 
 def trim_video(video_path, output_path, trim_seconds):
@@ -182,29 +209,56 @@ def trim_video(video_path, output_path, trim_seconds):
     if keep_frames <= 0:
         raise ValueError(f"视频时长小于{trim_seconds}秒,无法处理")
 
-    # 创建视频写入器
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    # 创建临时文件路径
+    temp_output = output_path + '.temp.mp4'
 
-    # 处理每一帧
-    processed_frames = 0
-    while processed_frames < keep_frames:
-        ret, frame = cap.read()
-        if not ret:
-            break
+    try:
+        # 使用H.264编码器
+        if os.name == 'nt':  # Windows系统
+            fourcc = cv2.VideoWriter_fourcc(*'H264')
+        else:  # Linux/Mac系统
+            fourcc = cv2.VideoWriter_fourcc(*'avc1')
+            
+        # 创建视频写入器
+        out = cv2.VideoWriter(temp_output, fourcc, fps, (width, height))
 
-        out.write(frame)
-        processed_frames += 1
-        
-        if processed_frames % 100 == 0:
-            print(f"已处理 {processed_frames}/{keep_frames} 帧 "
-                  f"({processed_frames / keep_frames * 100:.1f}%)")
+        # 处理每一帧
+        processed_frames = 0
+        while processed_frames < keep_frames:
+            ret, frame = cap.read()
+            if not ret:
+                break
 
-    # 释放资源
-    cap.release()
-    out.release()
-    print(f"视频截取完成，已保存到: {output_path}")
-    print(f"已去除最后 {trim_seconds} 秒，处理了 {processed_frames} 帧")
+            out.write(frame)
+            processed_frames += 1
+            
+            if processed_frames % 100 == 0:
+                print(f"已处理 {processed_frames}/{keep_frames} 帧 "
+                      f"({processed_frames / keep_frames * 100:.1f}%)")
+
+        # 释放资源
+        cap.release()
+        out.release()
+
+        # 使用ffmpeg重新编码，确保兼容性
+        import subprocess
+        ffmpeg_cmd = [
+            'ffmpeg', '-y',
+            '-i', temp_output,
+            '-c:v', 'libx264',
+            '-preset', 'medium',
+            '-crf', '23',
+            '-movflags', '+faststart',
+            output_path
+        ]
+        subprocess.run(ffmpeg_cmd, check=True)
+        print(f"视频截取完成，已保存到: {output_path}")
+        print(f"已去除最后 {trim_seconds} 秒，处理了 {processed_frames} 帧")
+
+    finally:
+        # 清理临时文件
+        if os.path.exists(temp_output):
+            os.remove(temp_output)
 
 
 def process_video(input_video, output_video, trim_seconds=3):
