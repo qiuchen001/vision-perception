@@ -143,14 +143,9 @@ if __name__ == "__main__":
     pil_image = Image.open(image_path)
     # clip_embedding.probs(pil_image)
 
-    # texts = ["杰尼龟", "妙蛙种子", "小火龙", "皮卡丘"]
-    texts = ["杰尼龟", "妙蛙种子", "小火龙", "皮卡丘", "白天汽车行驶在道路上"]
-
-    text = "杰尼龟"
-    text2 = "妙蛙种子"
-    # match = clip_embedding.match(pil_image, [text, text2])
-    match = clip_embedding.match(pil_image, texts)
-    print(match)
+    # texts = ["杰尼龟", "妙蛙种子", "小火龙", "皮卡丘", "白天汽车行驶在道路上"]
+    # match = clip_embedding.match(pil_image, texts)
+    # print(match)
 
 
 
@@ -161,8 +156,8 @@ if __name__ == "__main__":
 
 
 
-    # image_embeddings = clip_embedding.embedding_image(pil_image)
-    # print(len(image_embeddings))
+    image_embeddings = clip_embedding.embedding_image(pil_image)
+    print(len(image_embeddings))
 
     # res = image_embeddings[0].detach().numpy().tolist()
     #
