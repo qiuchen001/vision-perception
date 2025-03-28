@@ -78,8 +78,11 @@ class UploadVideoService:
 
             # 添加视频信息到数据库
             if not self.video_dao.check_url_exists(video_oss_url):
-                embedding = embed_fn(" ")
-                summary_embedding = embed_fn(" ")
+                embedObj = EmbeddingFactory.create_embedding()
+                # embedding = embedObj.embedding_text(txt)
+
+                embedding = embedObj.embedding_text(" ")
+                summary_embedding = embedObj.embedding_text(" ")
                 self.video_dao.init_video(
                     video_oss_url,
                     embedding,
@@ -458,8 +461,11 @@ class UploadVideoService:
 
             # 添加视频信息到数据库
             if not self.video_dao.check_url_exists(video_oss_url):
-                embedding = embed_fn(" ")
-                summary_embedding = embed_fn(" ")
+                embedObj = EmbeddingFactory.create_embedding()
+                # embedding = embedObj.embedding_text(txt)
+
+                embedding = embedObj.embedding_text(" ")
+                summary_embedding = embedObj.embedding_text(" ")
                 self.video_dao.init_video(
                     video_oss_url,
                     embedding,

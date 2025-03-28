@@ -1,5 +1,5 @@
 import os
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict
 import torch
 # import cn_clip.clip as clip
 import cn_clip.clip as clip
@@ -72,15 +72,21 @@ class ClipEmbedding(EmbeddingBase):
         self.tokenizer = clip.tokenize
 
     def embedding_image(self, image: Image.Image) -> List[float]:
+        """生成图片的embedding向量"""
         process_image = self.processor(image).unsqueeze(0).to(self.device)
         with torch.no_grad():
             image_features = self.model.encode_image(process_image)
+            # 添加L2归一化
+            image_features = image_features / image_features.norm(dim=-1, keepdim=True)
             return image_features[0].detach().cpu().numpy().tolist()
 
     def embedding_text(self, text: str) -> List[float]:
+        """生成文本的embedding向量"""
         text = self.tokenizer([text]).to(self.device)
         with torch.no_grad():
             text_features = self.model.encode_text(text)
+            # 添加L2归一化
+            text_features = text_features / text_features.norm(dim=-1, keepdim=True)
             return text_features[0].detach().cpu().numpy().tolist()
 
     def embedding(self, image: Image.Image, text: str) -> Tuple[List[float], List[float]]:
@@ -98,39 +104,40 @@ class ClipEmbedding(EmbeddingBase):
 
         print("Label probs:", probs)
 
-    def match(self, image: Image, desc: list[str]):
+    def match(self, image: Image, texts: List[str]) -> Dict[str, float]:
         """计算图像和文本的匹配相似度
 
         Args:
             image: PIL Image对象
-            desc: 文本描述
+            texts: 文本描述列表
 
         Returns:
-            float: 相似度分数(0-1之间)
+            Dict[str, float]: 文本及其对应的相似度分数(0-1之间)
         """
         # 预处理图像和文本
         processed_image = self.processor(image).unsqueeze(0).to(self.device)
-        text = self.tokenizer(desc).to(self.device)
+        text = self.tokenizer(texts).to(self.device)
 
         with torch.no_grad():
-            # 提取特征
+            # 提取特征并归一化
             image_features = self.model.encode_image(processed_image)
             text_features = self.model.encode_text(text)
 
             # 特征归一化
-            image_features /= image_features.norm(dim=-1, keepdim=True)
-            text_features /= text_features.norm(dim=-1, keepdim=True)
+            image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+            text_features = text_features / text_features.norm(dim=-1, keepdim=True)
 
-            # 计算相似度
-            logits_per_image, logits_per_text = self.model.get_similarity(processed_image, text)
+            # 计算余弦相似度
+            similarity = image_features @ text_features.t()
+            
+            # 将相似度转换到0-1范围
+            similarity = (similarity + 1) / 2
 
-            # 转换为概率
-            probs = logits_per_image.softmax(dim=-1).cpu().numpy()
+            # 转换为概率分布
+            similarity = similarity.softmax(dim=-1)
 
-            print("Label probs:", probs)
-
-            # 返回文本-概率字典
-            return {text: float(prob) for text, prob in zip(texts, probs[0])}
+            # 返回文本-相似度字典
+            return {text: float(score) for text, score in zip(texts, similarity[0].cpu().numpy())}
 
 
 clip_embedding = ClipEmbedding()

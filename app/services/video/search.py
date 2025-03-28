@@ -181,7 +181,9 @@ class SearchVideoService:
         """
         try:
             # 获取文本embedding
-            embedding = embed_fn(txt)
+            # embedding = embed_fn(txt)
+            embedObj = EmbeddingFactory.create_embedding()
+            embedding = embedObj.embedding_text(txt)
             
             # 搜索相似的视频帧
             results = video_frame_operator.search_frame(embedding)
