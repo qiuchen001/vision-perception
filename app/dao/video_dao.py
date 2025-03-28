@@ -105,7 +105,7 @@ class VideoDAO:
         limit = page_size
 
         search_params = {
-            "metric_type": "IP",
+            "metric_type": "COSINE",
             "offset": offset,
             "ignore_growing": False,
             "params": {"nprobe": 16}
