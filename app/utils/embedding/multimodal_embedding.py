@@ -6,7 +6,8 @@ import dashscope
 from http import HTTPStatus
 from app.utils.embedding.embedding_base import EmbeddingBase
 from app.utils.logger import logger
-from typing import List, Tuple
+from typing import List, Tuple, Dict
+import numpy as np
 
 
 class MultiModalEmbedding(EmbeddingBase):
@@ -127,27 +128,68 @@ class MultiModalEmbedding(EmbeddingBase):
         txt_emb = self.embedding_text(text)
         return img_emb, txt_emb
 
+    def match(self, image: Image.Image, texts: List) -> Dict:
+        """计算图片与多个文本的匹配度 (返回概率值)
+
+        Args:
+            image: PIL Image对象
+            texts: 文本列表
+
+        Returns:
+            Dict: 文本及其对应的匹配概率 (0-1之间)
+        """
+        try:
+            # 获取图片embedding
+            img_emb = np.array(self.embedding_image(image))
+
+            # 计算每个文本的相似度
+            results = {}
+            for text in texts:
+                # 获取文本embedding
+                txt_emb = np.array(self.embedding_text(text))
+
+                # 计算余弦相似度
+                similarity = np.dot(img_emb, txt_emb) / (np.linalg.norm(img_emb) * np.linalg.norm(txt_emb))
+                # 确保相似度在0-1之间，并作为概率值
+                probability = float(max(0, min(1, (similarity + 1) / 2)))
+
+                results.update({text: probability})
+
+            return results
+
+        except Exception as e:
+            logger.error(f"计算匹配度失败: {str(e)}")
+            raise e
+
 
 # 创建全局实例
 multimodal_embedding = MultiModalEmbedding()
 
 if __name__ == "__main__":
     # 测试代码
-    image_path = "test.png"
+    image_path = "first_frame.png"
     pil_image = Image.open(image_path)
 
-    # 测试图片embedding
-    image_embeddings = multimodal_embedding.embedding_image(pil_image)
-    print(f"图片embedding维度:{len(image_embeddings)}")
-
-    # 测试文本embedding
-    text_embeddings = multimodal_embedding.embedding_text("这是一张测试图片")
-    print(f"文本embedding维度:{len(text_embeddings)}")
-
-    # 测试图文联合embedding
-    img_emb, txt_emb = multimodal_embedding.embedding(pil_image, "这是一张测试图片")
-    print(f"图文embedding维度:{len(img_emb)}, {len(txt_emb)}")
+    # # 测试图片embedding
+    # image_embeddings = multimodal_embedding.embedding_image(pil_image)
+    # print(f"图片embedding维度:{len(image_embeddings)}")
     #
+    # # 测试文本embedding
+    # text_embeddings = multimodal_embedding.embedding_text("这是一张测试图片")
+    # print(f"文本embedding维度:{len(text_embeddings)}")
+    #
+    # # 测试图文联合embedding
+    # img_emb, txt_emb = multimodal_embedding.embedding(pil_image, "这是一张测试图片")
+    # print(f"图文embedding维度:{len(img_emb)}, {len(txt_emb)}")
+
+    # 测试图片与多个文本的匹配度
+    texts = ["杰尼龟", "妙蛙种子", "小火龙", "皮卡丘", "白天汽车行驶在道路上"]
+    match_results = multimodal_embedding.match(pil_image, texts)
+    
+    print("\n图片与文本的匹配度:")
+    for text, score in match_results.items():
+        print(f"'{text}' 的匹配度: {score:.4f}")
+
     # # 使用环境变量中配置的模型
     # embedding = EmbeddingFactory.create_embedding()
     # image = Image.open('test.jpg')
