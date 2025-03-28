@@ -129,8 +129,8 @@ class ClipEmbedding(EmbeddingBase):
 
             print("Label probs:", probs)
 
-            # 返回概率值(因为只有一个文本,所以取第一个值)
-            return float(probs[0][0])
+            # 返回文本-概率字典
+            return {text: float(prob) for text, prob in zip(texts, probs[0])}
 
 
 clip_embedding = ClipEmbedding()
