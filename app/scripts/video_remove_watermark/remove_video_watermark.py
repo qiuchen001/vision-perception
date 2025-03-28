@@ -1,6 +1,6 @@
 # 文件夹配置
-INPUT_DIR = r"E:\workspace\ai-ground\videos-before"  # 输入视频文件夹
-OUTPUT_DIR = r"E:\workspace\ai-ground\removed-video-mark"  # 输出视频文件夹
+INPUT_DIR = r"E:\workspace\ai-ground\scene\video-before"  # 输入视频文件夹
+OUTPUT_DIR = r"E:\workspace\ai-ground\scene\video-clear"  # 输出视频文件夹
 TRIM_SECONDS = 3  # 需要截取的结尾秒数
 
 from openai import OpenAI
