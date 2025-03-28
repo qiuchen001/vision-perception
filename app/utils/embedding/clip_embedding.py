@@ -77,7 +77,7 @@ class ClipEmbedding(EmbeddingBase):
         with torch.no_grad():
             image_features = self.model.encode_image(process_image)
             # 添加L2归一化
-            image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+            # image_features = image_features / image_features.norm(dim=-1, keepdim=True)
             return image_features[0].detach().cpu().numpy().tolist()
 
     def embedding_text(self, text: str) -> List[float]:
@@ -86,7 +86,7 @@ class ClipEmbedding(EmbeddingBase):
         with torch.no_grad():
             text_features = self.model.encode_text(text)
             # 添加L2归一化
-            text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+            # text_features = text_features / text_features.norm(dim=-1, keepdim=True)
             return text_features[0].detach().cpu().numpy().tolist()
 
     def embedding(self, image: Image.Image, text: str) -> Tuple[List[float], List[float]]:

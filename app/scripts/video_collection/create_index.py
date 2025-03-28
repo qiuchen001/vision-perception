@@ -16,7 +16,7 @@ def create_index():
     index_params.add_index(
         field_name="embedding",
         metric_type="IP",
-        index_type="IVF_FLAT",
+        index_type="FLAT",
         index_name="embedding_index",
         params={"nlist": 1024}
     )
@@ -24,7 +24,7 @@ def create_index():
     index_params.add_index(
         field_name="summary_embedding",
         metric_type="IP",
-        index_type="IVF_FLAT",
+        index_type="FLAT",
         index_name="summary_embedding_index",
         params={"nlist": 1024}
     )

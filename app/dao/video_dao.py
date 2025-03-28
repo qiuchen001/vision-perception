@@ -32,7 +32,7 @@ class VideoDAO:
         offset = (page - 1) * page_size
         limit = page_size
         search_params = {
-            "metric_type": "IP",  # 指定相似度度量类型，IP表示内积（Inner Product）
+            "metric_type": "COSINE",  # 指定相似度度量类型，IP表示内积（Inner Product）
             "offset": offset,
             "limit": limit
         }

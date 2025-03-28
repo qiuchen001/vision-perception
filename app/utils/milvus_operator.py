@@ -17,7 +17,7 @@ load_dotenv()
 
 class MilvusOperator:
     _instances: Dict[str, 'MilvusOperator'] = {}
-    _VALID_METRIC_TYPES = {'L2', 'IP'}  # 有效的度量类型集合
+    _VALID_METRIC_TYPES = {'L2', 'IP', 'COSINE'}  # 有效的度量类型集合
 
     def __init__(
             self,
@@ -310,7 +310,8 @@ class MilvusOperator:
 video_frame_operator = MilvusOperator.get_instance(
     database='video_db',
     # collection='video_frame_vector'
-    collection='video_frame_vector_v2'
+    collection='video_frame_vector_v2',
+    metric_type='COSINE'
 )
 
 

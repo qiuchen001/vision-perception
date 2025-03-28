@@ -15,8 +15,8 @@ def create_index():
     index_params = MilvusClient.prepare_index_params()
     index_params.add_index(
         field_name="embedding",
-        metric_type="IP",
-        index_type="IVF_FLAT",
+        metric_type="COSINE",
+        index_type="FLAT",
         index_name="vector_index",
         params={"nlist": 1536}
     )
