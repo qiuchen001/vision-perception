@@ -309,7 +309,8 @@ class MilvusOperator:
 # 使用默认的 IP 度量类型
 video_frame_operator = MilvusOperator.get_instance(
     database='video_db',
-    collection='video_frame_vector'
+    # collection='video_frame_vector'
+    collection='video_frame_vector_v2'
 )
 
 
