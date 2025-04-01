@@ -30,7 +30,16 @@ print(f"Static Directory: {STATIC_DIR}")
 
 @app.route('/')
 def index():
-    return redirect(url_for('upload'))
+    """返回主页"""
+    try:
+        print(f"Trying to serve index.html from {STATIC_DIR}")
+        if not os.path.exists(os.path.join(STATIC_DIR, 'index.html')):
+            print("Warning: index.html not found!")
+            return "Error: index.html not found", 404
+        return send_from_directory(STATIC_DIR, 'index.html')
+    except Exception as e:
+        print(f"Error serving index.html: {str(e)}")
+        return str(e), 500
 
 
 @app.route('/upload')

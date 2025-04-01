@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频分析系统</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.js"></script>
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+        body {
+            background-color: #f3f4f6;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        /* 导航栏样式 */
+        .navbar {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 0.75rem 1.5rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+        }
+        .nav-container {
+            max-width: 90rem;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            text-decoration: none;
+        }
+        .nav-brand .material-icons {
+            color: #2563eb;
+            font-size: 1.5rem;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            color: #4b5563;
+            text-decoration: none;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background: #f3f4f6;
+            color: #2563eb;
+        }
+        .nav-link.active {
+            background: #2563eb;
+            color: white;
+        }
+        .nav-link .material-icons {
+            margin-right: 0.5rem;
+            font-size: 1.25rem;
+        }
+        /* 内容区域样式 */
+        .content-frame {
+            margin-top: 4rem;
+            flex: 1;
+            border: none;
+            width: 100%;
+            height: calc(100vh - 4rem);
+        }
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak>
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="#" class="nav-brand">
+                    <span class="material-icons">video_library</span>
+                    视频分析系统
+                </a>
+                <div class="nav-links">
+                    <a 
+                        href="#" 
+                        class="nav-link" 
+                        :class="{ active: currentPage === 'upload' }"
+                        @click.prevent="changePage('upload')"
+                    >
+                        <span class="material-icons">upload</span>
+                        上传视频
+                    </a>
+                    <a 
+                        href="#" 
+                        class="nav-link" 
+                        :class="{ active: currentPage === 'process' }"
+                        @click.prevent="changePage('process')"
+                    >
+                        <span class="material-icons">settings</span>
+                        视频处理
+                    </a>
+                    <a 
+                        href="#" 
+                        class="nav-link" 
+                        :class="{ active: currentPage === 'search' }"
+                        @click.prevent="changePage('search')"
+                    >
+                        <span class="material-icons">search</span>
+                        视频搜索
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 内容区域 -->
+        <iframe 
+            :src="currentPageUrl" 
+            class="content-frame"
+            frameborder="0"
+        ></iframe>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        const app = createApp({
+            data() {
+                return {
+                    currentPage: 'upload'
+                };
+            },
+            computed: {
+                currentPageUrl() {
+                    const pages = {
+                        'upload': '/upload.html',
+                        'process': '/process.html',
+                        'search': '/search.html'
+                    };
+                    return pages[this.currentPage];
+                }
+            },
+            methods: {
+                changePage(page) {
+                    this.currentPage = page;
+                }
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html>
