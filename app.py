@@ -17,19 +17,21 @@ STATIC_DIR = os.path.join(BASE_DIR, 'static')
 if not os.path.exists(STATIC_DIR):
     os.makedirs(STATIC_DIR)
 
-app = Flask(__name__, 
-    static_url_path='',
-    static_folder='static'
-)
+app = Flask(__name__,
+            static_url_path='',
+            static_folder='static'
+            )
 CORS(app)  # 启用CORS支持
 
 # 打印调试信息
 print(f"Base Directory: {BASE_DIR}")
 print(f"Static Directory: {STATIC_DIR}")
 
+
 @app.route('/')
 def index():
     return redirect(url_for('upload'))
+
 
 @app.route('/upload')
 def upload():
@@ -44,6 +46,7 @@ def upload():
         print(f"Error serving index.html: {str(e)}")
         return str(e), 500
 
+
 @app.route('/add')
 def add():
     """返回添加页面"""
@@ -56,6 +59,7 @@ def add():
     except Exception as e:
         print(f"Error serving add.html: {str(e)}")
         return str(e), 500
+
 
 @app.route('/search')
 def search():
@@ -70,12 +74,14 @@ def search():
         print(f"Error serving search.html: {str(e)}")
         return str(e), 500
 
+
 # 添加静态文件路由
 @app.route('/<path:path>')
 def serve_static(path):
     """服务静态文件"""
     print(f"Requested path: {path}")
     return send_from_directory(STATIC_DIR, path)
+
 
 @app.route('/api/upload', methods=['POST'])
 def upload_video():
@@ -85,7 +91,7 @@ def upload_video():
             'status': 'error',
             'message': '未找到上传文件'
         }), 400
-        
+
     video_file = request.files['file']
     if not video_file:
         return jsonify({
@@ -117,7 +123,7 @@ def upload_video():
                         'status': 'error',
                         'message': '视频上传服务返回空结果'
                     }), 500
-                
+
                 if not all(key in result for key in ['file_name', 'video_url', 'title']):
                     return jsonify({
                         'status': 'error',
@@ -141,6 +147,7 @@ def upload_video():
             'message': str(e)
         }), 500
 
+
 @app.route('/api/process', methods=['POST'])
 def process_raw_id():
     """处理raw_id"""
@@ -150,7 +157,7 @@ def process_raw_id():
             'status': 'error',
             'message': '请提供raw_id'
         }), 400
-        
+
     raw_id = data['raw_id']
     if not raw_id or not raw_id.strip():
         return jsonify({
@@ -162,13 +169,13 @@ def process_raw_id():
         # 处理raw_id
         upload_service = UploadVideoService()
         result = upload_service.process_by_raw_id(raw_id.strip())
-        
+
         if not result:
             return jsonify({
                 'status': 'error',
                 'message': '视频上传服务返回空结果'
             }), 500
-        
+
         if not all(key in result for key in ['file_name', 'video_url', 'title']):
             return jsonify({
                 'status': 'error',
@@ -179,12 +186,13 @@ def process_raw_id():
             'status': 'success',
             'data': result
         })
-        
+
     except Exception as e:
         return jsonify({
             'status': 'error',
             'message': str(e)
         }), 500
+
 
 @app.route('/api/search', methods=['POST'])
 def search_videos():
@@ -218,7 +226,7 @@ def search_videos():
                     'status': 'error',
                     'message': '请输入搜索关键词'
                 }), 400
-            
+
             try:
                 results = search_service.search_by_text(
                     text_query,
@@ -226,11 +234,11 @@ def search_videos():
                     page_size=page_size,
                     search_mode=search_mode
                 )
-                
+
                 # 如果结果为None，返回空列表
                 if results is None:
                     results = []
-                    
+
                 # 确保结果可以被JSON序列化
                 if results:
                     results = [{
@@ -252,7 +260,7 @@ def search_videos():
         elif search_type == 'image':
             image_file = request.files.get('image_file')
             image_url = request.form.get('image_url', '').strip()
-            
+
             if not image_file and not image_url:
                 return jsonify({
                     'status': 'error',
@@ -280,7 +288,7 @@ def search_videos():
                     'status': 'error',
                     'message': '请输入搜索标签'
                 }), 400
-                
+
             tags = [tag.strip() for tag in tags_input.split(',') if tag.strip()]
             if not tags:
                 return jsonify({
@@ -337,6 +345,7 @@ def search_videos():
             'message': f'搜索失败: {str(e)}'
         }), 500
 
+
 @app.route('/api/add', methods=['POST'])
 def add_video():
     """处理视频添加"""
@@ -346,7 +355,7 @@ def add_video():
             'status': 'error',
             'message': '请提供视频URL和处理类型'
         }), 400
-        
+
     video_url = data['video_url']
     action_type = data['action_type']
 
@@ -392,5 +401,6 @@ def add_video():
             'message': f'处理失败: {str(e)}'
         }), 500
 
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True) 
+    app.run(host='0.0.0.0', port=5000, debug=True)
