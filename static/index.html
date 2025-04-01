@@ -382,6 +382,28 @@
         .status-success span {
             font-weight: 500;
         }
+        /* 优化处理视频按钮 */
+        .process-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 0.75rem;
+            background: #2563eb;
+            color: white !important;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .process-button:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+        .process-button .material-icons {
+            margin-right: 0.5rem;
+            color: white !important;
+        }
     </style>
 </head>
 <body>
@@ -521,6 +543,13 @@
                                                 查看视频
                                             </a>
                                         </div>
+                                        <!-- 优化处理视频按钮 -->
+                                        <div class="info-item">
+                                            <span class="material-icons">settings</span>
+                                            <a href="/process.html" class="text-blue-600 hover:underline">
+                                                开始处理视频
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -545,7 +574,7 @@
                     >
                         <span v-if="isProcessing" class="loading-spinner"></span>
                         <span v-else class="material-icons">settings</span>
-                        开始处理
+                        开始上传
                     </button>
                 </div>
             </div>

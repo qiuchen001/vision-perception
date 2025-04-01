@@ -239,6 +239,23 @@
         .fade-enter-from, .fade-leave-to {
             opacity: 0;
         }
+        /* 添加返回链接样式 */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: #2563eb;
+            font-size: 0.875rem;
+            text-decoration: none;
+            margin-top: 0.5rem;
+            transition: all 0.2s;
+        }
+        .back-link:hover {
+            color: #1d4ed8;
+        }
+        .back-link .material-icons {
+            font-size: 1.25rem;
+            margin-right: 0.25rem;
+        }
     </style>
 </head>
 <body>
@@ -251,6 +268,11 @@
                     视频处理系统
                 </h1>
                 <p>输入视频URL并选择处理类型</p>
+                <!-- 添加返回链接 -->
+                <a href="/index.html" class="back-link">
+                    <span class="material-icons">arrow_back</span>
+                    返回上传页面
+                </a>
             </div>
 
             <!-- 主卡片 -->
