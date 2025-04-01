@@ -47,15 +47,15 @@ def upload():
         return str(e), 500
 
 
-@app.route('/add')
-def add():
+@app.route('/process')
+def process():
     """返回添加页面"""
     try:
         print(f"Trying to serve add.html from {STATIC_DIR}")
-        if not os.path.exists(os.path.join(STATIC_DIR, 'add.html')):
+        if not os.path.exists(os.path.join(STATIC_DIR, 'process.html')):
             print("Warning: add.html not found!")
             return "Error: add.html not found", 404
-        return send_from_directory(STATIC_DIR, 'add.html')
+        return send_from_directory(STATIC_DIR, 'process.html')
     except Exception as e:
         print(f"Error serving add.html: {str(e)}")
         return str(e), 500
