@@ -38,10 +38,10 @@ def upload():
     """返回上传页面"""
     try:
         print(f"Trying to serve index.html from {STATIC_DIR}")
-        if not os.path.exists(os.path.join(STATIC_DIR, 'index.html')):
+        if not os.path.exists(os.path.join(STATIC_DIR, 'upload.html')):
             print("Warning: index.html not found!")
             return "Error: index.html not found", 404
-        return send_from_directory(STATIC_DIR, 'index.html')
+        return send_from_directory(STATIC_DIR, 'upload.html')
     except Exception as e:
         print(f"Error serving index.html: {str(e)}")
         return str(e), 500
