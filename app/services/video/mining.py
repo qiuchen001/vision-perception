@@ -13,7 +13,7 @@ load_dotenv()
 # Milvus配置
 MILVUS_HOST = os.getenv("MILVUS_HOST")
 MILVUS_PORT = os.getenv("MILVUS_PORT")
-COLLECTION_NAME = "video_collection"
+COLLECTION_NAME = "video_collection_v2"
 
 
 def parse_json_string(json_str):

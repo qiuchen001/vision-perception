@@ -60,6 +60,10 @@ class VideoDAO:
         query_result = self.milvus_client.query(self.collection_name, filter=f"path == '{url}'", limit=1)
         return query_result
 
+    def get_by_resource_id(self, resource_id):
+        query_result = self.milvus_client.query(self.collection_name, filter=f"resource_id == '{resource_id}'", limit=1)
+        return query_result
+
     def init_video(self, url, embedding, summary_embedding, thumbnail_oss_url, title, resource_id):
         # 插入URL到数据库
         video_data = {
