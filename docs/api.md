@@ -4,7 +4,6 @@
 - [页面接口](#页面接口)
 - [API接口](#api接口)
 - [错误码说明](#错误码说明)
-- [调用示例](#调用示例)
 
 ## 页面接口
 
@@ -55,6 +54,39 @@
 }
 ```
 
+#### 调用示例
+
+##### CURL
+```bash
+# 上传视频文件
+curl -X POST http://localhost:5000/api/upload \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@/path/to/video.mp4"
+```
+
+##### Python
+```python
+import requests
+
+def upload_video(file_path):
+    url = "http://localhost:5000/api/upload"
+    
+    with open(file_path, 'rb') as f:
+        files = {'file': f}
+        response = requests.post(url, files=files)
+    
+    if response.status_code == 200:
+        result = response.json()
+        print(f"上传成功: {result}")
+        return result
+    else:
+        print(f"上传失败: {response.text}")
+        return None
+
+# 调用示例
+result = upload_video("/path/to/video.mp4")
+```
+
 ### 2. 处理视频
 - **路径:** `/api/process`
 - **方法:** `POST`
@@ -75,6 +107,38 @@
         "title": "视频标题"
     }
 }
+```
+
+#### 调用示例
+
+##### CURL
+```bash
+# 处理视频
+curl -X POST http://localhost:5000/api/process \
+  -H "Content-Type: application/json" \
+  -d '{"raw_id": "your-video-id"}'
+```
+
+##### Python
+```python
+import requests
+
+def process_video(raw_id):
+    url = "http://localhost:5000/api/process"
+    data = {"raw_id": raw_id}
+    
+    response = requests.post(url, json=data)
+    
+    if response.status_code == 200:
+        result = response.json()
+        print(f"处理成功: {result}")
+        return result
+    else:
+        print(f"处理失败: {response.text}")
+        return None
+
+# 调用示例
+result = process_video("your-video-id")
 ```
 
 ### 3. 搜索视频
@@ -111,120 +175,9 @@
 }
 ```
 
-### 4. 添加视频
-- **路径:** `/api/add`
-- **方法:** `POST`
-- **Content-Type:** `application/json`
-- **请求体:**
-```json
-{
-    "video_url": "视频URL",
-    "action_type": 1
-}
-```
-- **参数说明:**
-  - action_type:
-    - 1: 视频内容挖掘
-    - 2: 视频内容总结
-    - 3: 内容挖掘和总结
+#### 调用示例
 
-- **响应格式:**
-```json
-{
-    "status": "success",
-    "data": {
-        "video_url": "视频URL",
-        "action_type_desc": "处理类型描述",
-        "m_id": "视频ID"
-    }
-}
-```
-
-## 错误码说明
-
-所有接口在发生错误时会返回以下格式:
-```json
-{
-    "status": "error",
-    "message": "错误信息描述"
-}
-```
-
-常见错误码:
-- 400: 请求参数错误
-- 404: 资源不存在
-- 500: 服务器内部错误
-
-## 调用示例
-
-### 1. 上传视频
-
-#### CURL示例
-```bash
-# 上传视频文件
-curl -X POST http://localhost:5000/api/upload \
-  -H "Content-Type: multipart/form-data" \
-  -F "file=@/path/to/video.mp4"
-```
-
-#### Python示例
-```python
-import requests
-
-def upload_video(file_path):
-    url = "http://localhost:5000/api/upload"
-    
-    with open(file_path, 'rb') as f:
-        files = {'file': f}
-        response = requests.post(url, files=files)
-    
-    if response.status_code == 200:
-        result = response.json()
-        print(f"上传成功: {result}")
-        return result
-    else:
-        print(f"上传失败: {response.text}")
-        return None
-
-# 调用示例
-result = upload_video("/path/to/video.mp4")
-```
-
-### 2. 处理视频
-
-#### CURL示例
-```bash
-# 处理视频
-curl -X POST http://localhost:5000/api/process \
-  -H "Content-Type: application/json" \
-  -d '{"raw_id": "your-video-id"}'
-```
-
-#### Python示例
-```python
-import requests
-
-def process_video(raw_id):
-    url = "http://localhost:5000/api/process"
-    data = {"raw_id": raw_id}
-    
-    response = requests.post(url, json=data)
-    
-    if response.status_code == 200:
-        result = response.json()
-        print(f"处理成功: {result}")
-        return result
-    else:
-        print(f"处理失败: {response.text}")
-        return None
-
-# 调用示例
-result = process_video("your-video-id")
-```
-
-### 3. 搜索视频
-
-#### CURL示例
+##### CURL
 ```bash
 # 文本搜索
 curl -X POST http://localhost:5000/api/search \
@@ -244,7 +197,7 @@ curl -X POST http://localhost:5000/api/search \
   -F "tags=标签1,标签2"
 ```
 
-#### Python示例
+##### Python
 ```python
 import requests
 
@@ -287,8 +240,37 @@ tag_results = search_by_tags(["标签1", "标签2"])
 ```
 
 ### 4. 添加视频
+- **路径:** `/api/add`
+- **方法:** `POST`
+- **Content-Type:** `application/json`
+- **请求体:**
+```json
+{
+    "video_url": "视频URL",
+    "action_type": 1
+}
+```
+- **参数说明:**
+  - action_type:
+    - 1: 视频内容挖掘
+    - 2: 视频内容总结
+    - 3: 内容挖掘和总结
 
-#### CURL示例
+- **响应格式:**
+```json
+{
+    "status": "success",
+    "data": {
+        "video_url": "视频URL",
+        "action_type_desc": "处理类型描述",
+        "m_id": "视频ID"
+    }
+}
+```
+
+#### 调用示例
+
+##### CURL
 ```bash
 # 添加视频
 curl -X POST http://localhost:5000/api/add \
@@ -299,7 +281,7 @@ curl -X POST http://localhost:5000/api/add \
   }'
 ```
 
-#### Python示例
+##### Python
 ```python
 import requests
 
@@ -326,3 +308,18 @@ result = add_video(
     action_type=1  # 1:内容挖掘, 2:内容总结, 3:挖掘和总结
 )
 ```
+
+## 错误码说明
+
+所有接口在发生错误时会返回以下格式:
+```json
+{
+    "status": "error",
+    "message": "错误信息描述"
+}
+```
+
+常见错误码:
+- 400: 请求参数错误
+- 404: 资源不存在
+- 500: 服务器内部错误
