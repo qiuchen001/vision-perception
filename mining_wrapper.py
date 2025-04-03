@@ -48,7 +48,7 @@ def flink_job_execute(inputMessageStr):
 
         message = {
             "public-vision-perception-mining-success": [
-                result
+                {"result": result}  # flatMap要求这里是一个对象而不能是一个数组，而result这里是一个数组，这里做下转换
             ]
         }
 
@@ -65,6 +65,7 @@ if __name__ == "__main__":
         # "raw_id": "9a8afc7e-19de-4e13-8b3c-44794ccb49c6"
         # "raw_id": "9a8afc7e-19de-4e13-8b3c-44794ccb49c6"
         # "raw_id": "c87a2a25-bbf6-4d07-94c3-acbde311fea6"
-        "raw_id": "3eba0cc6-d627-4b7e-b80b-3e21e077b4e7"
+        # "raw_id": "3eba0cc6-d627-4b7e-b80b-3e21e077b4e7"
+        "raw_id": "9a8afc7e-19de-4e13-8b3c-44794ccb49c6"
     }
     flink_job_execute(json.dumps(inputMessage))
