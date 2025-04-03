@@ -6,6 +6,10 @@ from openai import OpenAI
 from app.prompt import mining
 from dotenv import load_dotenv
 from pymilvus import MilvusClient
+from app.utils.logger import logger
+import time
+import functools
+from typing import TypeVar, Callable, Any
 
 # 加载环境变量
 load_dotenv()
@@ -14,6 +18,75 @@ load_dotenv()
 MILVUS_HOST = os.getenv("MILVUS_HOST")
 MILVUS_PORT = os.getenv("MILVUS_PORT")
 COLLECTION_NAME = os.getenv("MILVUS_VIDEO_COLLECTION_NAME")
+
+T = TypeVar("T")
+
+def with_retry(
+    max_retries: int = 3,
+    initial_delay: float = 0.5,
+    exceptions: tuple = (Exception,),
+    on_retry: Callable[[int, Exception], None] = None
+) -> Callable[[Callable[..., T]], Callable[..., T]]:
+    """重试装饰器
+    
+    Args:
+        max_retries: 最大重试次数
+        initial_delay: 初始延迟时间(秒)
+        exceptions: 需要重试的异常类型
+        on_retry: 重试时的回调函数,参数为(重试次数,异常)
+        
+    Example:
+        @with_retry(max_retries=3, initial_delay=1)
+        def my_function():
+            pass
+            
+        @with_retry(exceptions=(ValueError, TypeError))
+        def another_function():
+            pass
+    """
+    def decorator(func: Callable[..., T]) -> Callable[..., T]:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> T:
+            last_exception = None
+            
+            for attempt in range(max_retries):
+                try:
+                    result = func(*args, **kwargs)
+                    
+                    # 对于查询操作,空结果也需要重试
+                    if result or attempt == max_retries - 1:
+                        return result
+                        
+                    delay = initial_delay * (2 ** attempt)
+                    logger.info(f"{func.__name__}: Empty result, retry {attempt + 1}/{max_retries} after {delay}s")
+                    time.sleep(delay)
+                    
+                except exceptions as e:
+                    last_exception = e
+                    
+                    if attempt == max_retries - 1:
+                        raise
+                        
+                    delay = initial_delay * (2 ** attempt)
+                    
+                    if on_retry:
+                        on_retry(attempt + 1, e)
+                    else:
+                        logger.warning(
+                            f"{func.__name__} failed: {str(e)}, "
+                            f"retry {attempt + 1}/{max_retries} after {delay}s"
+                        )
+                        
+                    time.sleep(delay)
+                    
+            if last_exception:
+                raise last_exception
+                
+            return None  # type: ignore
+            
+        return wrapper
+        
+    return decorator
 
 
 def parse_json_string(json_str):
@@ -124,6 +197,7 @@ class MiningVideoService:
         )
         return response.model_dump_json()
 
+    @with_retry(max_retries=3, initial_delay=0.5)
     def mining_by_raw_id(self, json_data):
         """
         根据raw_id进行视频挖掘
