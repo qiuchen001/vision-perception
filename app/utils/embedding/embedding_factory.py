@@ -1,6 +1,5 @@
 from typing import Optional, Dict
 
-from app.utils.embedding.clip_embedding import ClipEmbedding
 from app.utils.embedding.embedding_base import EmbeddingBase
 from app.utils.embedding.multimodal_embedding import MultiModalEmbedding
 from app.utils.embedding.jina_clip_v2 import JinaClipEmbedding
@@ -36,7 +35,7 @@ class EmbeddingFactory:
             if model_type == EmbeddingType.MULTIMODAL:
                 cls._instances[model_type] = MultiModalEmbedding()
             elif model_type == EmbeddingType.CLIP:
-                cls._instances[model_type] = ClipEmbedding()
+                pass
             elif model_type == EmbeddingType.JINA_CLIP_V2:
                 cls._instances[model_type] = JinaClipEmbedding()
 
