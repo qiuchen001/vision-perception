@@ -8,7 +8,8 @@ WORKDIR /app
 COPY ./requirements.txt .
 
 # 安装Python依赖
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple/ && \
+    pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 复制应用代码
 COPY ./app ./app
@@ -27,3 +28,5 @@ EXPOSE 5000
 
 # 启动命令
 CMD ["python", "app.py"]
+
+# docker build -t images.51vr.local:5000/bdp/service/vision-perception-app:new -f app.Dockerfile .
