@@ -30,3 +30,4 @@ EXPOSE 5000
 CMD ["python", "app.py"]
 
 # docker build -t images.51vr.local:5000/bdp/service/vision-perception-app:new -f app.Dockerfile .
+# docker run -d -p 30500:5000 images.51vr.local:5000/bdp/service/vision-perception-app:new
