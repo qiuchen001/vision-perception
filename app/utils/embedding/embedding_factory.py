@@ -14,7 +14,8 @@ class EmbeddingFactory:
     # 使用字典存储实例
     _instances: Dict[EmbeddingType, Optional[EmbeddingBase]] = {
         EmbeddingType.CLIP: None,
-        EmbeddingType.MULTIMODAL: None
+        EmbeddingType.MULTIMODAL: None,
+        EmbeddingType.JINA_CLIP_V2: None
     }
 
     @classmethod

@@ -310,7 +310,7 @@ class MilvusOperator:
 video_frame_operator = MilvusOperator.get_instance(
     database='video_db',
     # collection='video_frame_vector'
-    collection='video_frame_vector_v2',
+    collection=os.getenv("MILVUS_VIDEO_FRAME_COLLECTION_NAME"),
     metric_type='COSINE'
 )
 

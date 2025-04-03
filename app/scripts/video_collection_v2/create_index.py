@@ -8,7 +8,7 @@ MILVUS_HOST = os.getenv("MILVUS_HOST")
 MILVUS_PORT = os.getenv("MILVUS_PORT")
 uri = f"http://{MILVUS_HOST}:{MILVUS_PORT}"
 milvus_client = MilvusClient(uri=uri, db_name=os.getenv("MILVUS_DB_NAME"))
-collection_name = "video_collection_v2"
+collection_name = os.getenv("MILVUS_VIDEO_COLLECTION_NAME")
 
 
 def create_index():

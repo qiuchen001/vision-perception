@@ -68,7 +68,7 @@ class VideoCollectionPaginator:
 def get_video_paginator(
         host: str = None,
         db_name: str = None,
-        collection_name: str = "video_collection_v2",
+        collection_name: str = "video_collection_v3",
         page_size: int = 100
 ) -> VideoCollectionPaginator:
     """

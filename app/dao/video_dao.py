@@ -16,7 +16,7 @@ class VideoDAO:
         self.milvus_client = MilvusClient(uri=f"http://{MILVUS_HOST}:{MILVUS_PORT}",
                                           db_name=os.getenv("MILVUS_DB_NAME"))
         # self.milvus_client = current_app.config['MILVUS_CLIENT']
-        self.collection_name = "video_collection_v2"
+        self.collection_name = os.getenv("MILVUS_VIDEO_COLLECTION_NAME")
 
     # def init_video(self):
     #     Video.create_database()
