@@ -7,6 +7,7 @@ import uuid
 from flask import current_app
 import os
 import json
+import requests
 
 
 class VideoDAO:
@@ -65,6 +66,24 @@ class VideoDAO:
         return query_result
 
     def init_video(self, url, embedding, summary_embedding, thumbnail_oss_url, title, resource_id):
+        # 从元数据接口获取数据
+        try:
+            rawdata_service_base_url = os.getenv("RAWDATA_SERVICE_BASE_URL", "http://10.66.12.37:31557")
+            response = requests.get(
+                f"{rawdata_service_base_url}/dataplatform/rawdata/{resource_id}",
+                headers={"Content-Type": "application/x-www-form-urlencoded"}
+            )
+
+            if response.status_code != 200:
+                logger.error(f"获取元数据失败: {response.text}")
+                metadata = {}
+            else:
+                data = response.json()
+                metadata = data.get("rawdata", {})
+        except Exception as e:
+            logger.error(f"调用元数据接口失败: {str(e)}")
+            metadata = {}
+
         # 插入URL到数据库
         video_data = {
             "m_id": str(uuid.uuid4()),
@@ -76,7 +95,11 @@ class VideoDAO:
             "summary_txt": None,
             "tags": None,  # 保留tags字段
             "mining_results": None,  # 添加mining_results字段
-            "resource_id": resource_id
+            "resource_id": resource_id,
+            # 添加新字段，从元数据中获取
+            "vconfig_id": metadata.get("vconfigId"),
+            "collect_start_time": metadata.get("collectStartTime"),
+            "collect_end_time": metadata.get("collectEndTime")
         }
         res = self.milvus_client.insert(self.collection_name, [video_data])
         return res
@@ -100,7 +123,10 @@ class VideoDAO:
             "summary_txt": video['summary_txt'],
             "tags": tags,  # 更新tags字段
             "mining_results": json.dumps(mining_results, ensure_ascii=False),  # 不转义中文字符
-            "resource_id": video['resource_id']
+            "resource_id": video['resource_id'],
+            "vconfig_id": video.get('vconfig_id'),
+            "collect_start_time": video.get('collect_start_time'),
+            "collect_end_time": video.get('collect_end_time')
         }
         return self.milvus_client.upsert(self.collection_name, [user_data])
 

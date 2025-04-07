@@ -53,6 +53,25 @@ def create_schema():
         max_length=1024,
         description="帧图片OSS地址"
     )
+    collection_schema.add_field(
+        field_name="vconfig_id",
+        datatype=DataType.VARCHAR,
+        max_length=256,
+        description="车辆类型标识",
+        nullable=True
+    )
+    collection_schema.add_field(
+        field_name="collect_start_time",
+        datatype=DataType.INT64,
+        description="采集开始时间(毫秒时间戳)",
+        nullable=True
+    )
+    collection_schema.add_field(
+        field_name="collect_end_time", 
+        datatype=DataType.INT64,
+        description="采集结束时间(毫秒时间戳)",
+        nullable=True
+    )
 
     return collection_schema
 

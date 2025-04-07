@@ -197,7 +197,10 @@ class UploadVideoService:
             'paths': [],
             'resource_id': [],
             'at_seconds': [],
-            'frame_urls': []  # 添加frame_url列表
+            'frame_urls': [],  # 添加frame_url列表
+            'vconfig_id': [],  # 添加vconfig_id列表
+            'collect_start_time': [],  # 添加collect_start_time列表
+            'collect_end_time': []  # 添加collect_end_time列表
         }
 
     def _get_video_fps(self, video_url: str) -> float:
@@ -218,19 +221,25 @@ class UploadVideoService:
     ) -> bool:
         """
         处理单个视频帧
-        
-        Args:
-            frame: 待处理的帧
-            idx: 帧索引
-            video_url: 视频URL
-            resource_id: 资源ID
-            fps: 视频帧率
-            batch_data: 批处理数据结构
-            
-        Returns:
-            bool: 处理是否成功
         """
         try:
+            # 获取元数据
+            try:
+                response = requests.get(
+                    f"{self.rawdata_service_base_url}/dataplatform/rawdata/{resource_id}",
+                    headers={"Content-Type": "application/x-www-form-urlencoded"}
+                )
+
+                if response.status_code != 200:
+                    logger.error(f"获取元数据失败: {response.text}")
+                    metadata = {}
+                else:
+                    data = response.json()
+                    metadata = data.get("rawdata", {})
+            except Exception as e:
+                logger.error(f"调用元数据接口失败: {str(e)}")
+                metadata = {}
+
             # 准备图片
             pil_image = self.prepare_image_for_embedding(frame)
             if pil_image is None:
@@ -272,6 +281,11 @@ class UploadVideoService:
                 frame_number = idx * self.frame_interval
                 timestamp = int(frame_number / fps)
                 batch_data['at_seconds'].append(timestamp)
+
+                # 添加元数据字段
+                batch_data['vconfig_id'].append(metadata.get("vconfigId"))
+                batch_data['collect_start_time'].append(metadata.get("collectStartTime"))
+                batch_data['collect_end_time'].append(metadata.get("collectEndTime"))
                 
                 return True
                 
@@ -299,7 +313,10 @@ class UploadVideoService:
                 data['paths'],
                 data['resource_id'],
                 data['at_seconds'],
-                data['frame_urls']  # 添加frame_urls
+                data['frame_urls'],  # 添加frame_urls
+                data['vconfig_id'],  # 添加vconfig_id
+                data['collect_start_time'],  # 添加collect_start_time
+                data['collect_end_time']  # 添加collect_end_time
             ]
             video_frame_operator.insert_data(insert_data)
             logger.info(f"批量插入 {len(data['m_ids'])} 帧")
