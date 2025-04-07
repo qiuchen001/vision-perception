@@ -210,6 +210,29 @@ def search_videos():
         search_type = request.form.get('search_type')
         page = int(request.form.get('page', 1))
         page_size = int(request.form.get('page_size', 6))
+        
+        # 获取新增的筛选字段
+        vconfig_id = request.form.get('vconfig_id')
+        collect_start_time = request.form.get('collect_start_time')
+        if collect_start_time and collect_start_time.strip():
+            collect_start_time = int(collect_start_time)
+        else:
+            collect_start_time = None
+            
+        collect_end_time = request.form.get('collect_end_time')
+        if collect_end_time and collect_end_time.strip():
+            collect_end_time = int(collect_end_time)
+        else:
+            collect_end_time = None
+        
+        # 构建过滤条件字典
+        filter_params = {
+            'vconfig_id': vconfig_id,
+            'collect_start_time': collect_start_time,
+            'collect_end_time': collect_end_time
+        }
+        # 删除值为None的键
+        filter_params = {k: v for k, v in filter_params.items() if v is not None}
 
         search_service = SearchVideoService()
         integrated_service = IntegratedSearchService()
@@ -225,7 +248,8 @@ def search_videos():
             results, total = integrated_service.search(
                 query=text_query,
                 page=page,
-                page_size=page_size
+                page_size=page_size,
+                **filter_params  # 传入过滤参数
             )
 
         elif search_type == 'text':
@@ -243,7 +267,8 @@ def search_videos():
                     text_query,
                     page=page,
                     page_size=page_size,
-                    search_mode=search_mode
+                    search_mode=search_mode,
+                    **filter_params  # 传入过滤参数
                 )
 
                 # 如果结果为None，返回空列表
@@ -261,6 +286,9 @@ def search_videos():
                         'summary_txt': str(video.get('summary_txt', '')),
                         'timestamp': video.get('timestamp', 0),
                         'similarity': str(video.get('similarity', '0.0000')),
+                        'vconfig_id': str(video.get('vconfig_id', '')),
+                        'collect_start_time': video.get('collect_start_time'),
+                        'collect_end_time': video.get('collect_end_time'),
                     } for video in results]
             except Exception as e:
                 print(f"Text search error: {str(e)}")
@@ -292,7 +320,8 @@ def search_videos():
                 image_file=image,
                 image_url=image_url,
                 page=page,
-                page_size=page_size
+                page_size=page_size,
+                **filter_params  # 传入过滤参数
             )
 
         elif search_type == 'tags':
@@ -315,7 +344,23 @@ def search_videos():
             results, total = search_service.search_by_tags(
                 tags=tags,
                 page=page,
-                page_size=page_size
+                page_size=page_size,
+                **filter_params  # 传入过滤参数
+            )
+        
+        elif search_type == 'filter':
+            # 仅使用筛选条件进行搜索
+            if not filter_params:
+                return jsonify({
+                    'msg': '请至少提供一个筛选条件',
+                    'code': 400,
+                    'data': None
+                }), 400
+                
+            results, total = search_service.search_by_filter(
+                page=page,
+                page_size=page_size,
+                **filter_params
             )
 
         else:
@@ -346,6 +391,9 @@ def search_videos():
                 'summary': video.get('summary_txt', ''),
                 'timestamp': video.get('timestamp', 0),
                 'similarity': str(video.get('similarity', '0.0000')),
+                'vconfig_id': video.get('vconfig_id', ''),
+                'collect_start_time': video.get('collect_start_time'),
+                'collect_end_time': video.get('collect_end_time'),
             }
             formatted_results.append(formatted_video)
 

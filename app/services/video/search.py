@@ -16,7 +16,7 @@ class SearchVideoService:
     def __init__(self):
         self.video_dao = VideoDAO()
 
-    def search_by_text(self, txt: str, page: int = 1, page_size: int = 6, search_mode: str = "frame") -> tuple[List[Dict[str, Any]], int]:
+    def search_by_text(self, txt: str, page: int = 1, page_size: int = 6, search_mode: str = "frame", **filter_params) -> tuple[List[Dict[str, Any]], int]:
         """
         通过文本搜索视频。
 
@@ -27,6 +27,10 @@ class SearchVideoService:
             search_mode: 搜索模式
                 - "frame": 先搜索视频帧,再获取视频信息(默认)
                 - "summary": 直接搜索视频摘要
+            **filter_params: 附加过滤条件
+                - vconfig_id: 车辆类型标识
+                - collect_start_time: 采集开始时间
+                - collect_end_time: 采集结束时间
         Returns:
             Tuple[List[Dict[str, Any]], int]: 视频列表和总数
         """
@@ -34,7 +38,7 @@ class SearchVideoService:
             if search_mode == "frame":
                 # 使用新的方法获取帧图片URL
                 video_paths, timestamps, frame_urls, similarities = self.text_to_frame_with_url(txt)
-                results = self._get_video_details_with_frame(video_paths, timestamps, frame_urls, similarities, page, page_size)
+                results = self._get_video_details_with_frame(video_paths, timestamps, frame_urls, similarities, page, page_size, **filter_params)
                 total = len(video_paths)  # 总数为匹配的帧数
                 return results, total
             else:
@@ -43,7 +47,8 @@ class SearchVideoService:
                 return self.video_dao.search_video(
                     summary_embedding=summary_embedding,
                     page=page,
-                    page_size=page_size
+                    page_size=page_size,
+                    **filter_params
                 )
             
         except Exception as e:
@@ -55,7 +60,8 @@ class SearchVideoService:
             image_file: Optional[Union[FileStorage, Image.Image]] = None,
             image_url: Optional[str] = None,
             page: int = 1,
-            page_size: int = 6
+            page_size: int = 6,
+            **filter_params
     ) -> tuple[List[Dict[str, Any]], int]:
         """
         通过图片搜索视频。
@@ -65,6 +71,10 @@ class SearchVideoService:
             image_url: 图片URL
             page: 页码
             page_size: 每页数量
+            **filter_params: 附加过滤条件
+                - vconfig_id: 车辆类型标识
+                - collect_start_time: 采集开始时间
+                - collect_end_time: 采集结束时间
 
         Returns:
             Tuple[List[Dict[str, Any]], int]: 视频列表和总数
@@ -87,7 +97,7 @@ class SearchVideoService:
             video_paths, timestamps, frame_urls, similarities = self.image_to_frame_with_url(image)
             
             # 获取视频详细信息
-            results = self._get_video_details_with_frame(video_paths, timestamps, frame_urls, similarities, page, page_size)
+            results = self._get_video_details_with_frame(video_paths, timestamps, frame_urls, similarities, page, page_size, **filter_params)
             total = len(video_paths)  # 总数为匹配的帧数
             return results, total
             
@@ -144,7 +154,7 @@ class SearchVideoService:
             logger.error(f"获取视频详情失败: {str(e)}")
             return []
 
-    def search_by_tags(self, tags: Union[str, List[str]], page: int = 1, page_size: int = 6) -> tuple[List[Dict[str, Any]], int]:
+    def search_by_tags(self, tags: Union[str, List[str]], page: int = 1, page_size: int = 6, **filter_params) -> tuple[List[Dict[str, Any]], int]:
         """
         通过标签搜索视频。
 
@@ -152,6 +162,10 @@ class SearchVideoService:
             tags: 单个标签字符串或标签列表
             page: 页码
             page_size: 每页数量
+            **filter_params: 附加过滤条件
+                - vconfig_id: 车辆类型标识
+                - collect_start_time: 采集开始时间
+                - collect_end_time: 采集结束时间
 
         Returns:
             Tuple[List[Dict[str, Any]], int]: 视频列表和总数
@@ -165,7 +179,8 @@ class SearchVideoService:
             return self.video_dao.search_by_tags(
                 tags=tags,
                 page=page,
-                page_size=page_size
+                page_size=page_size,
+                **filter_params
             )
 
         except Exception as e:
@@ -236,7 +251,8 @@ class SearchVideoService:
             frame_urls: List[str],
             similarities: List[float],
             page: int = 1,
-            page_size: int = 6
+            page_size: int = 6,
+            **filter_params
     ) -> List[Dict[str, Any]]:
         """
         获取视频详细信息，使用帧图片作为封面。
@@ -248,12 +264,48 @@ class SearchVideoService:
             similarities: 相似度分数列表
             page: 页码
             page_size: 每页数量
+            **filter_params: 附加过滤条件
+                - vconfig_id: 车辆类型标识
+                - collect_start_time: 采集开始时间
+                - collect_end_time: 采集结束时间
             
         Returns:
             List[Dict[str, Any]]: 视频详细信息列表，包含相似度分数
         """
         if not video_paths:
             return []
+        
+        # 应用筛选条件 - 只保留符合条件的视频
+        filtered_paths = []
+        filtered_timestamps = []
+        filtered_frame_urls = []
+        filtered_similarities = []
+        
+        if filter_params:
+            # 需要分别获取每个视频的完整信息进行过滤
+            for path, timestamp, frame_url, similarity in zip(video_paths, timestamps, frame_urls, similarities):
+                video_info = self.video_dao.get_by_path(path)
+                if not video_info or len(video_info) == 0:
+                    continue
+                
+                video_data = video_info[0]
+                
+                # 检查是否符合过滤条件
+                if self._match_filter_params(video_data, filter_params):
+                    filtered_paths.append(path)
+                    filtered_timestamps.append(timestamp)
+                    filtered_frame_urls.append(frame_url)
+                    filtered_similarities.append(similarity)
+            
+            # 使用过滤后的列表
+            video_paths = filtered_paths
+            timestamps = filtered_timestamps
+            frame_urls = filtered_frame_urls
+            similarities = filtered_similarities
+            
+            # 如果过滤后没有结果，则返回空列表
+            if not video_paths:
+                return []
         
         # 计算分页
         start_idx = (page - 1) * page_size
@@ -278,11 +330,42 @@ class SearchVideoService:
                     'tags': video_data.get('tags', []),
                     'summary_txt': video_data.get('summary_txt', ''),
                     'timestamp': timestamp,
-                    'similarity': f"{similarity:.4f}"  # 添加相似度分数，保留4位小数
+                    'similarity': f"{similarity:.4f}",  # 添加相似度分数，保留4位小数
+                    'vconfig_id': video_data.get('vconfig_id', ''),
+                    'collect_start_time': video_data.get('collect_start_time'),
+                    'collect_end_time': video_data.get('collect_end_time')
                 }
                 results.append(result)
             
         return results
+        
+    def _match_filter_params(self, video_data: Dict[str, Any], filter_params: Dict[str, Any]) -> bool:
+        """
+        检查视频数据是否匹配过滤条件
+        
+        Args:
+            video_data: 视频数据
+            filter_params: 过滤条件
+            
+        Returns:
+            bool: 是否匹配
+        """
+        # 检查vconfig_id
+        if 'vconfig_id' in filter_params and filter_params['vconfig_id']:
+            if not video_data.get('vconfig_id') or video_data.get('vconfig_id') != filter_params['vconfig_id']:
+                return False
+        
+        # 检查collect_start_time
+        if 'collect_start_time' in filter_params and filter_params['collect_start_time'] is not None:
+            if not video_data.get('collect_start_time') or video_data.get('collect_start_time') < filter_params['collect_start_time']:
+                return False
+        
+        # 检查collect_end_time
+        if 'collect_end_time' in filter_params and filter_params['collect_end_time'] is not None:
+            if not video_data.get('collect_end_time') or video_data.get('collect_end_time') > filter_params['collect_end_time']:
+                return False
+        
+        return True
 
     def image_to_frame_with_url(self, image: Image.Image) -> Tuple[List[str], List[int], List[str], List[float]]:
         """
@@ -339,6 +422,37 @@ class SearchVideoService:
         except Exception as e:
             logger.error(f"图片到帧搜索失败: {str(e)}")
             return [], [], [], []
+
+    def search_by_filter(self, page: int = 1, page_size: int = 6, **filter_params) -> tuple[List[Dict[str, Any]], int]:
+        """
+        仅使用过滤条件搜索视频。
+
+        Args:
+            page: 页码
+            page_size: 每页数量
+            **filter_params: 过滤条件
+                - vconfig_id: 车辆类型标识
+                - collect_start_time: 采集开始时间
+                - collect_end_time: 采集结束时间
+
+        Returns:
+            Tuple[List[Dict[str, Any]], int]: 视频列表和总数
+        """
+        try:
+            # 如果没有提供任何过滤条件，则返回空结果
+            if not filter_params:
+                return [], 0
+
+            # 调用DAO层进行搜索
+            return self.video_dao.search_by_filter(
+                page=page,
+                page_size=page_size,
+                **filter_params
+            )
+
+        except Exception as e:
+            logger.error(f"过滤搜索失败: {str(e)}")
+            return [], 0
 
 
 if __name__ == "__main__":

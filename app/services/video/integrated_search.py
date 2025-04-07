@@ -59,7 +59,7 @@ class IntegratedSearchService:
 
         return merged_results
 
-    def search(self, query: str, page: int = 1, page_size: int = 6) -> tuple[List[Dict[str, Any]], int]:
+    def search(self, query: str, page: int = 1, page_size: int = 6, **filter_params) -> tuple[List[Dict[str, Any]], int]:
         """
         根据用户查询进行集成搜索。
 
@@ -67,6 +67,10 @@ class IntegratedSearchService:
             query: 用户查询文本
             page: 页码
             page_size: 每页数量
+            **filter_params: 附加过滤条件
+                - vconfig_id: 车辆类型标识
+                - collect_start_time: 采集开始时间
+                - collect_end_time: 采集结束时间
 
         Returns:
             Tuple[List[Dict[str, Any]], int]: 搜索结果列表和总数
@@ -91,7 +95,8 @@ class IntegratedSearchService:
                 tag_results, tag_total = self.search_service.search_by_tags(
                     tags=search_params["tags"],
                     page=1,  # 先获取所有结果再合并
-                    page_size=100
+                    page_size=100,
+                    **filter_params  # 传递过滤参数
                 )
                 # 为标签搜索结果添加相似度分数
                 for result in tag_results:
@@ -103,7 +108,8 @@ class IntegratedSearchService:
                     results, total = self.search_service.search_by_text(
                         txt=text,
                         page=1,  # 先获取所有结果再合并
-                        page_size=100
+                        page_size=100,
+                        **filter_params  # 传递过滤参数
                     )
                     text_results.extend(results)
                     text_total += total
@@ -119,7 +125,8 @@ class IntegratedSearchService:
                 results, total = self.search_service.search_by_tags(
                     tags=search_params["tags"],
                     page=page,
-                    page_size=page_size
+                    page_size=page_size,
+                    **filter_params  # 传递过滤参数
                 )
                 # 为标签搜索结果添加相似度分数
                 for result in results:
@@ -134,7 +141,8 @@ class IntegratedSearchService:
                     text_results, text_total = self.search_service.search_by_text(
                         txt=text,
                         page=page,
-                        page_size=page_size
+                        page_size=page_size,
+                        **filter_params  # 传递过滤参数
                     )
                     results.extend(text_results)
                     total += text_total

@@ -150,9 +150,12 @@ class VideoDAO:
             logger.error(f"获取总数失败: {str(e)}")
             return 0
 
-    def search_video(self, summary_embedding=None, page=1, page_size=6):
+    def search_video(self, summary_embedding=None, page=1, page_size=6, **filter_params):
         offset = (page - 1) * page_size
         limit = page_size
+
+        # 构建过滤条件表达式
+        filter_expr = self._build_filter_expression(filter_params)
 
         if summary_embedding is not None:
             # 设置相似度阈值
@@ -165,13 +168,17 @@ class VideoDAO:
                 "params": {"nprobe": 16}
             }
 
+            # 应用过滤条件（如果有）
+            if filter_expr:
+                search_params["filter"] = filter_expr
+
             result = self.milvus_client.search(
                 collection_name=self.collection_name,
                 anns_field="summary_embedding",
                 data=[summary_embedding],
                 limit=1000,  # 先获取较多结果以计算总数
                 search_params=search_params,
-                output_fields=['m_id', 'path', 'thumbnail_path', 'summary_txt', 'tags', 'title'],
+                output_fields=['m_id', 'path', 'thumbnail_path', 'summary_txt', 'tags', 'title', 'vconfig_id', 'collect_start_time', 'collect_end_time'],
                 consistency_level="Strong"
             )
 
@@ -200,21 +207,21 @@ class VideoDAO:
 
         else:
             # 获取总数
-            total = self.get_total_count()
+            total = self.get_total_count(filter_expr) if filter_expr else self.get_total_count()
             
             # 获取分页数据
             result = self.milvus_client.query(
                 self.collection_name,
-                filter="",
+                filter=filter_expr if filter_expr else "",
                 offset=offset,
                 limit=limit,
-                output_fields=['m_id', 'path', 'thumbnail_path', 'summary_txt', 'tags', 'title']
+                output_fields=['m_id', 'path', 'thumbnail_path', 'summary_txt', 'tags', 'title', 'vconfig_id', 'collect_start_time', 'collect_end_time']
             )
             for item in result:
                 item['timestamp'] = 0
             return result, total
 
-    def search_by_tags(self, tags: List[str], page: int = 1, page_size: int = 6) -> tuple[List[Dict[str, Any]], int]:
+    def search_by_tags(self, tags: List[str], page: int = 1, page_size: int = 6, **filter_params) -> tuple[List[Dict[str, Any]], int]:
         """
         根据标签列表搜索视频，使用ARRAY_CONTAINS操作符查询tags字段
 
@@ -222,6 +229,10 @@ class VideoDAO:
             tags: 标签列表
             page: 页码
             page_size: 每页数量
+            **filter_params: 附加过滤条件
+                - vconfig_id: 车辆类型标识
+                - collect_start_time: 采集开始时间
+                - collect_end_time: 采集结束时间
 
         Returns:
             Tuple[List[Dict[str, Any]], int]: 匹配的视频列表和总数
@@ -237,6 +248,11 @@ class VideoDAO:
         # 组合多个标签的过滤条件(使用OR连接)
         filter_expr = " or ".join(tag_filters)
         
+        # 添加额外过滤条件
+        extra_filter = self._build_filter_expression(filter_params)
+        if extra_filter:
+            filter_expr = f"({filter_expr}) and {extra_filter}"
+        
         logger.info(f"Generated filter expression: {filter_expr}")  # 添加日志记录
 
         # 获取总数
@@ -248,17 +264,104 @@ class VideoDAO:
             filter=filter_expr,
             offset=offset,
             limit=page_size,
-            output_fields=['m_id', 'path', 'thumbnail_path', 'summary_txt', 'tags', 'mining_results', 'title']
+            output_fields=['m_id', 'path', 'thumbnail_path', 'summary_txt', 'tags', 'title', 'vconfig_id', 'collect_start_time', 'collect_end_time']
         )
 
-        # 处理结果
-        for item in result:
-            item['timestamp'] = 0
-            if item.get('mining_results') is None:
-                item['mining_results'] = []
-            else:
-                # 确保mining_results是JSON对象而不是字符串
-                if isinstance(item['mining_results'], str):
-                    item['mining_results'] = json.loads(item['mining_results'])
+        # 为结果添加额外信息
+        for video in result:
+            video['timestamp'] = 0  # 添加默认时间戳
+            # 处理可能的数组类型
+            if 'tags' in video and video['tags'] and not isinstance(video['tags'], list):
+                try:
+                    video['tags'] = eval(video['tags'])  # 将字符串转换为列表
+                except:
+                    video['tags'] = []
+            elif 'tags' not in video or not video['tags']:
+                video['tags'] = []
 
         return result, total
+        
+    def search_by_filter(self, page: int = 1, page_size: int = 6, **filter_params) -> tuple[List[Dict[str, Any]], int]:
+        """
+        仅使用过滤条件搜索视频。
+
+        Args:
+            page: 页码
+            page_size: 每页数量
+            **filter_params: 过滤条件
+                - vconfig_id: 车辆类型标识
+                - collect_start_time: 采集开始时间
+                - collect_end_time: 采集结束时间
+
+        Returns:
+            Tuple[List[Dict[str, Any]], int]: 匹配的视频列表和总数
+        """
+        offset = (page - 1) * page_size
+
+        # 构建过滤条件表达式
+        filter_expr = self._build_filter_expression(filter_params)
+        
+        # 如果没有过滤条件，则返回空结果
+        if not filter_expr:
+            return [], 0
+            
+        logger.info(f"Generated filter expression: {filter_expr}")  # 添加日志记录
+
+        # 获取总数
+        total = self.get_total_count(filter_expr)
+
+        # 执行查询
+        result = self.milvus_client.query(
+            collection_name=self.collection_name,
+            filter=filter_expr,
+            offset=offset,
+            limit=page_size,
+            output_fields=['m_id', 'path', 'thumbnail_path', 'summary_txt', 'tags', 'title', 'vconfig_id', 'collect_start_time', 'collect_end_time']
+        )
+
+        # 为结果添加额外信息
+        for video in result:
+            video['timestamp'] = 0  # 添加默认时间戳
+            # 处理可能的数组类型
+            if 'tags' in video and video['tags'] and not isinstance(video['tags'], list):
+                try:
+                    video['tags'] = eval(video['tags'])  # 将字符串转换为列表
+                except:
+                    video['tags'] = []
+            elif 'tags' not in video or not video['tags']:
+                video['tags'] = []
+
+        return result, total
+    
+    def _build_filter_expression(self, filter_params: Dict[str, Any]) -> str:
+        """
+        根据过滤参数构建Milvus过滤表达式
+
+        Args:
+            filter_params: 过滤参数
+                - vconfig_id: 车辆类型标识
+                - collect_start_time: 采集开始时间
+                - collect_end_time: 采集结束时间
+
+        Returns:
+            str: Milvus过滤表达式
+        """
+        conditions = []
+        
+        # 添加vconfig_id过滤条件
+        if 'vconfig_id' in filter_params and filter_params['vconfig_id']:
+            conditions.append(f'vconfig_id == "{filter_params["vconfig_id"]}"')
+        
+        # 添加collect_start_time过滤条件
+        if 'collect_start_time' in filter_params and filter_params['collect_start_time'] is not None:
+            conditions.append(f'collect_start_time >= {filter_params["collect_start_time"]}')
+        
+        # 添加collect_end_time过滤条件
+        if 'collect_end_time' in filter_params and filter_params['collect_end_time'] is not None:
+            conditions.append(f'collect_end_time <= {filter_params["collect_end_time"]}')
+        
+        # 组合所有条件（使用AND连接）
+        if conditions:
+            return " and ".join(conditions)
+        
+        return ""
