@@ -475,6 +475,58 @@
         .similarity-low {
             background: rgba(239, 68, 68, 0.9);  /* 红色 */
         }
+        /* 添加分页导航样式 */
+        .pagination-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pagination-info {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        .pagination-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .page-button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            background: white;
+            color: #374151;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .page-button:hover:not(:disabled) {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+        
+        .page-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .current-page {
+            padding: 0.5rem 1rem;
+            color: #374151;
+            font-size: 0.875rem;
+        }
     </style>
 </head>
 <body>
@@ -622,128 +674,163 @@
             </div>
 
             <!-- 搜索结果区域 -->
-            <div class="results-container" v-if="searchResults.length > 0">
-                <!-- Gallery区域 -->
-                <div class="gallery-area">
-                    <div class="gallery-grid">
-                        <div
-                            v-for="(video, index) in searchResults"
-                            :key="index"
-                            class="video-card"
-                            @click="handleVideoSelect(video)"
-                            @keydown.enter="handleVideoSelect(video)"
-                            tabindex="0"
-                            role="button"
-                            :aria-label="'播放视频: ' + video.title"
-                        >
-                            <div 
-                                v-if="video.similarity && (selectedType === 'smart' || selectedType === 'image' || selectedType === 'text')"
-                                class="similarity-tag"
-                                :class="getSimilarityClass(video.similarity)"
+            <div v-if="searchResults.length > 0">
+                <!-- 添加搜索结果统计 -->
+                <div class="search-stats">
+                    <p class="text-gray-600">
+                        共找到 {{ totalResults }} 个匹配结果
+                    </p>
+                </div>
+
+                <div class="results-container">
+                    <!-- Gallery区域 -->
+                    <div class="gallery-area">
+                        <div class="gallery-grid">
+                            <div
+                                v-for="(video, index) in searchResults"
+                                :key="index"
+                                class="video-card"
+                                @click="handleVideoSelect(video)"
+                                @keydown.enter="handleVideoSelect(video)"
+                                tabindex="0"
+                                role="button"
+                                :aria-label="'播放视频: ' + video.title"
                             >
-                                相似度: {{ formatSimilarity(video.similarity) }}%
+                                <div 
+                                    v-if="video.similarity && (selectedType === 'smart' || selectedType === 'image' || selectedType === 'text')"
+                                    class="similarity-tag"
+                                    :class="getSimilarityClass(video.similarity)"
+                                >
+                                    相似度: {{ formatSimilarity(video.similarity) }}%
+                                </div>
+                                <img
+                                    :src="video.thumbnail_url"
+                                    :alt="video.title + ' 的缩略图'"
+                                    class="video-thumbnail"
+                                    loading="lazy"
+                                >
+                                <div class="video-info">
+                                    <h3 class="video-title">{{ video.title }}</h3>
+                                    <div class="video-tags" aria-label="视频标签">
+                                        <span
+                                            v-for="tag in video.tags"
+                                            :key="tag"
+                                            class="tag"
+                                            role="listitem"
+                                        >{{ tag }}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <img
-                                :src="video.thumbnail_url"
-                                :alt="video.title + ' 的缩略图'"
-                                class="video-thumbnail"
-                                loading="lazy"
-                            >
-                            <div class="video-info">
-                                <h3 class="video-title">{{ video.title }}</h3>
-                                <div class="video-tags" aria-label="视频标签">
-                                    <span
-                                        v-for="tag in video.tags"
-                                        :key="tag"
-                                        class="tag"
-                                        role="listitem"
-                                    >{{ tag }}</span>
+                        </div>
+                    </div>
+
+                    <!-- 视频播放区域 -->
+                    <div class="video-area" v-if="selectedVideo">
+                        <div class="video-player">
+                            <video
+                                ref="videoPlayer"
+                                controls
+                                :src="selectedVideo.video_url"
+                                style="width: 100%; height: 100%;"
+                            ></video>
+                            <div v-if="selectedVideo.timestamp" class="time-jump" @click="jumpToTime">
+                                <span class="material-icons">timer</span>
+                                跳转到 {{ formatTime(selectedVideo.timestamp) }}
+                            </div>
+                        </div>
+                        <div class="video-details">
+                            <!-- 标题区块 -->
+                            <div class="info-block">
+                                <div class="info-block-title">
+                                    <span class="material-icons">title</span>
+                                    视频标题
+                                </div>
+                                <div class="info-block-content">
+                                    {{ selectedVideo.title }}
+                                </div>
+                            </div>
+
+                            <!-- 时间点区块 -->
+                            <div class="info-block" v-if="selectedVideo.timestamp">
+                                <div class="info-block-title">
+                                    <span class="material-icons">schedule</span>
+                                    匹配时间点
+                                </div>
+                                <div class="info-block-content">
+                                    {{ formatTime(selectedVideo.timestamp) }}
+                                </div>
+                            </div>
+
+                            <!-- 标签区块 -->
+                            <div class="info-block">
+                                <div class="info-block-title">
+                                    <span class="material-icons">label</span>
+                                    视频标签
+                                </div>
+                                <div class="info-block-content">
+                                    <div class="video-tags">
+                                        <span v-for="tag in selectedVideo.tags" :key="tag" class="tag">
+                                            <span class="material-icons">local_offer</span>
+                                            {{ tag }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 摘要区块 -->
+                            <div class="info-block" v-if="selectedVideo.summary">
+                                <div class="info-block-title">
+                                    <span class="material-icons">description</span>
+                                    视频摘要
+                                </div>
+                                <div class="info-block-content">
+                                    {{ selectedVideo.summary }}
+                                </div>
+                            </div>
+
+                            <!-- 相似度区块 -->
+                            <div class="info-block" v-if="selectedVideo.similarity && (selectedType === 'smart' || selectedType === 'image' || selectedType === 'text')">
+                                <div class="info-block-title">
+                                    <span class="material-icons">analytics</span>
+                                    相似度
+                                </div>
+                                <div class="info-block-content">
+                                    <div 
+                                        class="similarity-tag"
+                                        :class="getSimilarityClass(selectedVideo.similarity)"
+                                        style="position: static; display: inline-block; margin-top: 5px;"
+                                    >
+                                        {{ formatSimilarity(selectedVideo.similarity) }}%
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 视频播放区域 -->
-                <div class="video-area" v-if="selectedVideo">
-                    <div class="video-player">
-                        <video
-                            ref="videoPlayer"
-                            controls
-                            :src="selectedVideo.video_url"
-                            style="width: 100%; height: 100%;"
-                        ></video>
-                        <div v-if="selectedVideo.timestamp" class="time-jump" @click="jumpToTime">
-                            <span class="material-icons">timer</span>
-                            跳转到 {{ formatTime(selectedVideo.timestamp) }}
-                        </div>
+                <!-- 添加分页导航 -->
+                <div class="pagination-nav" v-if="showPagination">
+                    <div class="pagination-info">
+                        第 {{ page }}/{{ totalPages }} 页，共 {{ totalResults }} 条记录
                     </div>
-                    <div class="video-details">
-                        <!-- 标题区块 -->
-                        <div class="info-block">
-                            <div class="info-block-title">
-                                <span class="material-icons">title</span>
-                                视频标题
-                            </div>
-                            <div class="info-block-content">
-                                {{ selectedVideo.title }}
-                            </div>
-                        </div>
-
-                        <!-- 时间点区块 -->
-                        <div class="info-block" v-if="selectedVideo.timestamp">
-                            <div class="info-block-title">
-                                <span class="material-icons">schedule</span>
-                                匹配时间点
-                            </div>
-                            <div class="info-block-content">
-                                {{ formatTime(selectedVideo.timestamp) }}
-                            </div>
-                        </div>
-
-                        <!-- 标签区块 -->
-                        <div class="info-block">
-                            <div class="info-block-title">
-                                <span class="material-icons">label</span>
-                                视频标签
-                            </div>
-                            <div class="info-block-content">
-                                <div class="video-tags">
-                                    <span v-for="tag in selectedVideo.tags" :key="tag" class="tag">
-                                        <span class="material-icons">local_offer</span>
-                                        {{ tag }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 摘要区块 -->
-                        <div class="info-block" v-if="selectedVideo.summary">
-                            <div class="info-block-title">
-                                <span class="material-icons">description</span>
-                                视频摘要
-                            </div>
-                            <div class="info-block-content">
-                                {{ selectedVideo.summary }}
-                            </div>
-                        </div>
-
-                        <!-- 相似度区块 -->
-                        <div class="info-block" v-if="selectedVideo.similarity && (selectedType === 'smart' || selectedType === 'image' || selectedType === 'text')">
-                            <div class="info-block-title">
-                                <span class="material-icons">analytics</span>
-                                相似度
-                            </div>
-                            <div class="info-block-content">
-                                <div 
-                                    class="similarity-tag"
-                                    :class="getSimilarityClass(selectedVideo.similarity)"
-                                    style="position: static; display: inline-block; margin-top: 5px;"
-                                >
-                                    {{ formatSimilarity(selectedVideo.similarity) }}%
-                                </div>
-                            </div>
-                        </div>
+                    <div class="pagination-controls">
+                        <button 
+                            class="page-button" 
+                            @click="previousPage" 
+                            :disabled="!canGoPrevious"
+                        >
+                            <span class="material-icons">chevron_left</span>
+                            上一页
+                        </button>
+                        <span class="current-page">{{ page }}/{{ totalPages }}</span>
+                        <button 
+                            class="page-button" 
+                            @click="nextPage" 
+                            :disabled="!canGoNext"
+                        >
+                            下一页
+                            <span class="material-icons">chevron_right</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -796,6 +883,7 @@
                     tagsInput: '',
                     page: 1,
                     pageSize: 6,
+                    totalResults: 0,
 
                     // 搜索结果
                     searchResults: [],
@@ -813,6 +901,19 @@
             computed: {
                 showTextInput() {
                     return ['smart', 'text'].includes(this.selectedType);
+                },
+                // 添加分页相关的计算属性
+                totalPages() {
+                    return Math.ceil(this.totalResults / this.pageSize);
+                },
+                showPagination() {
+                    return this.totalResults > 0;
+                },
+                canGoPrevious() {
+                    return this.page > 1;
+                },
+                canGoNext() {
+                    return this.page < this.totalPages;
                 }
             },
             methods: {
@@ -890,13 +991,14 @@
                         });
 
                         const data = await response.json();
-                        if (data.status === 'success') {
-                            this.searchResults = data.data;
+                        if (data.code === 0) {
+                            this.searchResults = data.data.list;
+                            this.totalResults = data.data.total;
                             if (this.searchResults.length === 0) {
                                 this.showToast('未找到匹配的视频');
                             }
                         } else {
-                            this.showToast(data.message || '搜索失败');
+                            this.showToast(data.msg || '搜索失败');
                         }
                     } catch (error) {
                         this.showToast('搜索请求失败');
@@ -949,6 +1051,23 @@
                     if (value >= 0.8) return 'similarity-high';
                     if (value >= 0.6) return 'similarity-medium';
                     return 'similarity-low';
+                },
+                // 添加分页导航方法
+                goToPage(pageNum) {
+                    if (pageNum >= 1 && pageNum <= this.totalPages) {
+                        this.page = pageNum;
+                        this.handleSearch();
+                    }
+                },
+                previousPage() {
+                    if (this.canGoPrevious) {
+                        this.goToPage(this.page - 1);
+                    }
+                },
+                nextPage() {
+                    if (this.canGoNext) {
+                        this.goToPage(this.page + 1);
+                    }
                 }
             }
         });
