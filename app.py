@@ -218,8 +218,9 @@ def search_videos():
             text_query = request.form.get('text_query', '').strip()
             if not text_query:
                 return jsonify({
-                    'status': 'error',
-                    'message': '请输入搜索关键词'
+                    'msg': '请输入搜索关键词',
+                    'code': 400,
+                    'data': None
                 }), 400
             results, total = integrated_service.search(
                 query=text_query,
@@ -232,8 +233,9 @@ def search_videos():
             search_mode = request.form.get('search_mode', 'frame')
             if not text_query:
                 return jsonify({
-                    'status': 'error',
-                    'message': '请输入搜索关键词'
+                    'msg': '请输入搜索关键词',
+                    'code': 400,
+                    'data': None
                 }), 400
 
             try:
@@ -263,8 +265,9 @@ def search_videos():
             except Exception as e:
                 print(f"Text search error: {str(e)}")
                 return jsonify({
-                    'status': 'error',
-                    'message': f'文本搜索失败: {str(e)}'
+                    'msg': f'文本搜索失败: {str(e)}',
+                    'code': 500,
+                    'data': None
                 }), 500
 
         elif search_type == 'image':
@@ -273,8 +276,9 @@ def search_videos():
 
             if not image_file and not image_url:
                 return jsonify({
-                    'status': 'error',
-                    'message': '请上传图片或输入图片URL'
+                    'msg': '请上传图片或输入图片URL',
+                    'code': 400,
+                    'data': None
                 }), 400
 
             if image_file:
@@ -295,15 +299,17 @@ def search_videos():
             tags_input = request.form.get('tags', '').strip()
             if not tags_input:
                 return jsonify({
-                    'status': 'error',
-                    'message': '请输入搜索标签'
+                    'msg': '请输入搜索标签',
+                    'code': 400,
+                    'data': None
                 }), 400
 
             tags = [tag.strip() for tag in tags_input.split(',') if tag.strip()]
             if not tags:
                 return jsonify({
-                    'status': 'error',
-                    'message': '请输入有效的标签'
+                    'msg': '请输入有效的标签',
+                    'code': 400,
+                    'data': None
                 }), 400
 
             results, total = search_service.search_by_tags(
@@ -314,15 +320,19 @@ def search_videos():
 
         else:
             return jsonify({
-                'status': 'error',
-                'message': '不支持的搜索类型'
+                'msg': '不支持的搜索类型',
+                'code': 400,
+                'data': None
             }), 400
 
         if not results:
             return jsonify({
-                'status': 'success',
-                'data': [],
-                'total': 0
+                'msg': 'success',
+                'code': 0,
+                'data': {
+                    'total': 0,
+                    'list': []
+                }
             })
 
         # 格式化返回结果
@@ -340,21 +350,26 @@ def search_videos():
             formatted_results.append(formatted_video)
 
         return jsonify({
-            'status': 'success',
-            'data': formatted_results,
-            'total': total
+            'msg': 'success',
+            'code': 0,
+            'data': {
+                'total': total,
+                'list': formatted_results
+            }
         })
 
     except ValueError as e:
         return jsonify({
-            'status': 'error',
-            'message': f'参数错误: {str(e)}'
+            'msg': f'参数错误: {str(e)}',
+            'code': 400,
+            'data': None
         }), 400
     except Exception as e:
         print(f"Search error: {str(e)}")
         return jsonify({
-            'status': 'error',
-            'message': f'搜索失败: {str(e)}'
+            'msg': f'搜索失败: {str(e)}',
+            'code': 500,
+            'data': None
         }), 500
 
 
