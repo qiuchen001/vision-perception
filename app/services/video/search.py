@@ -16,7 +16,7 @@ class SearchVideoService:
     def __init__(self):
         self.video_dao = VideoDAO()
 
-    def search_by_text(self, txt: str, page: int = 1, page_size: int = 6, search_mode: str = "frame") -> List[Dict[str, Any]]:
+    def search_by_text(self, txt: str, page: int = 1, page_size: int = 6, search_mode: str = "frame") -> tuple[List[Dict[str, Any]], int]:
         """
         通过文本搜索视频。
 
@@ -28,13 +28,15 @@ class SearchVideoService:
                 - "frame": 先搜索视频帧,再获取视频信息(默认)
                 - "summary": 直接搜索视频摘要
         Returns:
-            List[Dict[str, Any]]: 视频列表
+            Tuple[List[Dict[str, Any]], int]: 视频列表和总数
         """
         try:
             if search_mode == "frame":
                 # 使用新的方法获取帧图片URL
                 video_paths, timestamps, frame_urls, similarities = self.text_to_frame_with_url(txt)
-                return self._get_video_details_with_frame(video_paths, timestamps, frame_urls, similarities, page, page_size)
+                results = self._get_video_details_with_frame(video_paths, timestamps, frame_urls, similarities, page, page_size)
+                total = len(video_paths)  # 总数为匹配的帧数
+                return results, total
             else:
                 # 直接搜索视频摘要
                 summary_embedding = embed_fn(txt)  # 使用文本embedding函数
@@ -46,7 +48,7 @@ class SearchVideoService:
             
         except Exception as e:
             logger.error(f"文本搜索失败: {str(e)}")
-            return []
+            return [], 0
 
     def search_by_image(
             self,
@@ -54,7 +56,7 @@ class SearchVideoService:
             image_url: Optional[str] = None,
             page: int = 1,
             page_size: int = 6
-    ) -> List[Dict[str, Any]]:
+    ) -> tuple[List[Dict[str, Any]], int]:
         """
         通过图片搜索视频。
 
@@ -65,7 +67,7 @@ class SearchVideoService:
             page_size: 每页数量
 
         Returns:
-            List[Dict[str, Any]]: 视频列表
+            Tuple[List[Dict[str, Any]], int]: 视频列表和总数
         """
         try:
             # 处理图片输入
@@ -85,11 +87,13 @@ class SearchVideoService:
             video_paths, timestamps, frame_urls, similarities = self.image_to_frame_with_url(image)
             
             # 获取视频详细信息
-            return self._get_video_details_with_frame(video_paths, timestamps, frame_urls, similarities, page, page_size)
+            results = self._get_video_details_with_frame(video_paths, timestamps, frame_urls, similarities, page, page_size)
+            total = len(video_paths)  # 总数为匹配的帧数
+            return results, total
             
         except Exception as e:
             logger.error(f"图片搜索失败: {str(e)}")
-            return []
+            return [], 0
 
     def _get_video_details(
             self,
@@ -140,7 +144,7 @@ class SearchVideoService:
             logger.error(f"获取视频详情失败: {str(e)}")
             return []
 
-    def search_by_tags(self, tags: Union[str, List[str]], page: int = 1, page_size: int = 6) -> List[Dict[str, Any]]:
+    def search_by_tags(self, tags: Union[str, List[str]], page: int = 1, page_size: int = 6) -> tuple[List[Dict[str, Any]], int]:
         """
         通过标签搜索视频。
 
@@ -150,7 +154,7 @@ class SearchVideoService:
             page_size: 每页数量
 
         Returns:
-            List[Dict[str, Any]]: 视频列表
+            Tuple[List[Dict[str, Any]], int]: 视频列表和总数
         """
         try:
             # 将单个标签转换为列表
@@ -166,7 +170,7 @@ class SearchVideoService:
 
         except Exception as e:
             logger.error(f"标签搜索失败: {str(e)}")
-            return []
+            return [], 0
 
     def text_to_frame_with_url(self, txt: str) -> Tuple[List[str], List[int], List[str], List[float]]:
         """
@@ -340,15 +344,17 @@ class SearchVideoService:
 if __name__ == "__main__":
     search_service = SearchVideoService()
     # 使用单个标签搜索
-    results = search_service.search_by_tags("晚上")
+    results, total = search_service.search_by_tags("晚上")
     print(results)
+    print(f"总数: {total}")
 
     # # 使用多个标签搜索
-    # results = search_service.search_by_tags(["教育", "科技"])
+    # results, total = search_service.search_by_tags(["教育", "科技"])
     #
     # # 带分页的搜索
-    # results = search_service.search_by_tags(["教育", "科技"], page=2, page_size=10)
+    # results, total = search_service.search_by_tags(["教育", "科技"], page=2, page_size=10)
     #
-    # results = search_service.search_by_text("主干道")
+    # results, total = search_service.search_by_text("主干道")
     # print(results)
+    # print(f"总数: {total}")
 

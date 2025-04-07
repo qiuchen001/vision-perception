@@ -104,36 +104,58 @@ class VideoDAO:
         }
         return self.milvus_client.upsert(self.collection_name, [user_data])
 
+    def get_total_count(self, filter_expr: str = "") -> int:
+        """
+        获取符合条件的记录总数
+
+        Args:
+            filter_expr: 过滤条件表达式
+
+        Returns:
+            int: 记录总数
+        """
+        try:
+            return self.milvus_client.query(
+                collection_name=self.collection_name,
+                filter=filter_expr,
+                output_fields=['m_id']
+            ).__len__()
+        except Exception as e:
+            logger.error(f"获取总数失败: {str(e)}")
+            return 0
+
     def search_video(self, summary_embedding=None, page=1, page_size=6):
         offset = (page - 1) * page_size
         limit = page_size
-
-        search_params = {
-            "metric_type": "COSINE",
-            "offset": offset,
-            "ignore_growing": False,
-            "params": {"nprobe": 16}
-        }
 
         if summary_embedding is not None:
             # 设置相似度阈值
             SIMILARITY_THRESHOLD = 0.01
 
+            # 获取所有结果时不需要offset
+            search_params = {
+                "metric_type": "COSINE",
+                "ignore_growing": False,
+                "params": {"nprobe": 16}
+            }
+
             result = self.milvus_client.search(
                 collection_name=self.collection_name,
                 anns_field="summary_embedding",
                 data=[summary_embedding],
-                limit=limit,
+                limit=1000,  # 先获取较多结果以计算总数
                 search_params=search_params,
                 output_fields=['m_id', 'path', 'thumbnail_path', 'summary_txt', 'tags', 'title'],
                 consistency_level="Strong"
             )
 
             new_result_list = []
+            total = 0
             if result[0] is not None:
                 for hit in result[0]:
                     similarity = hit.get("distance", 0)  # 获取相似度分数
                     if similarity >= SIMILARITY_THRESHOLD:  # 过滤低相似度结果
+                        total += 1
                         entity = hit.get("entity", {})
                         if entity:
                             entity['timestamp'] = 0
@@ -142,9 +164,19 @@ class VideoDAO:
                 
                 # 按相似度降序排序
                 new_result_list.sort(key=lambda x: float(x['similarity']), reverse=True)
-            return new_result_list
+                
+                # 分页
+                start_idx = (page - 1) * page_size
+                end_idx = start_idx + page_size
+                new_result_list = new_result_list[start_idx:end_idx]
+                
+            return new_result_list, total
 
         else:
+            # 获取总数
+            total = self.get_total_count()
+            
+            # 获取分页数据
             result = self.milvus_client.query(
                 self.collection_name,
                 filter="",
@@ -154,9 +186,9 @@ class VideoDAO:
             )
             for item in result:
                 item['timestamp'] = 0
-            return result
+            return result, total
 
-    def search_by_tags(self, tags: List[str], page: int = 1, page_size: int = 6) -> List[Dict[str, Any]]:
+    def search_by_tags(self, tags: List[str], page: int = 1, page_size: int = 6) -> tuple[List[Dict[str, Any]], int]:
         """
         根据标签列表搜索视频，使用ARRAY_CONTAINS操作符查询tags字段
 
@@ -166,7 +198,7 @@ class VideoDAO:
             page_size: 每页数量
 
         Returns:
-            List[Dict[str, Any]]: 匹配的视频列表
+            Tuple[List[Dict[str, Any]], int]: 匹配的视频列表和总数
         """
         offset = (page - 1) * page_size
 
@@ -180,6 +212,9 @@ class VideoDAO:
         filter_expr = " or ".join(tag_filters)
         
         logger.info(f"Generated filter expression: {filter_expr}")  # 添加日志记录
+
+        # 获取总数
+        total = self.get_total_count(filter_expr)
 
         # 执行查询
         result = self.milvus_client.query(
@@ -200,4 +235,4 @@ class VideoDAO:
                 if isinstance(item['mining_results'], str):
                     item['mining_results'] = json.loads(item['mining_results'])
 
-        return result
+        return result, total

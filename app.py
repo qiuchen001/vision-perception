@@ -221,7 +221,7 @@ def search_videos():
                     'status': 'error',
                     'message': '请输入搜索关键词'
                 }), 400
-            results = integrated_service.search(
+            results, total = integrated_service.search(
                 query=text_query,
                 page=page,
                 page_size=page_size
@@ -237,7 +237,7 @@ def search_videos():
                 }), 400
 
             try:
-                results = search_service.search_by_text(
+                results, total = search_service.search_by_text(
                     text_query,
                     page=page,
                     page_size=page_size,
@@ -247,6 +247,7 @@ def search_videos():
                 # 如果结果为None，返回空列表
                 if results is None:
                     results = []
+                    total = 0
 
                 # 确保结果可以被JSON序列化
                 if results:
@@ -283,7 +284,7 @@ def search_videos():
             else:
                 image = None
 
-            results = search_service.search_by_image(
+            results, total = search_service.search_by_image(
                 image_file=image,
                 image_url=image_url,
                 page=page,
@@ -305,7 +306,7 @@ def search_videos():
                     'message': '请输入有效的标签'
                 }), 400
 
-            results = search_service.search_by_tags(
+            results, total = search_service.search_by_tags(
                 tags=tags,
                 page=page,
                 page_size=page_size
@@ -320,7 +321,8 @@ def search_videos():
         if not results:
             return jsonify({
                 'status': 'success',
-                'data': []
+                'data': [],
+                'total': 0
             })
 
         # 格式化返回结果
@@ -339,7 +341,8 @@ def search_videos():
 
         return jsonify({
             'status': 'success',
-            'data': formatted_results
+            'data': formatted_results,
+            'total': total
         })
 
     except ValueError as e:

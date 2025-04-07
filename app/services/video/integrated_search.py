@@ -59,7 +59,7 @@ class IntegratedSearchService:
 
         return merged_results
 
-    def search(self, query: str, page: int = 1, page_size: int = 6) -> List[Dict[str, Any]]:
+    def search(self, query: str, page: int = 1, page_size: int = 6) -> tuple[List[Dict[str, Any]], int]:
         """
         根据用户查询进行集成搜索。
 
@@ -69,14 +69,14 @@ class IntegratedSearchService:
             page_size: 每页数量
 
         Returns:
-            List[Dict[str, Any]]: 搜索结果列表
+            Tuple[List[Dict[str, Any]], int]: 搜索结果列表和总数
         """
         try:
             # 1. 进行意图识别
             intent_result = self.intent_service.recognize_intent(query)
             if not intent_result:
                 logger.warning(f"意图识别结果为空: {query}")
-                return []
+                return [], 0
             logger.info(f"意图识别结果: {intent_result}")
 
             # 2. 提取搜索参数
@@ -88,7 +88,7 @@ class IntegratedSearchService:
 
             if has_tags and has_text:
                 # 混合搜索
-                tag_results = self.search_service.search_by_tags(
+                tag_results, tag_total = self.search_service.search_by_tags(
                     tags=search_params["tags"],
                     page=1,  # 先获取所有结果再合并
                     page_size=100
@@ -98,24 +98,25 @@ class IntegratedSearchService:
                     result['similarity'] = '1.0000'  # 标签完全匹配设为1.0
 
                 text_results = []
+                text_total = 0
                 for text in search_params["text"]:
-                    text_results.extend(
-                        self.search_service.search_by_text(
-                            txt=text,
-                            page=1,  # 先获取所有结果再合并
-                            page_size=100
-                        )
+                    results, total = self.search_service.search_by_text(
+                        txt=text,
+                        page=1,  # 先获取所有结果再合并
+                        page_size=100
                     )
+                    text_results.extend(results)
+                    text_total += total
                 
                 # 合并结果并分页
                 all_results = self._merge_search_results(tag_results, text_results)
                 start_idx = (page - 1) * page_size
                 end_idx = start_idx + page_size
-                return all_results[start_idx:end_idx]
+                return all_results[start_idx:end_idx], len(all_results)
 
             elif has_tags:
                 # 纯标签搜索
-                results = self.search_service.search_by_tags(
+                results, total = self.search_service.search_by_tags(
                     tags=search_params["tags"],
                     page=page,
                     page_size=page_size
@@ -123,28 +124,29 @@ class IntegratedSearchService:
                 # 为标签搜索结果添加相似度分数
                 for result in results:
                     result['similarity'] = '1.0000'  # 标签完全匹配设为1.0
-                return results
+                return results, total
 
             elif has_text:
                 # 纯文本搜索
                 results = []
+                total = 0
                 for text in search_params["text"]:
-                    results.extend(
-                        self.search_service.search_by_text(
-                            txt=text,
-                            page=page,
-                            page_size=page_size
-                        )
+                    text_results, text_total = self.search_service.search_by_text(
+                        txt=text,
+                        page=page,
+                        page_size=page_size
                     )
-                return results[:page_size]  # 限制返回数量
+                    results.extend(text_results)
+                    total += text_total
+                return results[:page_size], total  # 限制返回数量
 
             else:
                 logger.warning(f"未识别到有效的搜索意图: {query}")
-                return []
+                return [], 0
 
         except Exception as e:
             logger.error(f"集成搜索失败: {str(e)}")
-            return []
+            return [], 0
 
 
 # 使用示例
@@ -163,7 +165,7 @@ if __name__ == "__main__":
 
     for query in queries:
         print(f"\n搜索查询: {query}")
-        results = search_service.search(query)
+        results, total = search_service.search(query)
         print(f"搜索结果数量: {len(results)}")
         for result in results:
             print(f"- {result.get('path')}") 
