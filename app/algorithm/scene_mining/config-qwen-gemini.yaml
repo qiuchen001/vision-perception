@@ -1,0 +1,123 @@
+api:
+  base_url: "http://localhost:8576/v1"
+  model_name: "/models/qwen-gemini"
+  api_key: "EMPTY"
+  timeout: 6000
+  httpx_max_connections: 1000
+  httpx_max_keepalive_connections: 1000
+  httpx_keepalive_expiry: 120.0
+
+model:
+  max_tokens: 8192
+  temperature: 0.01
+  top_p: 0.1
+  top_k: 1
+  presence_penalty: 0.0
+  repetition_penalty: 1.0
+
+video:
+  fps: 3
+  category_fps:
+    "静态障碍与全局异常": 3
+    "弱势交通参与者异常": 8
+    "车辆轨迹与空间冲突": 8
+    "极端高危与失控事件": 8
+  do_sample_frames: true
+  save_sampled_clips: false
+
+concurrency:
+  max_concurrent_videos: 10
+
+retry:
+  max_api_retries: 3
+  max_parse_retries: 5
+  max_supervisor2_retries: 3
+
+tool_call:
+  max_turns: 1
+  complex_worker_tool_call_enabled: false
+  clip_tool_path: "select_clip_fallback.py"
+  fixed_sampling:
+    enabled: true
+    phases_order:
+      - first_round
+    profiles:
+      complex:
+        first_round:
+          window_seconds: 8.0
+          fps: 12
+          slice_merge_iou_threshold: 0.4
+
+test:
+  max_clips: 0
+
+paths:
+  video_root: "/mnt/data/ai-ground/dataset/videos"
+  video_paths: "video_paths_remain.txt"
+  categories: "categories.json"
+  skills: "skills"
+  output_base: "outputs"
+
+yolo:
+  enabled: false
+  model_path: "/mnt/data/checkpoints/yolo/yolo26x.pt"
+  model_path_fallback: "/mnt/data/checkpoints/yolo/yolo11s.pt"
+  device: "0"
+  conf_threshold: 0.35
+  iou_threshold: 0.45
+  sample_fps: 4.0
+  imgsz: 640
+  batch_size: 64
+  half: true
+  frame_merge_gap: 2.0
+  min_detection_frames: 2
+  window_padding: 1.0
+  category_classes:
+    "弱势交通参与者异常": [0, 1, 3, 16, 17]
+    "车辆轨迹与空间冲突": [2, 5, 7, 3]
+    "极端高危与失控事件": [0, 1, 2, 3, 5, 7]
+  category_spatial_rules:
+    "弱势交通参与者异常": {}
+    "车辆轨迹与空间冲突":
+      min_objects: 1
+    "极端高危与失控事件":
+      detection_spike_ratio: 2.0
+  max_windows_per_category: 3
+  fallback_to_code: true
+  save_detection_frames: false
+  detection_output_dir: "yolo_detections"
+
+pipeline:
+  default_use_langgraph: true
+  agent_mode: "dag"
+  complex_supervisor_mode: "llm"
+  complex_max_slices_per_task: 3
+  category_execution_mode: "parallel"
+  category_concurrency: 10
+  category_order:
+    - "自然时间段"
+    - "人工光源辅助"
+    - "气象条件"
+    - "路面状态与视线干扰"
+    - "主干道路级别"
+    - "特殊路段与设施"
+    - "静态障碍与全局异常"
+    - "弱势交通参与者异常"
+    - "车辆轨迹与空间冲突"
+    - "极端高危与失控事件"
+  abnormal_categories:
+    - "静态障碍与全局异常"
+    - "弱势交通参与者异常"
+    - "车辆轨迹与空间冲突"
+    - "极端高危与失控事件"
+  category_complexity:
+    "自然时间段": "simple"
+    "人工光源辅助": "simple"
+    "主干道路级别": "simple"
+    "气象条件": "simple"
+    "路面状态与视线干扰": "simple"
+    "特殊路段与设施": "simple"
+    "静态障碍与全局异常": "simple"
+    "弱势交通参与者异常": "complex"
+    "车辆轨迹与空间冲突": "complex"
+    "极端高危与失控事件": "complex"

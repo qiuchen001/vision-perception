@@ -6,23 +6,29 @@ from openai import OpenAI
 from app.utils.logger import logger
 from app.prompt.intent import system_instruction
 
-# 从环境变量获取配置
-API_KEY = os.getenv("API_KEY")
-BASE_URL = os.getenv("BASE_URL")
-MODEL_NAME = os.getenv("VISION_MODEL_NAME")
-
 class IntentService:
     """意图识别服务类"""
 
     def __init__(self):
         """初始化意图识别服务"""
-        if not API_KEY:
-            raise ValueError("请设置API_KEY环境变量")
-            
+        external_api_key = os.getenv("API_KEY")
+        external_base_url = os.getenv("BASE_URL")
+        if external_api_key and external_base_url:
+            api_key = external_api_key
+            base_url = external_base_url
+            model_name = os.getenv("VISION_MODEL_NAME")
+        else:
+            api_key = os.getenv("SCENE_MINING_API_KEY") or "EMPTY"
+            base_url = os.getenv("SCENE_MINING_API_BASE_URL")
+            model_name = os.getenv("SCENE_MINING_API_MODEL_NAME")
+        if not base_url or not model_name:
+            raise ValueError("意图识别服务未配置 BASE_URL/VISION_MODEL_NAME 或本地 SCENE_MINING_API_BASE_URL/SCENE_MINING_API_MODEL_NAME")
+
+        self.model_name = model_name
         # 初始化OpenAI客户端
         self.client = OpenAI(
-            api_key=API_KEY,
-            base_url=BASE_URL,
+            api_key=api_key,
+            base_url=base_url,
         )
 
     def _call_api(self, messages: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -37,7 +43,7 @@ class IntentService:
         """
         try:
             response = self.client.chat.completions.create(
-                model=MODEL_NAME,
+                model=self.model_name,
                 messages=messages,
                 temperature=0.7,
                 max_tokens=1500,
@@ -48,6 +54,45 @@ class IntentService:
         except Exception as e:
             logger.error(f"API调用异常: {str(e)}")
             return None
+
+    @staticmethod
+    def _normalize_intent_result(result: Any, log_prefix: str = "意图识别") -> List[Dict[str, Any]]:
+        if isinstance(result, dict):
+            if isinstance(result.get("intents"), list):
+                result = result["intents"]
+            elif isinstance(result.get("output"), list):
+                result = result["output"]
+            elif isinstance(result.get("output"), str):
+                try:
+                    result = json.loads(result["output"])
+                except json.JSONDecodeError:
+                    pass
+            elif "type" in result and "list" in result:
+                result = [result]
+            elif isinstance(result.get("输出"), str):
+                try:
+                    result = json.loads(result["输出"])
+                except json.JSONDecodeError:
+                    pass
+
+        if not isinstance(result, list):
+            logger.error(f"{log_prefix}结果格式错误: {result}")
+            return []
+
+        for item in result:
+            if not isinstance(item, dict) or 'type' not in item or 'list' not in item:
+                logger.error(f"{log_prefix}结果项格式错误: {item}")
+                return []
+
+            if item['type'] not in ['tag', 'text']:
+                logger.error(f"{log_prefix}结果类型错误: {item['type']}")
+                return []
+
+            if not isinstance(item['list'], list):
+                logger.error(f"{log_prefix}结果列表格式错误: {item['list']}")
+                return []
+
+        return result
 
     def recognize_intent(self, text: str) -> List[Dict[str, Any]]:
         """
@@ -79,25 +124,7 @@ class IntentService:
                 # 解析JSON响应
                 result = json.loads(response.choices[0].message.content)
                 
-                if not isinstance(result, list):
-                    logger.error(f"意图识别结果格式错误: {result}")
-                    return []
-
-                # 验证结果格式
-                for item in result:
-                    if not isinstance(item, dict) or 'type' not in item or 'list' not in item:
-                        logger.error(f"意图识别结果项格式错误: {item}")
-                        return []
-
-                    if item['type'] not in ['tag', 'text']:
-                        logger.error(f"意图识别结果类型错误: {item['type']}")
-                        return []
-
-                    if not isinstance(item['list'], list):
-                        logger.error(f"意图识别结果列表格式错误: {item['list']}")
-                        return []
-
-                return result
+                return self._normalize_intent_result(result, "意图识别")
 
             except json.JSONDecodeError as e:
                 logger.error(f"意图识别结果JSON解析失败: {str(e)}")
@@ -154,25 +181,7 @@ class IntentService:
                 # 解析JSON响应
                 result = json.loads(response.choices[0].message.content)
                 
-                if not isinstance(result, list):
-                    logger.error(f"多模态意图识别结果格式错误: {result}")
-                    return []
-
-                # 验证结果格式
-                for item in result:
-                    if not isinstance(item, dict) or 'type' not in item or 'list' not in item:
-                        logger.error(f"多模态意图识别结果项格式错误: {item}")
-                        return []
-
-                    if item['type'] not in ['tag', 'text']:
-                        logger.error(f"多模态意图识别结果类型错误: {item['type']}")
-                        return []
-
-                    if not isinstance(item['list'], list):
-                        logger.error(f"多模态意图识别结果列表格式错误: {item['list']}")
-                        return []
-
-                return result
+                return self._normalize_intent_result(result, "多模态意图识别")
 
             except json.JSONDecodeError as e:
                 logger.error(f"多模态意图识别结果JSON解析失败: {str(e)}")

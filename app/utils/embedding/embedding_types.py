@@ -6,3 +6,4 @@ class EmbeddingType(Enum):
     CLIP = 'clip'
     MULTIMODAL = 'multimodal'
     JINA_CLIP_V2 = 'jina-clip-v2'
+    QWEN3_VL = 'qwen3-vl'

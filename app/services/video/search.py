@@ -5,6 +5,7 @@ import requests
 from io import BytesIO
 
 from app.dao.video_dao import VideoDAO
+from app.dao.feature_dao import FeatureDAO
 from app.services.video.video_frame_search import image_to_frame, text_to_frame
 from app.utils.embedding.text_embedding import embed_fn
 from app.utils.logger import logger
@@ -15,8 +16,17 @@ from app.utils.embedding.embedding_factory import EmbeddingFactory
 class SearchVideoService:
     def __init__(self):
         self.video_dao = VideoDAO()
+        self.feature_dao = FeatureDAO()
 
-    def search_by_text(self, txt: str, page: int = 1, page_size: int = 6, search_mode: str = "frame", **filter_params) -> tuple[List[Dict[str, Any]], int]:
+    def search_by_text(
+            self,
+            txt: str,
+            page: int = 1,
+            page_size: int = 6,
+            search_mode: str = "frame",
+            top_k: Optional[int] = 10,
+            **filter_params
+    ) -> tuple[List[Dict[str, Any]], int]:
         """
         通过文本搜索视频。
 
@@ -38,9 +48,24 @@ class SearchVideoService:
             if search_mode == "frame":
                 # 使用新的方法获取帧图片URL
                 video_paths, timestamps, frame_urls, similarities = self.text_to_frame_with_url(txt)
+                if top_k:
+                    video_paths = video_paths[:top_k]
+                    timestamps = timestamps[:top_k]
+                    frame_urls = frame_urls[:top_k]
+                    similarities = similarities[:top_k]
                 results = self._get_video_details_with_frame(video_paths, timestamps, frame_urls, similarities, page, page_size, **filter_params)
                 total = len(video_paths)  # 总数为匹配的帧数
                 return results, total
+            elif search_mode in {"summary", "tags", "tag_semantic", "visual"}:
+                embedding_model = EmbeddingFactory.create_embedding()
+                embedding = embedding_model.embedding_text(txt)
+                limit = top_k or max(page * page_size, 100)
+                if search_mode == "visual":
+                    hits = self.feature_dao.search_visual_features(embedding, limit=limit, **filter_params)
+                else:
+                    feature_type = "tags" if search_mode in {"tags", "tag_semantic"} else "summary"
+                    hits = self.feature_dao.search_text_features(embedding, feature_type=feature_type, limit=limit, **filter_params)
+                return self._get_video_details_from_feature_hits(hits, page, page_size), len(hits)
             else:
                 # 直接搜索视频摘要
                 summary_embedding = embed_fn(txt)  # 使用文本embedding函数
@@ -48,12 +73,13 @@ class SearchVideoService:
                     summary_embedding=summary_embedding,
                     page=page,
                     page_size=page_size,
+                    top_k=top_k,
                     **filter_params
                 )
             
         except Exception as e:
-            logger.error(f"文本搜索失败: {str(e)}")
-            return [], 0
+            logger.exception("文本搜索失败")
+            raise RuntimeError(f"文本搜索服务异常: {str(e)}") from e
 
     def search_by_image(
             self,
@@ -61,6 +87,7 @@ class SearchVideoService:
             image_url: Optional[str] = None,
             page: int = 1,
             page_size: int = 6,
+            top_k: Optional[int] = 10,
             **filter_params
     ) -> tuple[List[Dict[str, Any]], int]:
         """
@@ -93,17 +120,15 @@ class SearchVideoService:
             else:
                 raise ValueError("No image provided")
 
-            # 使用图片搜索视频帧,获取frame_url
-            video_paths, timestamps, frame_urls, similarities = self.image_to_frame_with_url(image)
-            
-            # 获取视频详细信息
-            results = self._get_video_details_with_frame(video_paths, timestamps, frame_urls, similarities, page, page_size, **filter_params)
-            total = len(video_paths)  # 总数为匹配的帧数
-            return results, total
+            embedding_model = EmbeddingFactory.create_embedding()
+            embedding = embedding_model.embedding_image(image)
+            limit = top_k or max(page * page_size, 100)
+            hits = self.feature_dao.search_visual_features(embedding, limit=limit, **filter_params)
+            return self._get_video_details_from_feature_hits(hits, page, page_size), len(hits)
             
         except Exception as e:
-            logger.error(f"图片搜索失败: {str(e)}")
-            return [], 0
+            logger.exception("图片搜索失败")
+            raise RuntimeError(f"图片搜索服务异常: {str(e)}") from e
 
     def _get_video_details(
             self,
@@ -154,7 +179,14 @@ class SearchVideoService:
             logger.error(f"获取视频详情失败: {str(e)}")
             return []
 
-    def search_by_tags(self, tags: Union[str, List[str]], page: int = 1, page_size: int = 6, **filter_params) -> tuple[List[Dict[str, Any]], int]:
+    def search_by_tags(
+            self,
+            tags: Union[str, List[str]],
+            page: int = 1,
+            page_size: int = 6,
+            top_k: Optional[int] = 10,
+            **filter_params
+    ) -> tuple[List[Dict[str, Any]], int]:
         """
         通过标签搜索视频。
 
@@ -180,12 +212,13 @@ class SearchVideoService:
                 tags=tags,
                 page=page,
                 page_size=page_size,
+                top_k=top_k,
                 **filter_params
             )
 
         except Exception as e:
-            logger.error(f"标签搜索失败: {str(e)}")
-            return [], 0
+            logger.exception("标签搜索失败")
+            raise RuntimeError(f"标签搜索服务异常: {str(e)}") from e
 
     def text_to_frame_with_url(self, txt: str) -> Tuple[List[str], List[int], List[str], List[float]]:
         """
@@ -241,8 +274,8 @@ class SearchVideoService:
             return video_paths, timestamps, frame_urls, similarities
             
         except Exception as e:
-            logger.error(f"文本到帧搜索失败: {str(e)}")
-            return [], [], [], []
+            logger.exception("文本到帧搜索失败")
+            raise RuntimeError(f"文本到帧搜索服务异常: {str(e)}") from e
 
     def _get_video_details_with_frame(
             self,
@@ -324,6 +357,7 @@ class SearchVideoService:
             if video_info and len(video_info) > 0:  # 确保有返回结果
                 video_data = video_info[0]  # 获取第一个结果
                 result = {
+                    'm_id': video_data.get('m_id', ''),
                     'title': video_data.get('title', '未知'),
                     'path': path,
                     'thumbnail_path': frame_url,  # 使用帧图片URL作为封面
@@ -337,6 +371,49 @@ class SearchVideoService:
                 }
                 results.append(result)
             
+        return results
+
+    def _get_video_details_from_feature_hits(
+            self,
+            hits: List[Dict[str, Any]],
+            page: int,
+            page_size: int
+    ) -> List[Dict[str, Any]]:
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        results = []
+        seen_m_ids = set()
+        for hit in hits:
+            m_id = hit.get("m_id")
+            if not m_id or m_id in seen_m_ids:
+                continue
+            seen_m_ids.add(m_id)
+            if len(seen_m_ids) <= start_idx:
+                continue
+            if len(results) >= page_size:
+                break
+
+            video_info = self.video_dao.get_by_m_id(m_id)
+            video_data = video_info[0] if video_info else {}
+            result = {
+                "m_id": m_id,
+                "title": video_data.get("title", "未知"),
+                "path": video_data.get("path") or hit.get("path", ""),
+                "thumbnail_path": video_data.get("thumbnail_path", ""),
+                "tags": video_data.get("tags", []),
+                "summary_txt": video_data.get("summary_txt", ""),
+                "timestamp": 0,
+                "similarity": hit.get("similarity", "0.0000"),
+                "vconfig_id": video_data.get("vconfig_id") or hit.get("vconfig_id", ""),
+                "collect_start_time": video_data.get("collect_start_time") or hit.get("collect_start_time"),
+                "collect_end_time": video_data.get("collect_end_time") or hit.get("collect_end_time"),
+            }
+            if "feature_type" in hit:
+                result["feature_type"] = hit.get("feature_type")
+            if "sampled_seconds" in hit:
+                result["sampled_seconds"] = hit.get("sampled_seconds")
+                result["sampled_frame_count"] = hit.get("sampled_frame_count", 0)
+            results.append(result)
         return results
         
     def _match_filter_params(self, video_data: Dict[str, Any], filter_params: Dict[str, Any]) -> bool:
@@ -420,10 +497,16 @@ class SearchVideoService:
             return video_paths, timestamps, frame_urls, similarities
             
         except Exception as e:
-            logger.error(f"图片到帧搜索失败: {str(e)}")
-            return [], [], [], []
+            logger.exception("图片到帧搜索失败")
+            raise RuntimeError(f"图片到帧搜索服务异常: {str(e)}") from e
 
-    def search_by_filter(self, page: int = 1, page_size: int = 6, **filter_params) -> tuple[List[Dict[str, Any]], int]:
+    def search_by_filter(
+            self,
+            page: int = 1,
+            page_size: int = 6,
+            top_k: Optional[int] = 10,
+            **filter_params
+    ) -> tuple[List[Dict[str, Any]], int]:
         """
         仅使用过滤条件搜索视频。
 
@@ -447,12 +530,13 @@ class SearchVideoService:
             return self.video_dao.search_by_filter(
                 page=page,
                 page_size=page_size,
+                top_k=top_k,
                 **filter_params
             )
 
         except Exception as e:
-            logger.error(f"过滤搜索失败: {str(e)}")
-            return [], 0
+            logger.exception("过滤搜索失败")
+            raise RuntimeError(f"过滤搜索服务异常: {str(e)}") from e
 
 
 if __name__ == "__main__":
@@ -471,4 +555,3 @@ if __name__ == "__main__":
     # results, total = search_service.search_by_text("主干道")
     # print(results)
     # print(f"总数: {total}")
-

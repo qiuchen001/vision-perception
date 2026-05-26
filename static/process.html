@@ -174,6 +174,82 @@
             font-size: 0.875rem;
             white-space: pre-line;
         }
+        .success-summary {
+            display: grid;
+            gap: 1rem;
+        }
+        .success-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            border-radius: 0.75rem;
+            background: #ecfdf5;
+            color: #065f46;
+            font-weight: 600;
+        }
+        .success-header .material-icons {
+            color: #10b981;
+        }
+        .result-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.75rem;
+        }
+        .meta-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+        .meta-label {
+            color: #6b7280;
+            font-size: 0.75rem;
+            margin-bottom: 0.25rem;
+        }
+        .meta-value {
+            color: #111827;
+            font-size: 0.875rem;
+            word-break: break-all;
+        }
+        .summary-block {
+            border: 1px solid #dbeafe;
+            background: #eff6ff;
+            border-radius: 0.75rem;
+            padding: 1rem;
+        }
+        .block-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #1e40af;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .summary-text {
+            color: #1f2937;
+            line-height: 1.65;
+            white-space: pre-line;
+        }
+        .tags-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .tag-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: #eef2ff;
+            color: #3730a3;
+            border: 1px solid #c7d2fe;
+            border-radius: 999px;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8125rem;
+        }
+        .tag-chip .material-icons {
+            font-size: 1rem;
+        }
         /* 底部操作区 */
         .actions {
             background: #f9fafb;
@@ -304,7 +380,49 @@
                             处理结果
                         </div>
                         <div v-if="isProcessing" class="result-content">
-                            处理中...
+                            {{ processingStage || '处理中...' }}
+                        </div>
+                        <div v-else-if="resultDetails" class="success-summary">
+                            <div class="success-header">
+                                <span class="material-icons">check_circle</span>
+                                <span>处理完成，已抽取标签和摘要</span>
+                            </div>
+                            <div class="result-meta">
+                                <div class="meta-item">
+                                    <div class="meta-label">处理类型</div>
+                                    <div class="meta-value">{{ resultDetails.action_type_desc || '-' }}</div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="meta-label">视频 ID</div>
+                                    <div class="meta-value">{{ resultDetails.m_id || '-' }}</div>
+                                </div>
+                                <div class="meta-item" v-if="resultDetails.title">
+                                    <div class="meta-label">标题</div>
+                                    <div class="meta-value">{{ resultDetails.title }}</div>
+                                </div>
+                            </div>
+                            <div class="summary-block" v-if="resultDetails.tags && resultDetails.tags.length">
+                                <div class="block-title">
+                                    <span class="material-icons">local_offer</span>
+                                    抽取标签
+                                </div>
+                                <div class="tags-list">
+                                    <span v-for="tag in resultDetails.tags" :key="tag" class="tag-chip">
+                                        <span class="material-icons">sell</span>
+                                        {{ tag }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="summary-block" v-if="resultDetails.summary">
+                                <div class="block-title">
+                                    <span class="material-icons">description</span>
+                                    视频摘要
+                                </div>
+                                <div class="summary-text">{{ resultDetails.summary }}</div>
+                            </div>
+                            <div class="result-content" v-if="!resultDetails.summary && (!resultDetails.tags || resultDetails.tags.length === 0)">
+                                已处理完成，但本次操作未返回标签或摘要。
+                            </div>
                         </div>
                         <div v-else-if="result" class="result-content">
                             {{ result }}
@@ -351,9 +469,11 @@
             data() {
                 return {
                     videoUrl: '',
-                    selectedType: '1',
+                    selectedType: '3',
                     isProcessing: false,
+                    processingStage: '',
                     result: null,
+                    resultDetails: null,
                     processTypes: [
                         {
                             value: '1',
@@ -381,6 +501,13 @@
                     }
                 };
             },
+            mounted() {
+                const params = new URLSearchParams(window.location.search);
+                const videoUrl = params.get('video_url') || localStorage.getItem('lastUploadedVideoUrl') || '';
+                if (videoUrl) {
+                    this.videoUrl = videoUrl;
+                }
+            },
             computed: {
                 canSubmit() {
                     return this.videoUrl.trim() && this.selectedType;
@@ -402,8 +529,10 @@
                 },
                 handleClear() {
                     this.videoUrl = '';
-                    this.selectedType = '1';
+                    this.selectedType = '3';
+                    this.processingStage = '';
                     this.result = null;
+                    this.resultDetails = null;
                 },
                 async handleSubmit() {
                     if (!this.canSubmit) {
@@ -412,6 +541,101 @@
                     }
 
                     this.isProcessing = true;
+                    this.processingStage = '处理中...';
+                    this.result = null;
+                    this.resultDetails = null;
+                    try {
+                        const data = await this.submitWithProgress();
+                        if (data.status === 'success') {
+                            this.resultDetails = this.normalizeResultDetails(data.data);
+                            this.showMessage('处理成功');
+                        } else {
+                            this.result = `处理失败: ${data.message}`;
+                            this.showMessage('处理失败');
+                        }
+                    } catch (error) {
+                        this.result = `处理失败: ${error.message}`;
+                        this.showMessage('处理失败');
+                    } finally {
+                        this.isProcessing = false;
+                        this.processingStage = '';
+                    }
+                },
+                async submitWithProgress() {
+                    const response = await fetch('/api/add/stream', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            video_url: this.videoUrl,
+                            action_type: parseInt(this.selectedType)
+                        })
+                    });
+
+                    if (!response.ok || !response.body) {
+                        const fallbackData = await this.parseApiResponse(response);
+                        return fallbackData;
+                    }
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder('utf-8');
+                    let buffer = '';
+                    let finalData = null;
+
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done) {
+                            break;
+                        }
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop() || '';
+                        for (const line of lines) {
+                            const eventText = line.trim();
+                            if (!eventText) {
+                                continue;
+                            }
+                            const event = JSON.parse(eventText);
+                            if (event.type === 'progress') {
+                                this.processingStage = event.message || '处理中...';
+                            } else if (event.type === 'result') {
+                                finalData = {
+                                    status: event.status,
+                                    data: event.data
+                                };
+                            } else if (event.type === 'error') {
+                                throw new Error(event.message || '处理失败');
+                            }
+                        }
+                    }
+
+                    const tail = buffer.trim();
+                    if (tail) {
+                        const event = JSON.parse(tail);
+                        if (event.type === 'result') {
+                            finalData = {
+                                status: event.status,
+                                data: event.data
+                            };
+                        } else if (event.type === 'error') {
+                            throw new Error(event.message || '处理失败');
+                        }
+                    }
+
+                    if (!finalData) {
+                        throw new Error('处理结束但未返回结果');
+                    }
+                    return finalData;
+                },
+                async handleSubmitLegacy() {
+                    if (!this.canSubmit) {
+                        this.showMessage('请输入视频URL并选择处理类型');
+                        return;
+                    }
+
+                    this.isProcessing = true;
+                    this.resultDetails = null;
                     try {
                         const response = await fetch('/api/add', {
                             method: 'POST',
@@ -424,10 +648,10 @@
                             })
                         });
 
-                        const data = await response.json();
+                        const data = await this.parseApiResponse(response);
                         
                         if (data.status === 'success') {
-                            this.result = `处理完成!\n\n视频URL: ${data.data.video_url}\n处理类型: ${data.data.action_type_desc}\n视频ID: ${data.data.m_id}`;
+                            this.resultDetails = this.normalizeResultDetails(data.data);
                             this.showMessage('处理成功');
                         } else {
                             this.result = `处理失败: ${data.message}`;
@@ -439,6 +663,51 @@
                     } finally {
                         this.isProcessing = false;
                     }
+                },
+                async parseApiResponse(response) {
+                    const contentType = response.headers.get('content-type') || '';
+                    const bodyText = await response.text();
+                    let data = null;
+
+                    if (contentType.includes('application/json')) {
+                        data = bodyText ? JSON.parse(bodyText) : {};
+                    }
+
+                    if (!response.ok) {
+                        const message = data?.message || this.formatHttpError(response, bodyText);
+                        throw new Error(message);
+                    }
+
+                    if (data) {
+                        return data;
+                    }
+
+                    try {
+                        return JSON.parse(bodyText);
+                    } catch (error) {
+                        throw new Error(this.formatHttpError(response, bodyText));
+                    }
+                },
+                normalizeResultDetails(data) {
+                    const result = data || {};
+                    return {
+                        ...result,
+                        tags: Array.isArray(result.tags) ? result.tags.filter(Boolean) : [],
+                        summary: result.summary || '',
+                        title: result.title || ''
+                    };
+                },
+                formatHttpError(response, bodyText) {
+                    const plainText = (bodyText || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                    if (response.status === 502) {
+                        return '服务处理连接被中断（502），可能是服务刚重启或处理任务被代理断开，请刷新后重试';
+                    }
+                    if (response.status === 504) {
+                        return '处理超时（504），请稍后在检索页查看结果或重试';
+                    }
+                    return plainText
+                        ? `服务返回 ${response.status}: ${plainText.slice(0, 160)}`
+                        : `服务返回 ${response.status} ${response.statusText}`;
                 }
             }
         });

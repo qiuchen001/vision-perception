@@ -21,6 +21,48 @@ class Config:
 
     # 默认使用CLIP模型
     DEFAULT_EMBEDDING_MODEL = EmbeddingType.CLIP
+
+    # 场景挖掘算法配置
+    _PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    _COPIED_SCENE_MINING_CONFIG = os.path.join(
+        _PROJECT_ROOT,
+        'app',
+        'algorithm',
+        'scene_mining',
+        'config-qwen-gemini.yaml'
+    )
+    SCENE_MINING_CONFIG_PATH = os.getenv(
+        'SCENE_MINING_CONFIG_PATH',
+        _COPIED_SCENE_MINING_CONFIG
+    )
+    SCENE_MINING_OUTPUT_DIR = os.getenv(
+        'SCENE_MINING_OUTPUT_DIR',
+        os.path.join(_PROJECT_ROOT, 'outputs', 'scene_mining')
+    )
+    SCENE_MINING_VIDEO_CACHE_DIR = os.getenv(
+        'SCENE_MINING_VIDEO_CACHE_DIR',
+        os.path.join(_PROJECT_ROOT, 'data', 'scene_mining_videos')
+    )
+    SCENE_MINING_VIDEO_URL_PREFIX = os.getenv(
+        'SCENE_MINING_VIDEO_URL_PREFIX',
+        'file:///app/videos'
+    )
+
+    QWEN3_VL_EMBEDDING_BASE_URL = os.getenv('QWEN3_VL_EMBEDDING_BASE_URL', 'http://localhost:8575')
+    QWEN3_VL_EMBEDDING_DIM = int(os.getenv('QWEN3_VL_EMBEDDING_DIM', '2048'))
+    MILVUS_VIDEO_TEXT_FEATURE_COLLECTION_NAME = os.getenv(
+        'MILVUS_VIDEO_TEXT_FEATURE_COLLECTION_NAME',
+        'video_text_features'
+    )
+    MILVUS_VIDEO_VISUAL_FEATURE_COLLECTION_NAME = os.getenv(
+        'MILVUS_VIDEO_VISUAL_FEATURE_COLLECTION_NAME',
+        'video_visual_features'
+    )
+    FRAME_SAMPLE_FPS = float(os.getenv('FRAME_SAMPLE_FPS', '1'))
+    FRAME_SAMPLE_MAX_FRAMES = int(os.getenv('FRAME_SAMPLE_MAX_FRAMES', '20'))
+    FRAME_SAMPLE_EVENT_FPS = float(os.getenv('FRAME_SAMPLE_EVENT_FPS', '1'))
+    FRAME_SAMPLE_EVENT_WEIGHT = float(os.getenv('FRAME_SAMPLE_EVENT_WEIGHT', '1.5'))
+    RAWDATA_REQUEST_TIMEOUT = float(os.getenv('RAWDATA_REQUEST_TIMEOUT', '3'))
     
     # 从环境变量获取模型类型
     @classmethod

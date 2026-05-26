@@ -7,5 +7,10 @@ models/embedding/cn-clip/
 models/embedding/bge-small-zh-v1.5/
 models/*
 node_modules
+venv/
 tests/*
 test
+outputs/
+data/scene_mining_videos/
+data/
+scripts/

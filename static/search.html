@@ -189,6 +189,23 @@
         .pagination-input {
             width: 100%;
         }
+        .top-k-group {
+            min-width: 8rem;
+        }
+        .top-k-select {
+            width: 100%;
+            padding: 1rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            background: white;
+            color: #374151;
+            font-size: 1rem;
+            outline: none;
+        }
+        .top-k-select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
         /* 搜索结果区域 */
         .results-container {
             display: flex;
@@ -236,6 +253,40 @@
             width: 100%;
             aspect-ratio: 16/9;
             object-fit: cover;
+        }
+        .thumbnail-wrap {
+            position: relative;
+            background: #111827;
+            aspect-ratio: 16/9;
+        }
+        .media-retry-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            color: #f9fafb;
+            background: rgba(17, 24, 39, 0.72);
+            font-size: 0.875rem;
+            text-align: center;
+            z-index: 2;
+        }
+        .media-retry-overlay .material-icons {
+            color: #fbbf24;
+        }
+        .retry-button {
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            border-radius: 0.375rem;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            padding: 0.35rem 0.75rem;
+            cursor: pointer;
+        }
+        .retry-button:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
         .video-info {
             padding: 1rem;
@@ -643,7 +694,7 @@
                                 id="page-input"
                                 type="number"
                                 class="material-input"
-                                v-model="page"
+                                v-model.number="page"
                                 min="1"
                                 aria-label="当前页码"
                             >
@@ -654,11 +705,27 @@
                                 id="page-size-input"
                                 type="number"
                                 class="material-input"
-                                v-model="pageSize"
+                                v-model.number="pageSize"
                                 min="1"
                                 max="20"
                                 aria-label="每页显示数量"
                             >
+                        </div>
+                        <div class="input-group top-k-group">
+                            <label class="input-label" for="top-k-select">Top K</label>
+                            <select
+                                id="top-k-select"
+                                class="top-k-select"
+                                v-model.number="topK"
+                                @change="page = 1"
+                                aria-label="最多返回的匹配结果数量"
+                            >
+                                <option :value="5">Top 5</option>
+                                <option :value="10">Top 10</option>
+                                <option :value="20">Top 20</option>
+                                <option :value="50">Top 50</option>
+                                <option :value="100">Top 100</option>
+                            </select>
                         </div>
                         <button 
                             class="button button-primary"
@@ -688,7 +755,7 @@
                         <div class="gallery-grid">
                             <div
                                 v-for="(video, index) in searchResults"
-                                :key="index"
+                                :key="video.mediaKey || index"
                                 class="video-card"
                                 @click="handleVideoSelect(video)"
                                 @keydown.enter="handleVideoSelect(video)"
@@ -703,12 +770,20 @@
                                 >
                                     相似度: {{ formatSimilarity(video.similarity) }}%
                                 </div>
-                                <img
-                                    :src="video.thumbnail_url"
-                                    :alt="video.title + ' 的缩略图'"
-                                    class="video-thumbnail"
-                                    loading="lazy"
-                                >
+                                <div class="thumbnail-wrap">
+                                    <img
+                                        :src="mediaUrlWithRetry(video.thumbnail_url, video.thumbnailRetry)"
+                                        :alt="video.title + ' 的缩略图'"
+                                        class="video-thumbnail"
+                                        loading="lazy"
+                                        @load="handleMediaLoaded(video, 'thumbnail')"
+                                        @error.stop="handleMediaError(video, 'thumbnail')"
+                                    >
+                                    <div v-if="video.thumbnailStatus === 'retrying'" class="media-retry-overlay">
+                                        <span class="material-icons">sync_problem</span>
+                                        <div>缩略图加载失败，{{ video.thumbnailRetryDelay }} 秒后重试</div>
+                                    </div>
+                                </div>
                                 <div class="video-info">
                                     <h3 class="video-title">{{ video.title }}</h3>
                                     <div class="video-tags" aria-label="视频标签">
@@ -729,10 +804,22 @@
                         <div class="video-player">
                             <video
                                 ref="videoPlayer"
+                                :key="selectedVideo.videoRenderKey"
                                 controls
-                                :src="selectedVideo.video_url"
+                                preload="metadata"
+                                :src="mediaUrlWithRetry(selectedVideo.video_url, selectedVideo.videoRetry)"
                                 style="width: 100%; height: 100%;"
+                                @loadedmetadata="handleMediaLoaded(selectedVideo, 'video')"
+                                @loadeddata="handleMediaLoaded(selectedVideo, 'video')"
+                                @canplay="handleMediaLoaded(selectedVideo, 'video')"
+                                @playing="handleMediaLoaded(selectedVideo, 'video')"
+                                @error="handleMediaError(selectedVideo, 'video')"
                             ></video>
+                            <div v-if="selectedVideo.videoStatus === 'retrying'" class="media-retry-overlay">
+                                <span class="material-icons">sync_problem</span>
+                                <div>视频加载失败，{{ selectedVideo.videoRetryDelay }} 秒后自动重试</div>
+                                <button class="retry-button" @click.stop="retryMediaNow(selectedVideo, 'video')">立即重试</button>
+                            </div>
                             <div v-if="selectedVideo.timestamp" class="time-jump" @click="jumpToTime">
                                 <span class="material-icons">timer</span>
                                 跳转到 {{ formatTime(selectedVideo.timestamp) }}
@@ -778,13 +865,13 @@
                             </div>
 
                             <!-- 摘要区块 -->
-                            <div class="info-block" v-if="selectedVideo.summary">
+                            <div class="info-block">
                                 <div class="info-block-title">
                                     <span class="material-icons">description</span>
                                     视频摘要
                                 </div>
-                                <div class="info-block-content">
-                                    {{ selectedVideo.summary }}
+                                <div class="info-block-content" :style="!selectedVideo.summary ? 'color:#9ca3af;font-style:italic' : ''">
+                                    {{ selectedVideo.summary || '暂无摘要' }}
                                 </div>
                             </div>
 
@@ -883,6 +970,7 @@
                     tagsInput: '',
                     page: 1,
                     pageSize: 6,
+                    topK: 10,
                     totalResults: 0,
 
                     // 搜索结果
@@ -895,7 +983,8 @@
                         show: false,
                         message: '',
                         timeout: null
-                    }
+                    },
+                    mediaRetryTimers: {}
                 };
             },
             computed: {
@@ -962,11 +1051,13 @@
                     }
 
                     this.isSearching = true;
+                    this.clearMediaRetryTimers();
                     try {
                         const formData = new FormData();
                         formData.append('search_type', this.selectedType);
                         formData.append('page', this.page);
                         formData.append('page_size', this.pageSize);
+                        formData.append('top_k', this.topK);
 
                         if (this.showTextInput) {
                             formData.append('text_query', this.textQuery);
@@ -992,7 +1083,7 @@
 
                         const data = await response.json();
                         if (data.code === 0) {
-                            this.searchResults = data.data.list;
+                            this.searchResults = data.data.list.map(this.normalizeVideo);
                             this.totalResults = data.data.total;
                             if (this.searchResults.length === 0) {
                                 this.showToast('未找到匹配的视频');
@@ -1023,11 +1114,153 @@
                     return true;
                 },
                 handleVideoSelect(video) {
-                    this.selectedVideo = video;
+                    this.selectedVideo = video.video_url ? video : this.normalizeVideo(video);
+                    this.selectedVideo.videoStatus = 'loading';
                     // 重置视频播放器时间
                     if (this.$refs.videoPlayer) {
                         this.$refs.videoPlayer.currentTime = 0;
                     }
+                },
+                normalizeVideo(video) {
+                    const mediaKey = video.m_id || `${video.video_url || ''}|${video.thumbnail_url || ''}|${video.title || ''}`;
+                    return {
+                        ...video,
+                        video_url: this.normalizeMediaUrl(video.video_url),
+                        thumbnail_url: this.normalizeMediaUrl(video.thumbnail_url),
+                        mediaKey,
+                        thumbnailRetry: 0,
+                        thumbnailRetryDelay: 0,
+                        thumbnailStatus: 'loading',
+                        videoRetry: 0,
+                        videoRetryDelay: 0,
+                        videoStatus: 'idle',
+                        videoRenderKey: `${mediaKey}:video:0`
+                    };
+                },
+                normalizeMediaUrl(url) {
+                    if (!url) {
+                        return '';
+                    }
+                    try {
+                        const parsed = new URL(url, window.location.origin);
+                        const path = parsed.pathname;
+                        const bucketPrefix = '/perception-mining/';
+                        if (path.startsWith('/media/')) {
+                            return path;
+                        }
+                        if (path.startsWith(bucketPrefix)) {
+                            return `/media${path}`;
+                        }
+                    } catch (error) {
+                        return url;
+                    }
+                    return url;
+                },
+                mediaTimerKey(video, type) {
+                    return `${type}:${video.mediaKey || video.video_url || video.thumbnail_url || video.title || Math.random()}`;
+                },
+                retryDelaySeconds(retryCount) {
+                    const schedule = [1, 2, 5, 10, 20, 30];
+                    return schedule[Math.min(retryCount, schedule.length - 1)];
+                },
+                mediaUrlWithRetry(url, retryCount) {
+                    if (!url) {
+                        return '';
+                    }
+                    if (!retryCount) {
+                        return url;
+                    }
+                    const separator = url.includes('?') ? '&' : '?';
+                    return `${url}${separator}_media_retry=${retryCount}`;
+                },
+                async warmMediaCache(url) {
+                    if (!url || !url.startsWith('/media/')) {
+                        return;
+                    }
+                    try {
+                        await fetch('/api/media/health', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ urls: [url], warm_cache: true })
+                        });
+                    } catch (error) {
+                        console.warn('Media warm cache failed:', error);
+                    }
+                },
+                handleMediaLoaded(video, type) {
+                    const key = this.mediaTimerKey(video, type);
+                    if (this.mediaRetryTimers[key]) {
+                        clearTimeout(this.mediaRetryTimers[key]);
+                        delete this.mediaRetryTimers[key];
+                    }
+                    if (type === 'thumbnail') {
+                        video.thumbnailStatus = 'ready';
+                        video.thumbnailRetryDelay = 0;
+                    } else {
+                        video.videoStatus = 'ready';
+                        video.videoRetryDelay = 0;
+                    }
+                },
+                handleMediaError(video, type) {
+                    const url = type === 'thumbnail' ? video.thumbnail_url : video.video_url;
+                    if (!url) {
+                        return;
+                    }
+                    if (type === 'video' && this.$refs.videoPlayer) {
+                        const player = this.$refs.videoPlayer;
+                        if (player.readyState >= HTMLMediaElement.HAVE_METADATA && player.networkState !== HTMLMediaElement.NETWORK_NO_SOURCE) {
+                            this.handleMediaLoaded(video, type);
+                            return;
+                        }
+                    }
+                    const key = this.mediaTimerKey(video, type);
+                    if (this.mediaRetryTimers[key]) {
+                        return;
+                    }
+
+                    const currentRetry = type === 'thumbnail' ? video.thumbnailRetry : video.videoRetry;
+                    const delaySeconds = this.retryDelaySeconds(currentRetry);
+                    if (type === 'thumbnail') {
+                        video.thumbnailStatus = 'retrying';
+                        video.thumbnailRetryDelay = delaySeconds;
+                    } else {
+                        video.videoStatus = 'retrying';
+                        video.videoRetryDelay = delaySeconds;
+                    }
+
+                    this.warmMediaCache(url);
+                    this.mediaRetryTimers[key] = setTimeout(() => {
+                        delete this.mediaRetryTimers[key];
+                        if (type === 'thumbnail') {
+                            video.thumbnailRetry += 1;
+                            video.thumbnailStatus = 'loading';
+                        } else {
+                            video.videoRetry += 1;
+                            video.videoStatus = 'loading';
+                            video.videoRenderKey = `${video.mediaKey}:video:${video.videoRetry}`;
+                        }
+                    }, delaySeconds * 1000);
+                },
+                retryMediaNow(video, type) {
+                    const key = this.mediaTimerKey(video, type);
+                    if (this.mediaRetryTimers[key]) {
+                        clearTimeout(this.mediaRetryTimers[key]);
+                        delete this.mediaRetryTimers[key];
+                    }
+                    if (type === 'thumbnail') {
+                        video.thumbnailRetry += 1;
+                        video.thumbnailStatus = 'loading';
+                        video.thumbnailRetryDelay = 0;
+                    } else {
+                        video.videoRetry += 1;
+                        video.videoStatus = 'loading';
+                        video.videoRetryDelay = 0;
+                        video.videoRenderKey = `${video.mediaKey}:video:${video.videoRetry}`;
+                    }
+                },
+                clearMediaRetryTimers() {
+                    Object.values(this.mediaRetryTimers).forEach(timer => clearTimeout(timer));
+                    this.mediaRetryTimers = {};
                 },
                 // 格式化时间
                 formatTime(seconds) {
@@ -1069,6 +1302,9 @@
                         this.goToPage(this.page + 1);
                     }
                 }
+            },
+            beforeUnmount() {
+                this.clearMediaRetryTimers();
             }
         });
 

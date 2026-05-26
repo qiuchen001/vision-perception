@@ -1,6 +1,7 @@
 import os, json
 from openai import OpenAI
 from dotenv import load_dotenv
+from app.utils.embedding.embedding_factory import EmbeddingFactory
 from app.utils.logger import logger
 load_dotenv()
 
@@ -8,6 +9,11 @@ load_dotenv()
 def embed_fn(text):
     """生成文本的embedding向量"""
     try:
+        if os.getenv("EMBEDDING_MODEL", "").lower() == "qwen3-vl":
+            embedding = EmbeddingFactory.create_embedding().embedding_text(text)
+            logger.info(f"成功生成Qwen3-VL文本embedding,维度:{len(embedding)}")
+            return embedding
+
         client = OpenAI(
             api_key=os.getenv("API_KEY"),
             base_url=os.getenv("BASE_URL"),
@@ -31,5 +37,4 @@ def embed_fn(text):
     except Exception as e:
         logger.error(f"生成embedding失败:{str(e)}")
         raise e
-
 

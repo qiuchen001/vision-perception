@@ -178,6 +178,11 @@
             font-size: 0.875rem;
             color: #6b7280;
         }
+        .file-list {
+            display: grid;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
         /* Material输入框 */
         .material-input-group {
             position: relative;
@@ -244,6 +249,101 @@
         .result-content {
             color: #6b7280;
             font-size: 0.875rem;
+        }
+        .result-list {
+            display: grid;
+            gap: 1rem;
+        }
+        .analysis-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            background: #fff;
+        }
+        .analysis-card.processing {
+            border-color: #bfdbfe;
+            background: #eff6ff;
+        }
+        .analysis-card.error {
+            border-color: #fecaca;
+            background: #fef2f2;
+        }
+        .analysis-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.75rem;
+        }
+        .analysis-header .material-icons.success {
+            color: #10b981;
+        }
+        .analysis-header .material-icons.processing {
+            color: #2563eb;
+        }
+        .analysis-header .material-icons.error {
+            color: #dc2626;
+        }
+        .result-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .meta-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+        .meta-label {
+            color: #6b7280;
+            font-size: 0.75rem;
+            margin-bottom: 0.25rem;
+        }
+        .meta-value {
+            color: #111827;
+            word-break: break-all;
+        }
+        .summary-block {
+            border: 1px solid #dbeafe;
+            background: #eff6ff;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-top: 0.75rem;
+        }
+        .block-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #1e40af;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .summary-text {
+            color: #1f2937;
+            line-height: 1.65;
+            white-space: pre-line;
+        }
+        .tags-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .tag-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: #eef2ff;
+            color: #3730a3;
+            border: 1px solid #c7d2fe;
+            border-radius: 999px;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8125rem;
+        }
+        .tag-chip .material-icons {
+            font-size: 1rem;
         }
         /* 底部操作区 */
         .actions {
@@ -324,17 +424,69 @@
             background: #e5e7eb;
             border-radius: 0.25rem;
             overflow: hidden;
-            margin: 0.5rem 0;
+            margin: 0.25rem 0;
         }
         .progress-bar-fill {
             height: 100%;
-            background: #2563eb;
             transition: width 0.3s ease;
         }
+        .upload-fill {
+            background: #10b981;
+        }
+        .analyze-fill {
+            background: #7c3aed;
+        }
         .progress-text {
-            font-size: 0.875rem;
+            font-size: 0.8125rem;
             color: #6b7280;
-            margin-top: 0.25rem;
+            margin-top: 0.375rem;
+        }
+        /* 两阶段进度 */
+        .progress-phases {
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem;
+            margin: 0.5rem 0;
+        }
+        .progress-phase {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .phase-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .phase-label {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+        }
+        .phase-label .material-icons {
+            font-size: 1rem;
+        }
+        .phase-label.upload-label {
+            color: #059669;
+        }
+        .phase-label.analyze-label {
+            color: #6d28d9;
+        }
+        .phase-pct {
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: #9ca3af;
+        }
+        .progress-phase .progress-bar {
+            margin: 0;
+        }
+        .phase-bg-upload {
+            background: #d1fae5;
+        }
+        .phase-bg-analyze {
+            background: #ede9fe;
         }
         /* 结果信息样式 */
         .result-info {
@@ -457,25 +609,28 @@
                                 ref="fileInput"
                                 style="display: none"
                                 accept=".mp4,.avi,.mov,.mkv"
+                                multiple
                                 @change="handleFileSelect"
                             >
                             <span class="material-icons">cloud_upload</span>
-                            <p class="primary-text">拖放文件到此处</p>
+                            <p class="primary-text">拖放一个或多个视频到此处</p>
                             <div class="divider">或</div>
                             <button class="select-button" @click.stop="$refs.fileInput.click()">
                                 <span class="material-icons">upload_file</span>
                                 选择文件
                             </button>
-                            <p class="secondary-text">支持MP4, AVI, MOV等格式</p>
+                            <p class="secondary-text">支持批量上传；上传后会自动执行“内容挖掘和总结”</p>
                         </div>
 
                         <!-- 已选文件 -->
-                        <div v-if="selectedFile" class="file-card">
-                            <span class="material-icons">check_circle</span>
-                            <div class="file-info">
-                                <div class="file-name">{{ selectedFile.name }}</div>
-                                <div class="file-meta">
-                                    {{ Math.round(selectedFile.size / 1024 / 1024) }}MB • 已选择
+                        <div v-if="selectedFiles.length" class="file-list">
+                            <div v-for="file in selectedFiles" :key="file.name + file.size + file.lastModified" class="file-card">
+                                <span class="material-icons">check_circle</span>
+                                <div class="file-info">
+                                    <div class="file-name">{{ file.name }}</div>
+                                    <div class="file-meta">
+                                        {{ formatFileSize(file.size) }} • 已选择，等待上传后自动处理
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -504,63 +659,103 @@
                             处理结果
                         </div>
                         
-                        <div v-if="isProcessing" class="result-content">
-                            <div>正在处理视频...</div>
-                            <div class="loading-spinner"></div>
-                        </div>
-                        
-                        <div v-else-if="result" class="result-content">
-                            <div v-if="result.status === 'success' && result.data.status === 'completed'">
-                                <div class="space-y-4">
+                        <div v-if="batchResults.length" class="result-content result-list">
+                            <div
+                                v-for="item in batchResults"
+                                :key="item.id"
+                                class="analysis-card"
+                                :class="{ processing: item.status === 'uploading' || item.status === 'uploaded' || item.status === 'processing', error: item.status === 'error' }"
+                            >
+                                <div class="analysis-header">
+                                    <span class="material-icons" :class="cardIconClass(item)">{{ cardIcon(item) }}</span>
+                                    <span>{{ item.fileName }}</span>
+                                </div>
+                                <template v-if="item.status === 'queued' || item.status === 'uploading' || item.status === 'uploaded' || item.status === 'processing'">
+                                    <div class="progress-text" style="margin-bottom:0.25rem">{{ item.message || '等待处理中...' }}</div>
+                                    <div class="progress-phases">
+                                        <!-- 上传阶段 -->
+                                        <div class="progress-phase">
+                                            <div class="phase-header">
+                                                <span class="phase-label upload-label">
+                                                    <span class="material-icons">cloud_upload</span>上传
+                                                </span>
+                                                <span class="phase-pct">{{ uploadPct(item) }}%</span>
+                                            </div>
+                                            <div class="progress-bar phase-bg-upload">
+                                                <div class="progress-bar-fill upload-fill" :style="{ width: uploadPct(item) + '%' }"></div>
+                                            </div>
+                                        </div>
+                                        <!-- 分析阶段 -->
+                                        <div class="progress-phase">
+                                            <div class="phase-header">
+                                                <span class="phase-label analyze-label">
+                                                    <span class="material-icons">analytics</span>分析
+                                                </span>
+                                                <span class="phase-pct">{{ analyzePct(item) }}%</span>
+                                            </div>
+                                            <div class="progress-bar phase-bg-analyze">
+                                                <div class="progress-bar-fill analyze-fill" :style="{ width: analyzePct(item) + '%' }"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template v-else-if="item.status === 'success'">
                                     <div class="status-success">
                                         <span class="material-icons">check_circle</span>
-                                        <span>处理完成</span>
+                                        <span>处理完成，已自动抽取标签和摘要</span>
                                     </div>
-                                    <div class="result-info mt-4">
-                                        <div class="info-item">
-                                            <span class="material-icons">movie</span>
-                                            <span>地址: {{ result.data.file_name }}</span>
+                                    <div class="result-meta">
+                                        <div class="meta-item">
+                                            <div class="meta-label">处理类型</div>
+                                            <div class="meta-value">{{ item.details.action_type_desc || '内容挖掘和总结' }}</div>
                                         </div>
-                                        <div class="info-item" v-if="result.data.title">
-                                            <span class="material-icons">title</span>
-                                            <span>标题: {{ result.data.title }}</span>
+                                        <div class="meta-item">
+                                            <div class="meta-label">视频 ID</div>
+                                            <div class="meta-value">{{ item.details.m_id || '-' }}</div>
                                         </div>
-                                        <div class="info-item" v-if="result.data.duration">
-                                            <span class="material-icons">schedule</span>
-                                            <span>时长: {{ result.data.duration }}秒</span>
+                                        <div class="meta-item" v-if="item.details.title">
+                                            <div class="meta-label">标题</div>
+                                            <div class="meta-value">{{ item.details.title }}</div>
                                         </div>
-                                        <div class="info-item" v-if="result.data.frame_count">
-                                            <span class="material-icons">filter_frames</span>
-                                            <span>总帧数: {{ result.data.frame_count }}</span>
-                                        </div>
-                                        <div class="info-item" v-if="result.data.resolution">
-                                            <span class="material-icons">aspect_ratio</span>
-                                            <span>分辨率: {{ result.data.resolution }}</span>
-                                        </div>
-                                        <div class="info-item" v-if="result.data.video_url">
-                                            <span class="material-icons">link</span>
-                                            <a :href="result.data.video_url" target="_blank" class="text-blue-600 hover:underline">
-                                                查看视频
-                                            </a>
-                                        </div>
-                                        <!-- 优化处理视频按钮 -->
-                                        <div class="info-item">
-                                            <span class="material-icons">settings</span>
-                                            <a href="/process.html" class="text-blue-600 hover:underline">
-                                                开始处理视频
-                                            </a>
+                                        <div class="meta-item" v-if="item.details.video_url">
+                                            <div class="meta-label">视频地址</div>
+                                            <div class="meta-value">
+                                                <a :href="item.details.video_url" target="_blank">查看视频</a>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div class="summary-block" v-if="item.details.tags && item.details.tags.length">
+                                        <div class="block-title">
+                                            <span class="material-icons">local_offer</span>
+                                            抽取标签
+                                        </div>
+                                        <div class="tags-list">
+                                            <span v-for="tag in item.details.tags" :key="tag" class="tag-chip">
+                                                <span class="material-icons">sell</span>
+                                                {{ tag }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="summary-block" v-if="item.details.summary">
+                                        <div class="block-title">
+                                            <span class="material-icons">description</span>
+                                            视频摘要
+                                        </div>
+                                        <div class="summary-text">{{ item.details.summary }}</div>
+                                    </div>
+                                    <div class="result-content" v-if="!item.details.summary && (!item.details.tags || item.details.tags.length === 0)">
+                                        已处理完成，但本次操作未返回标签或摘要。
+                                    </div>
+                                </template>
+                                <div v-else-if="item.status === 'error'" class="error-message">
+                                    <span class="material-icons">error</span>
+                                    <span>{{ item.error || '处理失败' }}</span>
                                 </div>
-                            </div>
-                            <div v-else-if="result.status === 'error'" class="error-message">
-                                <span class="material-icons text-red-600 mr-2">error</span>
-                                <span>{{ result.message || '处理失败' }}</span>
                             </div>
                         </div>
                         
                         <div v-else class="result-content text-gray-500">
-                            等待处理中...
+                            等待上传；上传完成后会自动进行内容挖掘和总结。
                         </div>
                     </div>
                 </div>
@@ -574,7 +769,7 @@
                     >
                         <span v-if="isProcessing" class="loading-spinner"></span>
                         <span v-else class="material-icons">settings</span>
-                        开始上传
+                        {{ isProcessing ? uploadStatus || '处理中...' : '开始上传并自动处理' }}
                     </button>
                 </div>
             </div>
@@ -597,28 +792,33 @@
                     activeTab: 'upload',
                     isDragging: false,
                     isProcessing: false,
-                    selectedFile: null,
+                    selectedFiles: [],
                     rawId: '',
                     result: null,
+                    batchResults: [],
+                    batchConcurrency: 10,
                     snackbar: {
                         show: false,
                         text: '',
                         timeout: null
                     },
-                    uploadProgress: 0
+                    uploadStatus: ''
                 };
             },
             computed: {
                 canSubmit() {
-                    return this.activeTab === 'upload' ? !!this.selectedFile : !!this.rawId.trim();
-                },
+                    return this.activeTab === 'upload' ? this.selectedFiles.length > 0 : !!this.rawId.trim();
+                }
+            },
+            mounted() {
+                this.loadUploadConfig();
             },
             methods: {
                 showMessage(text) {
                     if (this.snackbar.timeout) {
                         clearTimeout(this.snackbar.timeout);
                     }
-                    
+
                     this.snackbar = {
                         show: true,
                         text,
@@ -629,29 +829,57 @@
                 },
                 handleFileDrop(event) {
                     this.isDragging = false;
-                    const file = event.dataTransfer.files[0];
-                    if (this.validateFile(file)) {
-                        this.selectedFile = file;
-                        this.showMessage(`已选择文件: ${file.name}`);
-                    }
+                    this.setSelectedFiles(Array.from(event.dataTransfer.files || []));
                 },
                 handleFileSelect(event) {
-                    const file = event.target.files[0];
-                    if (this.validateFile(file)) {
-                        this.selectedFile = file;
-                        this.showMessage(`已选择文件: ${file.name}`);
+                    this.setSelectedFiles(Array.from(event.target.files || []));
+                    event.target.value = '';
+                },
+                setSelectedFiles(files) {
+                    const validFiles = files.filter(file => this.validateFile(file));
+                    if (!validFiles.length) {
+                        return;
                     }
+                    this.selectedFiles = validFiles;
+                    this.batchResults = [];
+                    this.result = null;
+                    this.showMessage(`已选择 ${validFiles.length} 个视频`);
                 },
                 validateFile(file) {
                     if (!file) {
                         this.showMessage('请选择有效的文件');
                         return false;
                     }
-                    if (file.size > 100 * 1024 * 1024) {
-                        this.showMessage('文件大小不能超过100MB');
+                    const allowedExt = /\.(mp4|avi|mov|mkv)$/i;
+                    if (!allowedExt.test(file.name || '')) {
+                        this.showMessage(`不支持的文件格式: ${file.name}`);
                         return false;
                     }
                     return true;
+                },
+                formatFileSize(size) {
+                    if (size >= 1024 * 1024 * 1024) {
+                        return `${(size / 1024 / 1024 / 1024).toFixed(2)}GB`;
+                    }
+                    return `${Math.max(1, Math.round(size / 1024 / 1024))}MB`;
+                },
+                cardIcon(item) {
+                    if (item.status === 'success') {
+                        return 'check_circle';
+                    }
+                    if (item.status === 'error') {
+                        return 'error';
+                    }
+                    return 'autorenew';
+                },
+                cardIconClass(item) {
+                    if (item.status === 'success') {
+                        return 'success';
+                    }
+                    if (item.status === 'error') {
+                        return 'error';
+                    }
+                    return 'processing';
                 },
                 handleSubmit() {
                     if (this.activeTab === 'upload') {
@@ -660,90 +888,252 @@
                         this.handleRawId();
                     }
                 },
+                createBatchItem(fileName, size = 0) {
+                    return {
+                        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+                        fileName,
+                        size,
+                        status: 'queued',
+                        progress: 0,
+                        message: '等待上传...',
+                        video_url: '',
+                        details: null,
+                        error: ''
+                    };
+                },
+                async loadUploadConfig() {
+                    try {
+                        const response = await fetch('/api/upload/config', { cache: 'no-store' });
+                        const data = await response.json();
+                        const value = Number(data?.data?.max_concurrent_videos);
+                        if (data.status === 'success' && Number.isFinite(value) && value > 0) {
+                            this.batchConcurrency = Math.max(1, Math.min(Math.floor(value), 50));
+                        }
+                    } catch (error) {
+                        console.warn('Failed to load upload concurrency config, using default 10:', error);
+                    }
+                },
                 async handleUpload() {
-                    if (!this.selectedFile) {
+                    if (!this.selectedFiles.length) {
                         this.showMessage('请先选择视频文件');
                         return;
                     }
 
                     this.isProcessing = true;
-                    this.uploadProgress = 0;
-                    
+                    this.result = null;
+                    this.batchResults = this.selectedFiles.map(file => this.createBatchItem(file.name, file.size));
+                    await this.loadUploadConfig();
+                    const concurrency = Math.max(1, Math.min(this.batchConcurrency, this.selectedFiles.length));
+                    this.uploadStatus = `批量上传中，最大并发 ${concurrency} 个视频...`;
+                    await this.runConcurrent(
+                        this.selectedFiles.length,
+                        concurrency,
+                        (activeCount, completedCount, total) => {
+                            this.uploadStatus = `批量上传中 ${completedCount}/${total}，当前并发 ${activeCount}（最大 ${concurrency}）`;
+                        },
+                        index => this.uploadSelectedFile(index)
+                    );
+
+                    const processIndexes = this.batchResults
+                        .map((item, index) => item.video_url && item.status !== 'error' ? index : -1)
+                        .filter(index => index >= 0);
+                    if (processIndexes.length) {
+                        this.uploadStatus = `批量处理 ${processIndexes.length} 个已上传视频，最大并发 ${concurrency}...`;
+                        await this.runConcurrent(
+                            processIndexes.length,
+                            concurrency,
+                            (activeCount, completedCount, total) => {
+                                this.uploadStatus = `批量处理中 ${completedCount}/${total}，当前并发 ${activeCount}（最大 ${concurrency}）`;
+                            },
+                            slot => this.processUploadedItem(processIndexes[slot])
+                        );
+                    }
+
+                    this.isProcessing = false;
+                    this.uploadStatus = '';
+                    const failedCount = this.batchResults.filter(item => item.status === 'error').length;
+                    this.showMessage(failedCount ? `完成，${failedCount} 个视频失败` : '全部视频处理完成');
+                },
+                async runConcurrent(total, concurrency, onProgress, worker) {
+                    let nextIndex = 0;
+                    let activeCount = 0;
+                    let completedCount = 0;
+                    const runNext = async () => {
+                        while (nextIndex < total) {
+                            const index = nextIndex++;
+                            activeCount += 1;
+                            onProgress(activeCount, completedCount, total);
+                            try {
+                                await worker(index);
+                            } finally {
+                                activeCount -= 1;
+                                completedCount += 1;
+                                onProgress(activeCount, completedCount, total);
+                            }
+                        }
+                    };
+                    await Promise.all(Array.from({ length: Math.min(concurrency, total) }, () => runNext()));
+                },
+                async uploadSelectedFile(index) {
+                    const file = this.selectedFiles[index];
+                    const item = this.batchResults[index];
                     try {
-                        const formData = new FormData();
-                        formData.append('file', this.selectedFile);
-
-                        const response = await fetch('/api/upload', {
-                            method: 'POST',
-                            body: formData
-                        });
-
-                        if (!response.ok) {
-                            throw new Error(`上传失败: ${response.status} ${response.statusText}`);
+                        item.status = 'uploading';
+                        item.message = '正在上传视频...';
+                        const uploadData = await this.uploadFileDirect(file, item);
+                        const uploaded = uploadData.data || {};
+                        if (!uploaded.video_url) {
+                            throw new Error('上传成功但未返回视频地址');
                         }
-
-                        // 获取响应的Content-Type
-                        const contentType = response.headers.get('content-type');
-                        let data;
-
-                        if (contentType && contentType.includes('application/json')) {
-                            // JSON格式响应
-                            data = await response.json();
-                            console.log('JSON格式响应:', data)
-                            if (data.status === 'success') {
-                                this.result = {
-                                    status: 'success',
-                                    data: {
-                                        status: 'completed',
-                                        file_name: data.data.file_name,
-                                        video_url: data.data.video_url,
-                                        title: data.data.title,
-                                        frame_count: data.data.frame_count,
-                                        processed_frames: data.data.processed_frames
-                                    }
-                                };
-                            } else {
-                                throw new Error(data.message || '处理失败');
-                            }
-                        } else {
-                            // 文本格式响应
-                            const text = await response.text();
-                            const resultLines = text.trim().split('\n');
-                            console.log('文本格式响应:', text)
-                            
-                            if (resultLines[0].includes('处理完成') || resultLines[0].includes('success')) {
-                                // 尝试从文本中提取信息
-                                const fileNameMatch = text.match(/文件名:\s*(.+)/i);
-                                const videoUrlMatch = text.match(/视频URL:\s*(.+)/i);
-                                const titleMatch = text.match(/标题:\s*(.+)/i);
-                                const framesMatch = text.match(/处理帧数:\s*(\d+)\/(\d+)/i);
-                                
-                                this.result = {
-                                    status: 'success',
-                                    data: {
-                                        status: 'completed',
-                                        file_name: fileNameMatch ? fileNameMatch[1].trim() : this.selectedFile.name,
-                                        video_url: videoUrlMatch ? videoUrlMatch[1].trim() : '',
-                                        title: titleMatch ? titleMatch[1].trim() : '',
-                                        frame_count: framesMatch ? parseInt(framesMatch[2]) : 0,
-                                        processed_frames: framesMatch ? parseInt(framesMatch[1]) : 0
-                                    }
-                                };
-                            } else {
-                                throw new Error(text || '处理失败');
-                            }
-                        }
-                        
-                        this.isProcessing = false;
+                        item.video_url = uploaded.video_url;
+                        item.uploadData = uploaded;
+                        item.status = 'uploaded';
+                        item.progress = 45;
+                        item.message = '上传完成，等待批量处理...';
+                        localStorage.setItem('lastUploadedVideoUrl', uploaded.video_url);
                     } catch (error) {
                         console.error('Upload error:', error);
-                        this.showMessage(error.message || '上传处理失败');
-                        this.result = {
-                            status: 'error',
-                            message: error.message || '上传处理失败'
-                        };
-                        this.isProcessing = false;
+                        item.status = 'error';
+                        item.error = error.message || '上传失败';
+                        item.message = item.error;
+                        this.showMessage(`${file.name}: ${item.error}`);
                     }
+                },
+                async processUploadedItem(index) {
+                    const item = this.batchResults[index];
+                    try {
+                        await this.autoProcessVideoUrl(item.video_url, item, item.uploadData || {});
+                    } catch (error) {
+                        console.error('Process error:', error);
+                        item.status = 'error';
+                        item.error = error.message || '处理失败';
+                        item.message = item.error;
+                        this.showMessage(`${item.fileName}: ${item.error}`);
+                    }
+                },
+                uploadFileDirect(file, item) {
+                    return new Promise((resolve, reject) => {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('POST', '/api/upload');
+                        xhr.responseType = 'json';
+                        xhr.timeout = 60 * 60 * 1000;
+
+                        xhr.upload.onprogress = (event) => {
+                            if (event.lengthComputable) {
+                                item.progress = Math.max(1, Math.min(40, Math.round((event.loaded / event.total) * 40)));
+                                item.message = `正在上传视频... ${Math.round((event.loaded / event.total) * 100)}%`;
+                            } else {
+                                item.message = '正在上传视频...';
+                            }
+                        };
+
+                        xhr.onload = async () => {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                const data = xhr.response || JSON.parse(xhr.responseText || '{}');
+                                if (data.status === 'success') {
+                                    item.progress = 40;
+                                    item.message = '上传完成，准备自动处理...';
+                                    resolve(data);
+                                } else {
+                                    reject(new Error(data.message || '上传失败'));
+                                }
+                            } else {
+                                try {
+                                    item.message = '直接上传失败，切换为分片重试...';
+                                    const data = await this.uploadFileInChunks(file, item);
+                                    resolve(data);
+                                } catch (error) {
+                                    reject(new Error(`上传失败: ${xhr.status} ${xhr.statusText || error.message}`));
+                                }
+                            }
+                        };
+
+                        xhr.onerror = async () => {
+                            try {
+                                item.message = '直接上传网络异常，切换为分片重试...';
+                                const data = await this.uploadFileInChunks(file, item);
+                                resolve(data);
+                            } catch (error) {
+                                reject(error);
+                            }
+                        };
+                        xhr.ontimeout = async () => {
+                            try {
+                                item.message = '直接上传超时，切换为分片重试...';
+                                const data = await this.uploadFileInChunks(file, item);
+                                resolve(data);
+                            } catch (error) {
+                                reject(error);
+                            }
+                        };
+
+                        xhr.send(formData);
+                    });
+                },
+                async uploadFileInChunks(file, item) {
+                    const chunkSize = 8 * 1024 * 1024;
+                    const totalChunks = Math.max(1, Math.ceil(file.size / chunkSize));
+                    const uploadId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+                    let lastResponse = null;
+
+                    for (let index = 0; index < totalChunks; index++) {
+                        const start = index * chunkSize;
+                        const end = Math.min(file.size, start + chunkSize);
+                        const formData = new FormData();
+                        formData.append('chunk', file.slice(start, end), file.name);
+                        formData.append('upload_id', uploadId);
+                        formData.append('chunk_index', index.toString());
+                        formData.append('total_chunks', totalChunks.toString());
+                        formData.append('file_name', file.name);
+
+                        item.message = `正在上传分片 ${index + 1}/${totalChunks}...`;
+                        const data = await this.uploadChunkWithRetry(formData, index, totalChunks);
+                        lastResponse = data;
+                        if (data.status === 'error') {
+                            throw new Error(data.message || '上传失败');
+                        }
+
+                        item.progress = Math.max(1, Math.min(40, Math.round(((index + 1) / totalChunks) * 40)));
+                        item.message = data.status === 'success'
+                            ? '上传完成，正在写入视频记录...'
+                            : `已上传 ${index + 1}/${totalChunks} 个分片`;
+                    }
+
+                    if (!lastResponse || lastResponse.status !== 'success') {
+                        throw new Error(lastResponse?.message || '上传未完成');
+                    }
+
+                    return lastResponse;
+                },
+                async uploadChunkWithRetry(formData, index, totalChunks) {
+                    const maxAttempts = 5;
+                    let lastError = null;
+                    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                        try {
+                            const response = await fetch('/api/upload/chunk', {
+                                method: 'POST',
+                                body: formData,
+                                cache: 'no-store'
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`分片 ${index + 1}/${totalChunks} 上传失败: ${response.status} ${response.statusText}`);
+                            }
+
+                            return await response.json();
+                        } catch (error) {
+                            lastError = error;
+                            if (attempt >= maxAttempts) {
+                                break;
+                            }
+                            const delayMs = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
+                            this.showMessage(`分片 ${index + 1}/${totalChunks} 上传失败，正在第 ${attempt + 1} 次重试...`);
+                            await new Promise(resolve => setTimeout(resolve, delayMs));
+                        }
+                    }
+                    throw lastError || new Error(`分片 ${index + 1}/${totalChunks} 上传失败`);
                 },
                 async handleRawId() {
                     if (!this.rawId.trim()) {
@@ -752,7 +1142,11 @@
                     }
 
                     this.isProcessing = true;
-                    
+                    this.result = null;
+                    const item = this.createBatchItem(this.rawId.trim());
+                    this.batchResults = [item];
+                    this.uploadStatus = '正在处理 raw_id...';
+
                     try {
                         const response = await fetch('/api/process', {
                             method: 'POST',
@@ -776,18 +1170,14 @@
                             // JSON格式响应
                             data = await response.json();
                             if (data.status === 'success') {
-                                this.result = {
-                                    status: 'success',
-                                    data: {
-                                        status: 'completed',
-                                        file_name: data.data.file_name || '视频处理任务',
-                                        video_url: data.data.video_url || '',
-                                        title: data.data.title || '',
-                                        frame_count: data.data.frame_count || 0,
-                                        duration: data.data.duration || 0,
-                                        resolution: data.data.resolution || ''
-                                    }
-                                };
+                                const uploadData = data.data || {};
+                                if (!uploadData.video_url) {
+                                    throw new Error('raw_id 处理成功但未返回视频地址');
+                                }
+                                item.fileName = uploadData.file_name || item.fileName;
+                                item.video_url = uploadData.video_url;
+                                localStorage.setItem('lastUploadedVideoUrl', uploadData.video_url);
+                                await this.autoProcessVideoUrl(uploadData.video_url, item, uploadData);
                             } else {
                                 throw new Error(data.message || '处理失败');
                             }
@@ -801,37 +1191,188 @@
                                 const fileNameMatch = text.match(/文件名:\s*(.+)/i);
                                 const videoUrlMatch = text.match(/视频URL:\s*(.+)/i);
                                 const titleMatch = text.match(/标题:\s*(.+)/i);
-                                const framesMatch = text.match(/处理帧数:\s*(\d+)\/(\d+)/i);
-                                const durationMatch = text.match(/时长:\s*(\d+(\.\d+)?)/i);
-                                const resolutionMatch = text.match(/分辨率:\s*(.+)/i);
-                                
-                                this.result = {
-                                    status: 'success',
-                                    data: {
-                                        status: 'completed',
-                                        file_name: fileNameMatch ? fileNameMatch[1].trim() : '视频处理任务',
-                                        video_url: videoUrlMatch ? videoUrlMatch[1].trim() : '',
-                                        title: titleMatch ? titleMatch[1].trim() : '',
-                                        frame_count: framesMatch ? parseInt(framesMatch[2]) : 0,
-                                        duration: durationMatch ? parseFloat(durationMatch[1]) : 0,
-                                        resolution: resolutionMatch ? resolutionMatch[1].trim() : ''
-                                    }
+                                const uploadData = {
+                                    file_name: fileNameMatch ? fileNameMatch[1].trim() : '视频处理任务',
+                                    video_url: videoUrlMatch ? videoUrlMatch[1].trim() : '',
+                                    title: titleMatch ? titleMatch[1].trim() : ''
                                 };
+                                if (!uploadData.video_url) {
+                                    throw new Error('raw_id 处理成功但未返回视频地址');
+                                }
+                                item.fileName = uploadData.file_name;
+                                item.video_url = uploadData.video_url;
+                                localStorage.setItem('lastUploadedVideoUrl', uploadData.video_url);
+                                await this.autoProcessVideoUrl(uploadData.video_url, item, uploadData);
                             } else {
                                 throw new Error(text || '处理失败');
                             }
                         }
-                        
+
                         this.isProcessing = false;
+                        this.uploadStatus = '';
                     } catch (error) {
                         console.error('RawId process error:', error);
                         this.showMessage(error.message || '处理失败');
-                        this.result = {
-                            status: 'error',
-                            message: error.message || '处理失败'
-                        };
+                        item.status = 'error';
+                        item.error = error.message || '处理失败';
+                        item.message = item.error;
                         this.isProcessing = false;
+                        this.uploadStatus = '';
                     }
+                },
+                async autoProcessVideoUrl(videoUrl, item, uploadData = {}) {
+                    item.status = 'processing';
+                    item.progress = Math.max(item.progress || 0, 45);
+                    item.message = '处理中...';
+                    this.uploadStatus = `自动处理: ${item.fileName}`;
+
+                    const response = await fetch('/api/add/stream', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            video_url: videoUrl,
+                            action_type: 3
+                        })
+                    });
+
+                    if (!response.ok || !response.body) {
+                        const fallbackData = await this.parseApiResponse(response);
+                        if (fallbackData.status !== 'success') {
+                            throw new Error(fallbackData.message || '处理失败');
+                        }
+                        item.status = 'success';
+                        item.progress = 100;
+                        item.message = '处理完成';
+                        item.details = this.normalizeResultDetails(fallbackData.data, uploadData);
+                        return item.details;
+                    }
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder('utf-8');
+                    let buffer = '';
+                    let finalData = null;
+
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done) {
+                            break;
+                        }
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop() || '';
+                        for (const line of lines) {
+                            const eventText = line.trim();
+                            if (eventText) {
+                                finalData = this.applyProcessEvent(eventText, item, finalData);
+                            }
+                        }
+                    }
+
+                    const tail = buffer.trim();
+                    if (tail) {
+                        finalData = this.applyProcessEvent(tail, item, finalData);
+                    }
+
+                    if (!finalData) {
+                        throw new Error('处理结束但未返回结果');
+                    }
+                    item.status = 'success';
+                    item.progress = 100;
+                    item.message = '处理完成';
+                    item.details = this.normalizeResultDetails(finalData.data, uploadData);
+                    return item.details;
+                },
+                applyProcessEvent(eventText, item, finalData) {
+                    const event = JSON.parse(eventText);
+                    if (event.type === 'progress') {
+                        item.message = event.message || '处理中...';
+                        item.progress = Math.max(item.progress || 45, this.stageProgress(event.stage));
+                    } else if (event.type === 'result') {
+                        return {
+                            status: event.status,
+                            data: event.data
+                        };
+                    } else if (event.type === 'error') {
+                        throw new Error(event.message || '处理失败');
+                    }
+                    return finalData;
+                },
+                stageProgress(stage) {
+                    const progressMap = {
+                        processing: 48,
+                        vlm: 60,
+                        summary: 76,
+                        features: 90,
+                        saving: 96,
+                        complete: 99
+                    };
+                    return progressMap[stage] || 55;
+                },
+                // 上传进度 (item.progress 0-40 映射到 0-100)
+                uploadPct(item) {
+                    const p = item.progress || 0;
+                    return Math.min(100, Math.round((Math.min(p, 40) / 40) * 100));
+                },
+                // 分析进度 (item.progress 45-100 映射到 0-100)
+                analyzePct(item) {
+                    const p = item.progress || 0;
+                    if (p < 45) return 0;
+                    return Math.min(100, Math.round(((p - 45) / 55) * 100));
+                },
+                normalizeResultDetails(data, uploadData = {}) {
+                    const result = data || {};
+                    const upload = uploadData || {};
+                    return {
+                        ...result,
+                        action_type_desc: result.action_type_desc || '内容挖掘和总结',
+                        video_url: result.video_url || upload.video_url || '',
+                        title: result.title || upload.title || upload.file_name || '',
+                        tags: this.normalizeTags(result.tags),
+                        summary: result.summary || ''
+                    };
+                },
+                normalizeTags(tags) {
+                    if (Array.isArray(tags)) {
+                        return tags.map(tag => String(tag).trim()).filter(Boolean);
+                    }
+                    if (typeof tags === 'string' && tags.trim()) {
+                        try {
+                            const parsed = JSON.parse(tags);
+                            if (Array.isArray(parsed)) {
+                                return parsed.map(tag => String(tag).trim()).filter(Boolean);
+                            }
+                        } catch (error) {
+                            return tags.split(/[,，、]/).map(tag => tag.trim()).filter(Boolean);
+                        }
+                    }
+                    return [];
+                },
+                async parseApiResponse(response) {
+                    const contentType = response.headers.get('content-type') || '';
+                    const bodyText = await response.text();
+                    let data = null;
+                    if (contentType.includes('application/json')) {
+                        data = bodyText ? JSON.parse(bodyText) : {};
+                    }
+                    if (!response.ok) {
+                        throw new Error(data?.message || this.formatHttpError(response, bodyText));
+                    }
+                    if (data) {
+                        return data;
+                    }
+                    try {
+                        return JSON.parse(bodyText);
+                    } catch (error) {
+                        throw new Error(this.formatHttpError(response, bodyText));
+                    }
+                },
+                formatHttpError(response, bodyText) {
+                    const plainText = (bodyText || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                    return plainText
+                        ? `服务返回 ${response.status}: ${plainText.slice(0, 160)}`
+                        : `服务返回 ${response.status} ${response.statusText}`;
                 },
                 startPolling(taskId) {
                     // 清除之前的轮询

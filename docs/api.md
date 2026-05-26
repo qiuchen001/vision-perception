@@ -150,7 +150,7 @@ result = process_video("your-video-id")
   |--------|------|------|------|
   | search_type | String | 是 | 搜索类型: smart(智能搜索)/text(文本搜索)/image(图片搜索)/tags(标签搜索) |
   | text_query | String | 否 | 文本搜索关键词 |
-  | search_mode | String | 否 | 文本搜索模式: frame(帧搜索) |
+  | search_mode | String | 否 | 文本搜索模式: frame(旧帧搜索)/summary(摘要语义)/tags(标签语义)/visual(文本搜视觉)；标签搜索可用 semantic/tags/tag_semantic 启用语义标签检索 |
   | image_file | File | 否 | 图片文件(图片搜索时使用) |
   | image_url | String | 否 | 图片URL(图片搜索时使用) |
   | tags | String | 否 | 标签列表(逗号分隔) |
@@ -169,7 +169,9 @@ result = process_video("your-video-id")
             "tags": ["标签1", "标签2"],
             "summary": "视频摘要",
             "timestamp": 1234567890,
-            "similarity": "0.8500"
+            "similarity": "0.8500",
+            "feature_type": "summary",
+            "sampled_frame_count": 32
         }
     ]
 }
@@ -183,8 +185,15 @@ result = process_video("your-video-id")
 curl -X POST http://localhost:5000/api/search \
   -F "search_type=text" \
   -F "text_query=关键词" \
+  -F "search_mode=summary" \
   -F "page=1" \
   -F "page_size=6"
+
+# 文本搜视觉相似视频
+curl -X POST http://localhost:5000/api/search \
+  -F "search_type=text" \
+  -F "text_query=前方有行人横穿道路" \
+  -F "search_mode=visual"
 
 # 图片搜索
 curl -X POST http://localhost:5000/api/search \
@@ -195,6 +204,12 @@ curl -X POST http://localhost:5000/api/search \
 curl -X POST http://localhost:5000/api/search \
   -F "search_type=tags" \
   -F "tags=标签1,标签2"
+
+# 标签语义搜索
+curl -X POST http://localhost:5000/api/search \
+  -F "search_type=tags" \
+  -F "tags=晴天道路" \
+  -F "search_mode=semantic"
 ```
 
 ##### Python
@@ -247,14 +262,16 @@ tag_results = search_by_tags(["标签1", "标签2"])
 ```json
 {
     "video_url": "视频URL",
-    "action_type": 1
+    "action_type": 3
 }
 ```
 - **参数说明:**
   - action_type:
     - 1: 视频内容挖掘
     - 2: 视频内容总结
-    - 3: 内容挖掘和总结
+    - 3: 内容挖掘和总结（默认）
+
+内容挖掘使用内嵌场景挖掘算法，默认读取当前项目内置的 `app/algorithm/scene_mining/config-qwen-gemini.yaml` 并连接 `http://localhost:8574/v1`。挖掘结果会从算法 `pred` 输出直接生成标签；内容总结会合并各类别 raw output，去除模型思考内容后再调用 VLM 生成最终摘要。`action_type=2/3` 会同时写入 Qwen3-VL-Embedding vLLM 服务生成的 `tags`、`summary` 文本特征，以及 ffmpeg 采样帧池化得到的视频级视觉特征。
 
 - **响应格式:**
 ```json
@@ -277,7 +294,7 @@ curl -X POST http://localhost:5000/api/add \
   -H "Content-Type: application/json" \
   -d '{
     "video_url": "http://example.com/video.mp4",
-    "action_type": 1
+    "action_type": 3
   }'
 ```
 
@@ -305,7 +322,7 @@ def add_video(video_url, action_type):
 # 调用示例
 result = add_video(
     video_url="http://example.com/video.mp4",
-    action_type=1  # 1:内容挖掘, 2:内容总结, 3:挖掘和总结
+    action_type=3  # 1:内容挖掘, 2:内容总结, 3:挖掘和总结
 )
 ```
 

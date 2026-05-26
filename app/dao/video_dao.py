@@ -1,16 +1,27 @@
 from typing import List, Dict, Any
 
-from pymilvus import MilvusClient
+from pymilvus import DataType, MilvusClient
 from ..models.video import Video
 from ..utils.logger import logger
 import uuid
 from flask import current_app
 import os
 import json
+import ast
 import requests
+from urllib.parse import urlparse
+from config.config import Config
 
 
 class VideoDAO:
+    SUMMARY_MAX_LENGTH = 8192
+    MINING_RESULTS_MAX_LENGTH = 65535
+    DETAIL_OUTPUT_FIELDS = [
+        'm_id', 'resource_id', 'path', 'thumbnail_path', 'title', 'summary_txt',
+        'tags', 'mining_results', 'embedding', 'summary_embedding',
+        'vconfig_id', 'collect_start_time', 'collect_end_time'
+    ]
+
     def __init__(self):
         MILVUS_HOST = os.getenv("MILVUS_HOST")
         MILVUS_PORT = os.getenv("MILVUS_PORT")
@@ -18,12 +29,83 @@ class VideoDAO:
                                           db_name=os.getenv("MILVUS_DB_NAME"))
         # self.milvus_client = current_app.config['MILVUS_CLIENT']
         self.collection_name = os.getenv("MILVUS_VIDEO_COLLECTION_NAME")
+        self.ensure_collection()
+
+    @staticmethod
+    def _normalize_tags(tags: Any) -> List[str]:
+        if isinstance(tags, list):
+            return [str(tag) for tag in tags if tag is not None]
+        if not tags:
+            return []
+        if isinstance(tags, str):
+            try:
+                parsed = json.loads(tags)
+            except json.JSONDecodeError:
+                try:
+                    parsed = ast.literal_eval(tags)
+                except (SyntaxError, ValueError):
+                    logger.warning("Failed to parse tags safely: %s", tags[:200])
+                    return []
+            if isinstance(parsed, list):
+                return [str(tag) for tag in parsed if tag is not None]
+        return []
 
     # def init_video(self):
     #     Video.create_database()
     #     schema = Video.create_schema()
     #     Video.create_collection(self.collection_name, schema)
     #     Video.create_index(self.collection_name)
+
+    def ensure_collection(self):
+        if self.milvus_client.has_collection(self.collection_name):
+            self.milvus_client.load_collection(self.collection_name)
+            return
+
+        schema = self.milvus_client.create_schema(
+            auto_id=False,
+            enable_dynamic_fields=True,
+            description="视频主集合：保存视频基础信息、摘要和标签。",
+        )
+        dim = Config.QWEN3_VL_EMBEDDING_DIM
+        schema.add_field("m_id", DataType.VARCHAR, is_primary=True, max_length=256)
+        schema.add_field("resource_id", DataType.VARCHAR, max_length=256)
+        schema.add_field("embedding", DataType.FLOAT_VECTOR, dim=dim)
+        schema.add_field("summary_embedding", DataType.FLOAT_VECTOR, dim=dim)
+        schema.add_field("path", DataType.VARCHAR, max_length=1024)
+        schema.add_field("thumbnail_path", DataType.VARCHAR, max_length=1024, nullable=True)
+        schema.add_field("title", DataType.VARCHAR, max_length=512, nullable=True)
+        schema.add_field("summary_txt", DataType.VARCHAR, max_length=8192, nullable=True)
+        schema.add_field(
+            "tags",
+            DataType.ARRAY,
+            element_type=DataType.VARCHAR,
+            max_capacity=10,
+            max_length=256,
+            nullable=True,
+        )
+        schema.add_field("mining_results", DataType.VARCHAR, max_length=65535, nullable=True)
+        schema.add_field("vconfig_id", DataType.VARCHAR, max_length=256, nullable=True)
+        schema.add_field("collect_start_time", DataType.INT64, nullable=True)
+        schema.add_field("collect_end_time", DataType.INT64, nullable=True)
+        self.milvus_client.create_collection(self.collection_name, schema=schema)
+
+        index_params = MilvusClient.prepare_index_params()
+        index_params.add_index(
+            field_name="embedding",
+            metric_type="COSINE",
+            index_type="FLAT",
+            index_name="embedding_index",
+            params={},
+        )
+        index_params.add_index(
+            field_name="summary_embedding",
+            metric_type="COSINE",
+            index_type="FLAT",
+            index_name="summary_embedding_index",
+            params={},
+        )
+        self.milvus_client.create_index(self.collection_name, index_params=index_params)
+        self.milvus_client.load_collection(self.collection_name)
 
     def get_all_videos(self):
         logger.info(f"Querying all users from collection: {self.collection_name}")
@@ -47,7 +129,7 @@ class VideoDAO:
             "path": user.path,
             "thumbnail_path": user.thumbnail_path,
             "summary_txt": user.summary_txt,
-            "tags": str(user.tags)  # 将数组转换为字符串
+            "tags": self._normalize_tags(user.tags)
         }
         self.milvus_client.insert(self.collection_name, [user_data])
 
@@ -58,35 +140,84 @@ class VideoDAO:
         return len(query_result) > 0
 
     def get_by_path(self, url):
-        query_result = self.milvus_client.query(self.collection_name, filter=f"path == '{url}'", limit=1)
-        return query_result
+        for candidate in self._path_candidates(url):
+            query_result = self.milvus_client.query(
+                self.collection_name,
+                filter=f"path == '{candidate}'",
+                limit=1,
+                output_fields=self.DETAIL_OUTPUT_FIELDS,
+            )
+            if query_result:
+                return query_result
+        return []
 
     def get_by_resource_id(self, resource_id):
-        query_result = self.milvus_client.query(self.collection_name, filter=f"resource_id == '{resource_id}'", limit=1)
+        query_result = self.milvus_client.query(
+            self.collection_name,
+            filter=f"resource_id == '{resource_id}'",
+            limit=1,
+            output_fields=self.DETAIL_OUTPUT_FIELDS,
+        )
         return query_result
 
-    def init_video(self, url, embedding, summary_embedding, thumbnail_oss_url, title, resource_id):
-        # 从元数据接口获取数据
-        try:
-            rawdata_service_base_url = os.getenv("RAWDATA_SERVICE_BASE_URL", "http://10.66.12.37:31557")
-            response = requests.get(
-                f"{rawdata_service_base_url}/dataplatform/rawdata/{resource_id}",
-                headers={"Content-Type": "application/x-www-form-urlencoded"}
-            )
+    def get_by_m_id(self, m_id):
+        return self.milvus_client.query(
+            self.collection_name,
+            filter=f'm_id == "{m_id}"',
+            limit=1,
+            output_fields=self.DETAIL_OUTPUT_FIELDS,
+        )
 
-            if response.status_code != 200:
-                logger.error(f"获取元数据失败: {response.text}")
-                metadata = {}
-            else:
-                data = response.json()
-                metadata = data.get("rawdata", {})
-        except Exception as e:
-            logger.error(f"调用元数据接口失败: {str(e)}")
-            metadata = {}
+    @staticmethod
+    def _path_candidates(url):
+        candidates = []
+        raw_url = str(url or "").strip()
+        if raw_url:
+            candidates.append(raw_url)
+
+        bucket_name = os.getenv("OSS_BUCKET_NAME", "").strip()
+        oss_endpoint = os.getenv("OSS_ENDPOINT", "").strip()
+        parsed = urlparse(raw_url)
+        if bucket_name:
+            media_prefix = f"/media/{bucket_name}/"
+            bucket_prefix = f"/{bucket_name}/"
+            if raw_url.startswith(media_prefix) and oss_endpoint:
+                object_name = raw_url[len(media_prefix):]
+                candidates.append(f"http://{oss_endpoint}/{bucket_name}/{object_name}")
+            elif parsed.scheme in {"http", "https"} and parsed.path.startswith(bucket_prefix):
+                candidates.append(f"/media{parsed.path}")
+
+        deduped = []
+        for candidate in candidates:
+            if candidate and candidate not in deduped:
+                deduped.append(candidate)
+        return deduped
+
+    def init_video(self, url, embedding, summary_embedding, thumbnail_oss_url, title, resource_id, fetch_metadata=True, m_id=None):
+        # 从元数据接口获取数据
+        metadata = {}
+        if fetch_metadata:
+            try:
+                rawdata_service_base_url = os.getenv("RAWDATA_SERVICE_BASE_URL", "http://10.66.12.37:31557")
+                response = requests.get(
+                    f"{rawdata_service_base_url}/dataplatform/rawdata/{resource_id}",
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                    timeout=Config.RAWDATA_REQUEST_TIMEOUT,
+                )
+
+                if response.status_code != 200:
+                    logger.error(f"获取元数据失败: {response.text}")
+                else:
+                    data = response.json()
+                    metadata = data.get("rawdata", {})
+            except Exception as e:
+                logger.error(f"调用元数据接口失败: {str(e)}")
+        else:
+            logger.debug("跳过 rawdata 元数据查询: 快速上传路径不依赖外部资源元数据")
 
         # 插入URL到数据库
         video_data = {
-            "m_id": str(uuid.uuid4()),
+            "m_id": m_id or str(uuid.uuid4()),
             "embedding": embedding,
             "summary_embedding": summary_embedding,
             "path": url,
@@ -101,17 +232,34 @@ class VideoDAO:
             "collect_start_time": metadata.get("collectStartTime"),
             "collect_end_time": metadata.get("collectEndTime")
         }
-        res = self.milvus_client.insert(self.collection_name, [video_data])
+        res = self.milvus_client.upsert(self.collection_name, [video_data])
+        self.milvus_client.flush(self.collection_name)
         return res
 
     def upsert_video(self, video):
-        # 从mining_results中提取behaviourName作为tags
+        # 新算法直接写入 tags；旧 behaviour 结构仍保留兼容解析。
         mining_results = video.get('mining_results', [])
-        tags = list(set([
-            result['behaviour']['behaviourName']
-            for result in mining_results
-            if result.get('behaviour', {}).get('behaviourName')
-        ])) if mining_results else []
+        video_tags = video.get('tags')
+        if isinstance(video_tags, list):
+            tags = []
+            for tag in video_tags:
+                tag_text = str(tag).strip()
+                if tag_text and tag_text not in tags:
+                    tags.append(tag_text)
+            tags = tags[:10]
+        elif isinstance(mining_results, list):
+            tags = list(set([
+                result['behaviour']['behaviourName']
+                for result in mining_results
+                if isinstance(result, dict) and result.get('behaviour', {}).get('behaviourName')
+            ]))
+        else:
+            tags = []
+
+        if isinstance(mining_results, str):
+            mining_results_json = mining_results
+        else:
+            mining_results_json = json.dumps(mining_results, ensure_ascii=False)
 
         user_data = {
             "m_id": video['m_id'],
@@ -120,15 +268,25 @@ class VideoDAO:
             "path": video['path'],
             "thumbnail_path": video['thumbnail_path'],
             "title": video['title'],
-            "summary_txt": video['summary_txt'],
+            "summary_txt": self._truncate_varchar(video.get('summary_txt'), self.SUMMARY_MAX_LENGTH),
             "tags": tags,  # 更新tags字段
-            "mining_results": json.dumps(mining_results, ensure_ascii=False),  # 不转义中文字符
+            "mining_results": self._truncate_varchar(mining_results_json, self.MINING_RESULTS_MAX_LENGTH),  # 不转义中文字符
             "resource_id": video['resource_id'],
             "vconfig_id": video.get('vconfig_id'),
             "collect_start_time": video.get('collect_start_time'),
             "collect_end_time": video.get('collect_end_time')
         }
-        return self.milvus_client.upsert(self.collection_name, [user_data])
+        res = self.milvus_client.upsert(self.collection_name, [user_data])
+        self.milvus_client.flush(self.collection_name)
+        return res
+
+    @staticmethod
+    def _truncate_varchar(value, max_length: int):
+        text = "" if value is None else str(value)
+        encoded = text.encode("utf-8")
+        if len(encoded) <= max_length:
+            return text
+        return encoded[:max_length].decode("utf-8", errors="ignore")
 
     def get_total_count(self, filter_expr: str = "") -> int:
         """
@@ -150,7 +308,7 @@ class VideoDAO:
             logger.error(f"获取总数失败: {str(e)}")
             return 0
 
-    def search_video(self, summary_embedding=None, page=1, page_size=6, **filter_params):
+    def search_video(self, summary_embedding=None, page=1, page_size=6, top_k=10, **filter_params):
         offset = (page - 1) * page_size
         limit = page_size
 
@@ -176,7 +334,7 @@ class VideoDAO:
                 collection_name=self.collection_name,
                 anns_field="summary_embedding",
                 data=[summary_embedding],
-                limit=1000,  # 先获取较多结果以计算总数
+                limit=top_k or 1000,
                 search_params=search_params,
                 output_fields=['m_id', 'path', 'thumbnail_path', 'summary_txt', 'tags', 'title', 'vconfig_id', 'collect_start_time', 'collect_end_time'],
                 consistency_level="Strong"
@@ -194,6 +352,8 @@ class VideoDAO:
                             entity['timestamp'] = 0
                             entity['similarity'] = f"{similarity:.4f}"  # 添加相似度分数，保留4位小数
                             new_result_list.append(entity)
+                            if top_k and total >= top_k:
+                                break
                 
                 # 按相似度降序排序
                 new_result_list.sort(key=lambda x: float(x['similarity']), reverse=True)
@@ -208,6 +368,11 @@ class VideoDAO:
         else:
             # 获取总数
             total = self.get_total_count(filter_expr) if filter_expr else self.get_total_count()
+            if top_k:
+                total = min(total, top_k)
+                if offset >= total:
+                    return [], total
+                limit = min(limit, total - offset)
             
             # 获取分页数据
             result = self.milvus_client.query(
@@ -221,7 +386,7 @@ class VideoDAO:
                 item['timestamp'] = 0
             return result, total
 
-    def search_by_tags(self, tags: List[str], page: int = 1, page_size: int = 6, **filter_params) -> tuple[List[Dict[str, Any]], int]:
+    def search_by_tags(self, tags: List[str], page: int = 1, page_size: int = 6, top_k: int = 10, **filter_params) -> tuple[List[Dict[str, Any]], int]:
         """
         根据标签列表搜索视频，使用ARRAY_CONTAINS操作符查询tags字段
 
@@ -257,6 +422,11 @@ class VideoDAO:
 
         # 获取总数
         total = self.get_total_count(filter_expr)
+        if top_k:
+            total = min(total, top_k)
+            if offset >= total:
+                return [], total
+            page_size = min(page_size, total - offset)
 
         # 执行查询
         result = self.milvus_client.query(
@@ -270,18 +440,11 @@ class VideoDAO:
         # 为结果添加额外信息
         for video in result:
             video['timestamp'] = 0  # 添加默认时间戳
-            # 处理可能的数组类型
-            if 'tags' in video and video['tags'] and not isinstance(video['tags'], list):
-                try:
-                    video['tags'] = eval(video['tags'])  # 将字符串转换为列表
-                except:
-                    video['tags'] = []
-            elif 'tags' not in video or not video['tags']:
-                video['tags'] = []
+            video['tags'] = self._normalize_tags(video.get('tags'))
 
         return result, total
         
-    def search_by_filter(self, page: int = 1, page_size: int = 6, **filter_params) -> tuple[List[Dict[str, Any]], int]:
+    def search_by_filter(self, page: int = 1, page_size: int = 6, top_k: int = 10, **filter_params) -> tuple[List[Dict[str, Any]], int]:
         """
         仅使用过滤条件搜索视频。
 
@@ -309,6 +472,11 @@ class VideoDAO:
 
         # 获取总数
         total = self.get_total_count(filter_expr)
+        if top_k:
+            total = min(total, top_k)
+            if offset >= total:
+                return [], total
+            page_size = min(page_size, total - offset)
 
         # 执行查询
         result = self.milvus_client.query(
@@ -322,14 +490,7 @@ class VideoDAO:
         # 为结果添加额外信息
         for video in result:
             video['timestamp'] = 0  # 添加默认时间戳
-            # 处理可能的数组类型
-            if 'tags' in video and video['tags'] and not isinstance(video['tags'], list):
-                try:
-                    video['tags'] = eval(video['tags'])  # 将字符串转换为列表
-                except:
-                    video['tags'] = []
-            elif 'tags' not in video or not video['tags']:
-                video['tags'] = []
+            video['tags'] = self._normalize_tags(video.get('tags'))
 
         return result, total
     

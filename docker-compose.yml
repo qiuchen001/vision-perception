@@ -1,0 +1,121 @@
+services:
+  qwen-gemini-vlm:
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/vllm/vllm-openai:v0.21.0-ubuntu2404
+    expose:
+      - "8000"
+    ports:
+      - "127.0.0.1:${SCENE_MINING_VLM_PORT:-8576}:8000"
+    environment:
+      CUDA_VISIBLE_DEVICES: "${CUDA_VISIBLE_DEVICES:-0}"
+      NVIDIA_VISIBLE_DEVICES: "${CUDA_VISIBLE_DEVICES:-all}"
+    volumes:
+      - /mnt/data/checkpoints/Qwen3_5-9B-Gemini-Distill:/models/qwen-gemini:ro
+      - /mnt/data/ai-ground/dataset/videos:/app/videos:ro
+      - ./data:/app/data:ro
+      - ./outputs:/app/outputs:ro
+    ipc: host
+    command:
+      - --model
+      - /models/qwen-gemini
+      - --trust-remote-code
+      - --tensor-parallel-size
+      - "1"
+      - --gpu-memory-utilization
+      - "${SCENE_MINING_VLM_GPU_MEMORY_UTILIZATION:-0.7773}"
+      - --max-model-len
+      - "${SCENE_MINING_VLM_MAX_MODEL_LEN:-40960}"
+      - --max-num-seqs
+      - "64"
+      - --allowed-local-media-path
+      - /app
+      - --media-io-kwargs
+      - '{"video": {"num_frames": -1}}'
+      - --reasoning-parser
+      - qwen3
+      - --enable-prefix-caching
+      - --enable-auto-tool-choice
+      - --tool-call-parser
+      - hermes
+    gpus: all
+    networks:
+      - vision-perception-net
+
+  qwen3-vl-embedding:
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/vllm/vllm-openai:v0.21.0-ubuntu2404
+    expose:
+      - "8000"
+    ports:
+      - "127.0.0.1:${QWEN3_VL_EMBEDDING_PORT:-8575}:8000"
+    environment:
+      QWEN3_VL_EMBEDDING_MODEL_PATH: /models/Qwen3-VL-Embedding-2B
+      QWEN3_VL_EMBEDDING_DTYPE: bfloat16
+      QWEN3_VL_GPU_MEMORY_UTILIZATION: "${QWEN3_VL_GPU_MEMORY_UTILIZATION:-0.1727}"
+      QWEN3_VL_MAX_MODEL_LEN: "32768"
+      CUDA_VISIBLE_DEVICES: "${CUDA_VISIBLE_DEVICES:-0}"
+      NVIDIA_VISIBLE_DEVICES: "${CUDA_VISIBLE_DEVICES:-all}"
+    volumes:
+      - /mnt/data/checkpoints/Qwen3-VL-Embedding-2B:/models/Qwen3-VL-Embedding-2B:ro
+      - ./scripts/qwen3_vl_embedding_server.py:/srv/qwen3_vl_embedding_server.py:ro
+    entrypoint: ["python3", "/srv/qwen3_vl_embedding_server.py"]
+    command: []
+    gpus: all
+    networks:
+      - vision-perception-net
+
+  vision-perception:
+    build:
+      context: .
+      dockerfile: app.Dockerfile
+    image: vision-perception-app:latest
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      FLASK_APP: app.py
+      FLASK_ENV: production
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: "30501"
+      WEB_CONCURRENCY: "4"
+      GUNICORN_THREADS: "16"
+      APP_INTERNAL_BASE_URL: http://127.0.0.1:30501
+      OSS_PUBLIC_BASE_URL: /media
+      PYTHONPATH: /app
+      EMBEDDING_MODEL: qwen3-vl
+      MILVUS_HOST: 127.0.0.1
+      MILVUS_PORT: "19530"
+      QWEN3_VL_EMBEDDING_BASE_URL: http://127.0.0.1:8575
+      QWEN3_VL_EMBEDDING_TIMEOUT: "300"
+      QWEN3_VL_EMBEDDING_RETRIES: "2"
+      QWEN3_VL_EMBEDDING_RETRY_BACKOFF: "1"
+      SCENE_MINING_API_BASE_URL: http://127.0.0.1:8576/v1
+      SCENE_MINING_API_MODEL_NAME: /models/qwen-gemini
+      SCENE_MINING_CONFIG_PATH: /app/app/algorithm/scene_mining/config-qwen-gemini.yaml
+      SCENE_MINING_OUTPUT_DIR: /app/outputs/scene_mining
+      SCENE_MINING_TOOL_CLIP_DIR: /app/outputs/scene_mining/_tool_clips
+      SCENE_MINING_VIDEO_CACHE_DIR: /app/data/scene_mining_videos
+      SCENE_MINING_VIDEO_URL_PREFIX: file:///app/videos
+      SCENE_MINING_SUMMARY_MAX_TOKENS: "4096"
+      FRAME_SAMPLE_FPS: "1"
+      FRAME_SAMPLE_MAX_FRAMES: "20"
+      FRAME_SAMPLE_EVENT_FPS: "1"
+      FRAME_SAMPLE_EVENT_WEIGHT: "1.5"
+      RAWDATA_REQUEST_TIMEOUT: "3"
+      MEDIA_CACHE_DIR: /app/data/media_cache
+      MEDIA_CACHE_MAX_AGE: "3600"
+      TASK_STATUS_DIR: /app/data/task_status
+      UPLOAD_LOCK_DIR: /app/data/locks
+      ENABLE_LEGACY_VIDEO_PROXY: "false"
+      MILVUS_VIDEO_TEXT_FEATURE_COLLECTION_NAME: video_text_features
+      MILVUS_VIDEO_VISUAL_FEATURE_COLLECTION_NAME: video_visual_features
+      NVIDIA_VISIBLE_DEVICES: "${CUDA_VISIBLE_DEVICES:-all}"
+    volumes:
+      - /mnt/data/ai-ground/dataset/videos:/app/videos:ro
+      - ./outputs:/app/outputs
+      - ./data:/app/data
+    depends_on:
+      - qwen-gemini-vlm
+      - qwen3-vl-embedding
+
+networks:
+  vision-perception-net:
+    driver: bridge

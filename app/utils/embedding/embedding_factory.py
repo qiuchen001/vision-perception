@@ -3,6 +3,7 @@ from typing import Optional, Dict
 from app.utils.embedding.embedding_base import EmbeddingBase
 from app.utils.embedding.multimodal_embedding import MultiModalEmbedding
 from app.utils.embedding.jina_clip_v2 import JinaClipEmbedding
+from app.utils.embedding.qwen3_vl_embedding import Qwen3VLEmbedding
 from app.utils.embedding.embedding_types import EmbeddingType
 from config.config import Config
 
@@ -14,7 +15,8 @@ class EmbeddingFactory:
     _instances: Dict[EmbeddingType, Optional[EmbeddingBase]] = {
         EmbeddingType.CLIP: None,
         EmbeddingType.MULTIMODAL: None,
-        EmbeddingType.JINA_CLIP_V2: None
+        EmbeddingType.JINA_CLIP_V2: None,
+        EmbeddingType.QWEN3_VL: None
     }
 
     @classmethod
@@ -38,5 +40,7 @@ class EmbeddingFactory:
                 pass
             elif model_type == EmbeddingType.JINA_CLIP_V2:
                 cls._instances[model_type] = JinaClipEmbedding()
+            elif model_type == EmbeddingType.QWEN3_VL:
+                cls._instances[model_type] = Qwen3VLEmbedding()
 
         return cls._instances[model_type]

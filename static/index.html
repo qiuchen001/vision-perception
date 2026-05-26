@@ -130,6 +130,7 @@
 
         <!-- 内容区域 -->
         <iframe 
+            :key="frameKey"
             :src="currentPageUrl" 
             class="content-frame"
             frameborder="0"
@@ -142,22 +143,27 @@
         const app = createApp({
             data() {
                 return {
-                    currentPage: 'upload'
+                    currentPage: 'upload',
+                    frameKey: 0
                 };
             },
             computed: {
                 currentPageUrl() {
                     const pages = {
-                        'upload': '/upload.html',
-                        'process': '/process.html',
-                        'search': '/search.html'
+                        upload: '/upload.html',
+                        process: '/process.html',
+                        search: '/search.html'
                     };
                     return pages[this.currentPage];
                 }
             },
             methods: {
                 changePage(page) {
+                    if (!['upload', 'process', 'search'].includes(page)) {
+                        return;
+                    }
                     this.currentPage = page;
+                    this.frameKey += 1;
                 }
             }
         });

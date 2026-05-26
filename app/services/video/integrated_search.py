@@ -1,5 +1,5 @@
 import os
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Optional
 from app.services.video.intent import IntentService
 from app.services.video.search import SearchVideoService
 from app.utils.logger import logger
@@ -8,10 +8,14 @@ from app.utils.logger import logger
 class IntegratedSearchService:
     """集成搜索服务类"""
 
-    def __init__(self):
+    def __init__(self, search_service: Optional[SearchVideoService] = None):
         """初始化服务"""
-        self.intent_service = IntentService()
-        self.search_service = SearchVideoService()
+        self.search_service = search_service or SearchVideoService()
+        try:
+            self.intent_service = IntentService()
+        except Exception as e:
+            logger.warning(f"意图识别服务不可用，智能搜索将降级为语义检索: {e}")
+            self.intent_service = None
 
     def _extract_search_params(self, intent_result: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -59,7 +63,27 @@ class IntegratedSearchService:
 
         return merged_results
 
-    def search(self, query: str, page: int = 1, page_size: int = 6, **filter_params) -> tuple[List[Dict[str, Any]], int]:
+    def _fallback_semantic_search(self, query: str, page: int, page_size: int, top_k: int = 10, **filter_params) -> tuple[List[Dict[str, Any]], int]:
+        all_results: List[Dict[str, Any]] = []
+        candidate_limit = top_k or max(page * page_size, 100)
+        for mode in ("summary", "tags"):
+            results, _ = self.search_service.search_by_text(
+                txt=query,
+                page=1,
+                page_size=candidate_limit,
+                search_mode=mode,
+                top_k=candidate_limit,
+                **filter_params,
+            )
+            all_results = self._merge_search_results(all_results, results)
+        if top_k:
+            all_results = all_results[:top_k]
+
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        return all_results[start_idx:end_idx], len(all_results)
+
+    def search(self, query: str, page: int = 1, page_size: int = 6, top_k: int = 10, **filter_params) -> tuple[List[Dict[str, Any]], int]:
         """
         根据用户查询进行集成搜索。
 
@@ -77,10 +101,10 @@ class IntegratedSearchService:
         """
         try:
             # 1. 进行意图识别
-            intent_result = self.intent_service.recognize_intent(query)
+            intent_result = self.intent_service.recognize_intent(query) if self.intent_service else []
             if not intent_result:
                 logger.warning(f"意图识别结果为空: {query}")
-                return [], 0
+                return self._fallback_semantic_search(query, page, page_size, top_k=top_k, **filter_params)
             logger.info(f"意图识别结果: {intent_result}")
 
             # 2. 提取搜索参数
@@ -95,7 +119,8 @@ class IntegratedSearchService:
                 tag_results, tag_total = self.search_service.search_by_tags(
                     tags=search_params["tags"],
                     page=1,  # 先获取所有结果再合并
-                    page_size=100,
+                    page_size=top_k or 100,
+                    top_k=top_k,
                     **filter_params  # 传递过滤参数
                 )
                 # 为标签搜索结果添加相似度分数
@@ -108,7 +133,8 @@ class IntegratedSearchService:
                     results, total = self.search_service.search_by_text(
                         txt=text,
                         page=1,  # 先获取所有结果再合并
-                        page_size=100,
+                        page_size=top_k or 100,
+                        top_k=top_k,
                         **filter_params  # 传递过滤参数
                     )
                     text_results.extend(results)
@@ -116,6 +142,8 @@ class IntegratedSearchService:
                 
                 # 合并结果并分页
                 all_results = self._merge_search_results(tag_results, text_results)
+                if top_k:
+                    all_results = all_results[:top_k]
                 start_idx = (page - 1) * page_size
                 end_idx = start_idx + page_size
                 return all_results[start_idx:end_idx], len(all_results)
@@ -126,6 +154,7 @@ class IntegratedSearchService:
                     tags=search_params["tags"],
                     page=page,
                     page_size=page_size,
+                    top_k=top_k,
                     **filter_params  # 传递过滤参数
                 )
                 # 为标签搜索结果添加相似度分数
@@ -140,21 +169,27 @@ class IntegratedSearchService:
                 for text in search_params["text"]:
                     text_results, text_total = self.search_service.search_by_text(
                         txt=text,
-                        page=page,
-                        page_size=page_size,
+                        page=1,
+                        page_size=top_k or page_size,
+                        top_k=top_k,
                         **filter_params  # 传递过滤参数
                     )
                     results.extend(text_results)
                     total += text_total
-                return results[:page_size], total  # 限制返回数量
+                results = self._merge_search_results([], results)
+                if top_k:
+                    results = results[:top_k]
+                start_idx = (page - 1) * page_size
+                end_idx = start_idx + page_size
+                return results[start_idx:end_idx], len(results)
 
             else:
                 logger.warning(f"未识别到有效的搜索意图: {query}")
-                return [], 0
+                return self._fallback_semantic_search(query, page, page_size, top_k=top_k, **filter_params)
 
         except Exception as e:
-            logger.error(f"集成搜索失败: {str(e)}")
-            return [], 0
+            logger.exception("集成搜索失败")
+            raise RuntimeError(f"智能搜索服务异常: {str(e)}") from e
 
 
 # 使用示例

@@ -1,6 +1,9 @@
 import pdb
 
 from PIL import Image
+from contextlib import contextmanager
+import fcntl
+import hashlib
 import uuid
 from typing import Dict, Any, List, Optional, Tuple
 from werkzeug.datastructures import FileStorage
@@ -27,6 +30,9 @@ VIDEO_FRAMERATE = 2   # 视频帧率
 VIDEO_CRF = 23        # 视频质量参数(0-51,越小质量越好)
 VIDEO_PRESET = 'medium'  # 编码速度预设
 
+
+UPLOAD_LOCK_DIR = os.getenv("UPLOAD_LOCK_DIR", "/tmp/vision_perception_locks")
+
 class UploadVideoService:
     def __init__(self):
         self.video_dao = VideoDAO()
@@ -36,6 +42,51 @@ class UploadVideoService:
         self.video_processor = VideoProcessor()
         self.storage_service_base_url = os.getenv("STORAGE_SERVICE_BASE_URL", "http://10.66.12.37:30112")
         self.rawdata_service_base_url = os.getenv("RAWDATA_SERVICE_BASE_URL", "http://10.66.12.37:31557")
+
+    @staticmethod
+    def _safe_upload_filename(filename: str | None, default_suffix: str = ".mp4") -> str:
+        safe_name = secure_filename(filename or "")
+        if safe_name:
+            return safe_name
+        return f"{uuid.uuid4()}{default_suffix}"
+
+    @staticmethod
+    @contextmanager
+    def _idempotency_lock(key: str):
+        os.makedirs(UPLOAD_LOCK_DIR, exist_ok=True)
+        digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
+        lock_path = os.path.join(UPLOAD_LOCK_DIR, f"{digest}.lock")
+        with open(lock_path, "w", encoding="utf-8") as lock_file:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+    @staticmethod
+    def _result_from_video(video: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "frame_count": 0,
+            "processed_frames": 0,
+            "file_name": video.get("path", ""),
+            "video_url": video.get("path", ""),
+            "title": video.get("title", "") or os.path.splitext(os.path.basename(str(video.get("path", ""))))[0],
+            "m_id": video.get("m_id", ""),
+            "thumbnail_path": video.get("thumbnail_path", ""),
+            "deduplicated": True,
+        }
+
+    @staticmethod
+    def _object_public_url(object_name: str) -> str:
+        bucket_name = os.getenv('OSS_BUCKET_NAME')
+        if not bucket_name:
+            raise ValueError("OSS_BUCKET_NAME 未配置")
+        public_base_url = os.getenv('OSS_PUBLIC_BASE_URL', '/media').rstrip('/')
+        return f"{public_base_url}/{bucket_name}/{object_name}"
+
+    @staticmethod
+    def _stable_video_id(video_url: str) -> str:
+        return str(uuid.uuid5(uuid.NAMESPACE_URL, video_url))
 
     def upload(self, video_file: FileStorage) -> Dict[str, Any]:
         """
@@ -47,9 +98,11 @@ class UploadVideoService:
         Returns:
             Dict[str, Any]: 包含视频URL和处理结果的字典
         """
-        # 保存临时文件
-        filename = secure_filename(video_file.filename)
-        video_file_path = os.path.join('/tmp', filename)
+        filename = self._safe_upload_filename(video_file.filename)
+        suffix = os.path.splitext(filename)[1] or ".mp4"
+        temp_file = tempfile.NamedTemporaryFile(prefix="vision_upload_", suffix=suffix, delete=False)
+        video_file_path = temp_file.name
+        temp_file.close()
         video_file.save(video_file_path)
 
         result = {
@@ -58,55 +111,62 @@ class UploadVideoService:
         }
 
         try:
-            # 上传视频到OSS
-            video_oss_url = upload_thumbnail_to_oss(filename, video_file_path)
-            thumbnail_oss_url = self.minioFileUploader.generate_video_thumbnail_url(video_oss_url)
+            with self._idempotency_lock(f"upload:{filename}"):
+                video_oss_url = self._object_public_url(filename)
+                existing = self.video_dao.get_by_path(video_oss_url)
+                if existing:
+                    return self._result_from_video(existing[0])
 
-            # 处理视频帧
-            frames = self._extract_frames(video_file_path)
-            result["frame_count"] = len(frames)
+                # 上传视频到OSS
+                video_oss_url = upload_thumbnail_to_oss(filename, video_file_path)
+                thumbnail_oss_url = self._generate_local_thumbnail_url(video_file_path, video_oss_url)
 
-            # 生成resource_id
-            resource_id = str(uuid.uuid4())
+                # 生成resource_id
+                resource_id = str(uuid.uuid4())
 
-            if frames:
-                self._process_frames(video_oss_url, frames, resource_id)
-                result["processed_frames"] = len(frames)
+                title = os.path.splitext(filename)[0] or filename
 
-            # 生成并更新标题
-            title = self.generate_title(video_file_path)
-
-            # 添加视频信息到数据库
-            if not self.video_dao.check_url_exists(video_oss_url):
-                embedObj = EmbeddingFactory.create_embedding()
-                # embedding = embedObj.embedding_text(txt)
-
-                embedding = embedObj.embedding_text(" ")
-                summary_embedding = embedObj.embedding_text(" ")
+                placeholder_embedding = [0.0] * Config.QWEN3_VL_EMBEDDING_DIM
                 self.video_dao.init_video(
                     video_oss_url,
-                    embedding,
-                    summary_embedding,
+                    placeholder_embedding,
+                    placeholder_embedding,
                     thumbnail_oss_url,
                     title,
-                    resource_id  # 传入resource_id
+                    resource_id,  # 传入resource_id
+                    fetch_metadata=False,
+                    m_id=self._stable_video_id(video_oss_url),
                 )
 
-            result.update({
-                "file_name": video_oss_url,
-                "video_url": video_oss_url,
-                "title": title
-            })
+                result.update({
+                    "file_name": video_oss_url,
+                    "video_url": video_oss_url,
+                    "title": title,
+                    "thumbnail_path": thumbnail_oss_url,
+                    "deduplicated": False,
+                })
 
         except Exception as e:
             logger.error(f"处理视频失败: {str(e)}")
             raise
         finally:
             # 清理临时文件
-            os.remove(video_file_path)
-            logger.debug(f"Deleted temporary file: {video_file_path}")
+            if os.path.exists(video_file_path):
+                os.remove(video_file_path)
+                logger.debug(f"Deleted temporary file: {video_file_path}")
 
         return result
+
+    def _generate_local_thumbnail_url(self, video_file_path: str, video_oss_url: str) -> str:
+        start_time = 0
+        thumbnail_file_name = os.path.basename(video_oss_url) + "_t_" + str(start_time) + ".jpg"
+        thumbnail_local_path = os.path.join('/tmp', thumbnail_file_name)
+        try:
+            self.minioFileUploader.generate_thumbnail_from_video(video_file_path, thumbnail_local_path, start_time)
+            return self.minioFileUploader.upload_thumbnail_to_oss(thumbnail_file_name, thumbnail_local_path)
+        finally:
+            if os.path.exists(thumbnail_local_path):
+                os.remove(thumbnail_local_path)
 
     def _extract_frames(self, video_path: str) -> List[np.ndarray]:
         """
@@ -227,7 +287,8 @@ class UploadVideoService:
             try:
                 response = requests.get(
                     f"{self.rawdata_service_base_url}/dataplatform/rawdata/{resource_id}",
-                    headers={"Content-Type": "application/x-www-form-urlencoded"}
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                    timeout=Config.RAWDATA_REQUEST_TIMEOUT,
                 )
 
                 if response.status_code != 200:
@@ -435,6 +496,11 @@ class UploadVideoService:
         Returns:
             Dict[str, Any]: 包含视频URL和处理结果的字典
         """
+        if raw_id:
+            existing = self.video_dao.get_by_resource_id(raw_id)
+            if existing:
+                return self._result_from_video(existing[0])
+
         # 解析data_path
         collection, prefix = self._parse_data_path(data_path)
 
@@ -457,10 +523,20 @@ class UploadVideoService:
                 "processed_frames": 0
             }
 
-            # 上传视频到OSS
-            video_filename = f"{uuid.uuid4()}.mp4"
-            video_oss_url = upload_thumbnail_to_oss(video_filename, video_path)
-            thumbnail_oss_url = self.minioFileUploader.generate_video_thumbnail_url(video_oss_url)
+            # 上传视频到OSS。raw_id 场景使用稳定对象名，避免同一 raw_id 重复生成多条记录。
+            if raw_id:
+                video_filename = f"raw_{secure_filename(raw_id)}.mp4"
+            else:
+                video_filename = f"{uuid.uuid4()}.mp4"
+
+            with self._idempotency_lock(f"generated:{video_filename}"):
+                video_oss_url = self._object_public_url(video_filename)
+                existing = self.video_dao.get_by_path(video_oss_url)
+                if existing:
+                    return self._result_from_video(existing[0])
+
+                video_oss_url = upload_thumbnail_to_oss(video_filename, video_path)
+                thumbnail_oss_url = self._generate_local_thumbnail_url(video_path, video_oss_url)
 
             # 处理视频帧
             frames = self._extract_frames(video_path)
@@ -489,7 +565,8 @@ class UploadVideoService:
                     summary_embedding,
                     thumbnail_oss_url,
                     title,
-                    resource_id  # 传入resource_id
+                    resource_id,  # 传入resource_id
+                    m_id=self._stable_video_id(video_oss_url),
                 )
 
             result.update({
@@ -720,30 +797,40 @@ class UploadVideoService:
             Dict[str, Any]: 包含视频URL和处理结果的字典
         """
         try:
-            # 调用获取合规数据API
-            response = requests.get(
-                f"{self.rawdata_service_base_url}/dataplatform/rawdata/{raw_id}",
-                headers={"Content-Type": "application/x-www-form-urlencoded"}
-            )
+            existing = self.video_dao.get_by_resource_id(raw_id)
+            if existing:
+                return self._result_from_video(existing[0])
 
-            if response.status_code != 200:
-                raise Exception(f"获取数据失败: {response.text}")
+            with self._idempotency_lock(f"raw:{raw_id}"):
+                existing = self.video_dao.get_by_resource_id(raw_id)
+                if existing:
+                    return self._result_from_video(existing[0])
 
-            data = response.json()
-            
-            # 检查响应格式和状态
-            if data.get("result") != "success" or "rawdata" not in data:
-                raise Exception(f"无效的响应数据: {data}")
-            
-            # 获取dataPath
-            data_path = data["rawdata"].get("dataPath")
-            if not data_path:
-                raise Exception(f"数据路径为空: rawId={raw_id}")
-            
-            logger.info(f"获取到数据路径: {data_path}")
-            
-            # 调用已有的process_data_path方法
-            return self.process_data_path(data_path, raw_id)
+                # 调用获取合规数据API
+                response = requests.get(
+                    f"{self.rawdata_service_base_url}/dataplatform/rawdata/{raw_id}",
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                    timeout=Config.RAWDATA_REQUEST_TIMEOUT,
+                )
+
+                if response.status_code != 200:
+                    raise Exception(f"获取数据失败: {response.text}")
+
+                data = response.json()
+
+                # 检查响应格式和状态
+                if data.get("result") != "success" or "rawdata" not in data:
+                    raise Exception(f"无效的响应数据: {data}")
+
+                # 获取dataPath
+                data_path = data["rawdata"].get("dataPath")
+                if not data_path:
+                    raise Exception(f"数据路径为空: rawId={raw_id}")
+
+                logger.info(f"获取到数据路径: {data_path}")
+
+                # 调用已有的process_data_path方法
+                return self.process_data_path(data_path, raw_id)
             
         except Exception as e:
             logger.error(f"处理rawId失败: {str(e)}")

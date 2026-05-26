@@ -1,4 +1,5 @@
 import os
+import json
 
 from minio import Minio
 from minio.error import S3Error
@@ -11,6 +12,8 @@ load_dotenv()
 
 
 class MinioFileUploader:
+    _public_policy_configured = set()
+
     def __init__(self):
         """
         初始化 MinIO 客户端
@@ -22,20 +25,45 @@ class MinioFileUploader:
             secure=False  # 如果你的 Minio 实例没有启用 SSL，请将 secure 参数设置为 False
         )
 
-    def upload_file(self, object_name, file_path):
-        """
-        上传文件到 MinIO
-        :param object_name: 对象名（包含路径）
-        :param file_path: 本地文件路径
-        """
+    def _get_bucket_name(self):
         bucket_name = os.getenv('OSS_BUCKET_NAME')
-        # 检查桶是否存在，如果不存在则创建
+        if not bucket_name:
+            raise ValueError("OSS_BUCKET_NAME 未配置")
+        return bucket_name
+
+    def _ensure_bucket_ready(self, bucket_name):
         found = self.minio_client.bucket_exists(bucket_name)
         if not found:
             self.minio_client.make_bucket(bucket_name)
             print(f"桶 {bucket_name} 已创建")
         else:
             print(f"桶 {bucket_name} 已存在")
+
+        if bucket_name in self._public_policy_configured:
+            return
+
+        policy = {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {"AWS": ["*"]},
+                    "Action": ["s3:GetObject"],
+                    "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
+                }
+            ],
+        }
+        self.minio_client.set_bucket_policy(bucket_name, json.dumps(policy))
+        self._public_policy_configured.add(bucket_name)
+
+    def upload_file(self, object_name, file_path):
+        """
+        上传文件到 MinIO
+        :param object_name: 对象名（包含路径）
+        :param file_path: 本地文件路径
+        """
+        bucket_name = self._get_bucket_name()
+        self._ensure_bucket_ready(bucket_name)
 
         try:
             # 获取文件的 MIME 类型
@@ -47,21 +75,25 @@ class MinioFileUploader:
             self.minio_client.fput_object(bucket_name, object_name, file_path, content_type=content_type)
             print(f"文件 {file_path} 已上传到 {bucket_name}/{object_name}")
         except S3Error as e:
-            print(f"上传文件时发生错误: {e}")
+            raise RuntimeError(f"上传文件到 MinIO 失败: {e}") from e
 
-        url_prefix = urljoin("http://" + os.getenv('OSS_ENDPOINT'), bucket_name)
-        return url_prefix + "/" + object_name
+        public_base_url = os.getenv('OSS_PUBLIC_BASE_URL', '/media').rstrip('/')
+        return f"{public_base_url}/{bucket_name}/{object_name}"
 
     def generate_thumbnail_from_video(self, video_url, thumbnail_path, time_seconds):
         if not video_url:
             raise ValueError("视频URL不能为空")
-        (
-            ffmpeg
-            .input(video_url, ss=time_seconds)
-            .output(thumbnail_path, vframes=1)
-            .overwrite_output()
-            .run()
-        )
+        try:
+            (
+                ffmpeg
+                .input(video_url, ss=time_seconds)
+                .output(thumbnail_path, vframes=1)
+                .overwrite_output()
+                .run(capture_stdout=True, capture_stderr=True)
+            )
+        except ffmpeg.Error as e:
+            stderr = e.stderr.decode(errors='replace') if e.stderr else str(e)
+            raise RuntimeError(f"生成视频缩略图失败: {stderr}") from e
 
     def upload_thumbnail_to_oss(self, object_name, file_path):
         # 创建 MinioFileUploader 实例
