@@ -75,7 +75,7 @@ def create_video_player_html(video_url, title, video_info):
             raise ValueError("Invalid video URL")
             
         # 通过代理服务访问视频
-        proxy_url = f"http://127.0.0.1:30501/vision-analyze/video/proxy/{video_url}"
+        proxy_url = f"http://127.0.0.1:30012/vision-analyze/video/proxy/{video_url}"
             
         print(f"Original URL: {video_url}")
         print(f"Proxy URL: {proxy_url}")

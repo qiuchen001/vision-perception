@@ -48,8 +48,8 @@ class Config:
         'file:///app/videos'
     )
 
-    QWEN3_VL_EMBEDDING_BASE_URL = os.getenv('QWEN3_VL_EMBEDDING_BASE_URL', 'http://localhost:8575')
-    QWEN3_VL_EMBEDDING_DIM = int(os.getenv('QWEN3_VL_EMBEDDING_DIM', '2048'))
+    QWEN3_VL_EMBEDDING_BASE_URL = os.getenv('QWEN3_VL_EMBEDDING_BASE_URL', 'http://127.0.0.1:30049/v1')
+    QWEN3_VL_EMBEDDING_DIM = int(os.getenv('QWEN3_VL_EMBEDDING_DIM', '4096'))
     MILVUS_VIDEO_TEXT_FEATURE_COLLECTION_NAME = os.getenv(
         'MILVUS_VIDEO_TEXT_FEATURE_COLLECTION_NAME',
         'video_text_features'

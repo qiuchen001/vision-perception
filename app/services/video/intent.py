@@ -11,16 +11,16 @@ class IntentService:
 
     def __init__(self):
         """初始化意图识别服务"""
-        external_api_key = os.getenv("API_KEY")
-        external_base_url = os.getenv("BASE_URL")
-        if external_api_key and external_base_url:
-            api_key = external_api_key
-            base_url = external_base_url
-            model_name = os.getenv("VISION_MODEL_NAME")
+        scene_base_url = os.getenv("SCENE_MINING_API_BASE_URL")
+        scene_model_name = os.getenv("SCENE_MINING_API_MODEL_NAME")
+        if scene_base_url and scene_model_name:
+            api_key = os.getenv("SCENE_MINING_API_KEY") or os.getenv("ONE_API_KEY") or "EMPTY"
+            base_url = scene_base_url
+            model_name = scene_model_name
         else:
-            api_key = os.getenv("SCENE_MINING_API_KEY") or "EMPTY"
-            base_url = os.getenv("SCENE_MINING_API_BASE_URL")
-            model_name = os.getenv("SCENE_MINING_API_MODEL_NAME")
+            api_key = os.getenv("API_KEY")
+            base_url = os.getenv("BASE_URL")
+            model_name = os.getenv("VISION_MODEL_NAME")
         if not base_url or not model_name:
             raise ValueError("意图识别服务未配置 BASE_URL/VISION_MODEL_NAME 或本地 SCENE_MINING_API_BASE_URL/SCENE_MINING_API_MODEL_NAME")
 

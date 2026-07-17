@@ -13,22 +13,39 @@ from config.config import Config
 
 
 class Qwen3VLEmbedding(EmbeddingBase):
-    """HTTP client for the Qwen3-VL-Embedding vLLM sidecar service."""
+    """HTTP client for Qwen3-VL-Embedding via one-api/OpenAI-compatible APIs."""
 
     def __init__(self):
         self.base_url = os.getenv("QWEN3_VL_EMBEDDING_BASE_URL", "http://localhost:8575").rstrip("/")
+        self.model_name = os.getenv("QWEN3_VL_EMBEDDING_MODEL_NAME", "Qwen3-VL-Embedding-8B")
+        self.api_key = (
+            os.getenv("QWEN3_VL_EMBEDDING_API_KEY")
+            or os.getenv("ONE_API_KEY")
+            or os.getenv("SCENE_MINING_API_KEY")
+            or os.getenv("API_KEY")
+            or "EMPTY"
+        )
         self.timeout = float(os.getenv("QWEN3_VL_EMBEDDING_TIMEOUT", "300"))
         self.retries = int(os.getenv("QWEN3_VL_EMBEDDING_RETRIES", "2"))
         self.retry_backoff = float(os.getenv("QWEN3_VL_EMBEDDING_RETRY_BACKOFF", "1.0"))
         self.expected_dim = int(os.getenv("QWEN3_VL_EMBEDDING_DIM", str(Config.QWEN3_VL_EMBEDDING_DIM)))
 
-    def _post_embed(self, inputs: list[dict]) -> list[list[float]]:
+    def _embeddings_url(self) -> str:
+        if self.base_url.endswith("/embeddings"):
+            return self.base_url
+        return f"{self.base_url}/embeddings"
+
+    def _post_one(self, payload: dict) -> list[float]:
         last_error = None
         for attempt in range(self.retries + 1):
             try:
                 resp = requests.post(
-                    f"{self.base_url}/embed",
-                    json={"inputs": inputs, "normalize": True},
+                    self._embeddings_url(),
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json=payload,
                     timeout=self.timeout,
                 )
                 resp.raise_for_status()
@@ -44,17 +61,47 @@ class Qwen3VLEmbedding(EmbeddingBase):
         else:
             raise RuntimeError(f"Qwen3-VL embedding 服务请求失败: {last_error}")
 
-        embeddings = data.get("embeddings")
-        if not isinstance(embeddings, list) or len(embeddings) != len(inputs):
+        embeddings = data.get("data")
+        if not isinstance(embeddings, list) or not embeddings:
             raise RuntimeError(f"Qwen3-VL embedding 服务返回异常: {data}")
-        for index, embedding in enumerate(embeddings):
-            if not isinstance(embedding, list) or not embedding:
-                raise RuntimeError(f"Qwen3-VL embedding 第 {index} 个向量为空: {data}")
-            if self.expected_dim > 0 and len(embedding) != self.expected_dim:
-                raise RuntimeError(
-                    f"Qwen3-VL embedding 维度异常: expected={self.expected_dim}, actual={len(embedding)}"
-                )
-        return embeddings
+        embedding = embeddings[0].get("embedding") if isinstance(embeddings[0], dict) else None
+        if not isinstance(embedding, list) or not embedding:
+            raise RuntimeError(f"Qwen3-VL embedding 向量为空: {data}")
+        if self.expected_dim > 0 and len(embedding) != self.expected_dim:
+            raise RuntimeError(
+                f"Qwen3-VL embedding 维度异常: expected={self.expected_dim}, actual={len(embedding)}"
+            )
+        return embedding
+
+    def _post_text(self, text: str) -> list[float]:
+        return self._post_one({
+            "model": self.model_name,
+            "input": text or "",
+            "encoding_format": "float",
+        })
+
+    def _post_image(self, image_base64: str) -> list[float]:
+        return self._post_one({
+            "model": self.model_name,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": [
+                        {"type": "text", "text": "Represent the user's input."}
+                    ],
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"},
+                        }
+                    ],
+                },
+            ],
+            "encoding_format": "float",
+        })
 
     @staticmethod
     def _image_to_base64(image: Image.Image) -> str:
@@ -63,14 +110,10 @@ class Qwen3VLEmbedding(EmbeddingBase):
         return base64.b64encode(buf.getvalue()).decode("ascii")
 
     def embedding_image(self, image: Image.Image) -> List[float]:
-        return self._post_embed([{"image_base64": self._image_to_base64(image)}])[0]
+        return self._post_image(self._image_to_base64(image))
 
     def embedding_text(self, text: str) -> List[float]:
-        return self._post_embed([{"text": text or ""}])[0]
+        return self._post_text(text)
 
     def embedding(self, image: Image.Image, text: str) -> Tuple[List[float], List[float]]:
-        embeddings = self._post_embed([
-            {"image_base64": self._image_to_base64(image)},
-            {"text": text or ""},
-        ])
-        return embeddings[0], embeddings[1]
+        return self.embedding_image(image), self.embedding_text(text)

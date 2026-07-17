@@ -18,32 +18,33 @@
 ```text
 Browser / Client
       |
-Flask / Gunicorn  :30501
+Flask / Gunicorn  :30012
       |
       +-- UploadService       -> MinIO
       +-- AddVideoService
-      |     +-- MiningVideoService  -> qwen-gemini-vlm :8576
-      |     +-- SummaryVideoService -> qwen-gemini-vlm :8576
-      |     +-- VideoFeatureService -> qwen3-vl-embedding :8575
+      |     +-- MiningVideoService  -> one-api :30049 / Qwen3-VL-8B-Instruct
+      |     +-- SummaryVideoService -> one-api :30049 / Qwen3-VL-8B-Instruct
+      |     +-- VideoFeatureService -> one-api :30049 / Qwen3-VL-Embedding-8B
       |
       +-- SearchVideoService  -> Milvus
 ```
 
-当前推荐部署方式是 **Docker Compose**。`docker-compose.yml` 负责启动：
+当前推荐复用已经部署好的 **one-api + vLLM** 模型服务。`docker-compose.yml` 默认只启动应用服务，旧的本地模型 sidecar 已放到 `legacy-models` profile 中。
 
 | 服务 | 作用 | 端口 |
 | --- | --- | --- |
-| `qwen-gemini-vlm` | 场景挖掘和摘要生成 VLM，OpenAI-compatible `/v1` 接口 | `127.0.0.1:8576` |
-| `qwen3-vl-embedding` | Qwen3-VL 多模态嵌入服务，统一处理文本、图片和视频帧，提供 `/embed` 接口 | `127.0.0.1:8575` |
-| `vision-perception` | Flask/Gunicorn 应用服务 | `0.0.0.0:30501` |
+| one-api | 转发 `Qwen3-VL-8B-Instruct` 与 `Qwen3-VL-Embedding-8B` | `127.0.0.1:30049` |
+| `vision-perception` | Flask/Gunicorn 应用服务 | `0.0.0.0:30012` |
 
-> 注意：当前 compose 文件不内置 Milvus 和 MinIO，需要使用已有服务，并在 `.env` 中配置连接信息。
+> 注意：当前 compose 文件不内置 one-api、Milvus 和 MinIO，需要使用已有服务，并在 `.env` 中配置连接信息。
 
 ## 模型下载
 
 模型文件不提交到代码仓库，需要提前从 Hugging Face 下载并放到宿主机固定目录。
 
 ### 1. 场景挖掘 VLM
+
+当前默认使用 one-api 上的 `Qwen3-VL-8B-Instruct`，不需要再由本项目启动 `qwen-gemini-vlm`。
 
 模型仓库：
 
@@ -74,38 +75,34 @@ compose 中挂载为：
 
 ### 2. 多模态嵌入模型
 
-当前嵌入模型已经切换为 **Qwen3-VL-Embedding-2B 多模态嵌入模型**，不再依赖原来的单独文本/图片嵌入模型。它用于：
+当前嵌入模型已经切换为 one-api 上的 **Qwen3-VL-Embedding-8B 多模态嵌入模型**。它用于：
 
 1. 将 tags 和 summary 文本编码为文本向量。
 2. 将图片查询编码为图片向量。
 3. 将视频采样帧编码为视觉向量，并聚合成视频级全局视觉特征。
-4. 让文本、图片、视频帧落在同一个 2048 维多模态语义空间，支持跨模态检索。
+4. 让文本、图片、视频帧落在同一个 4096 维多模态语义空间，支持跨模态检索。
 
 模型仓库：
 
 ```text
-https://huggingface.co/Qwen/Qwen3-VL-Embedding-2B
+https://huggingface.co/Qwen/Qwen3-VL-Embedding-8B
 ```
 
 下载到：
 
 ```text
-/mnt/data/checkpoints/Qwen3-VL-Embedding-2B
+/mnt/data/ai-ground/devops/models/Qwen/Qwen3-VL-Embedding-8B
 ```
 
 示例命令：
 
 ```bash
 huggingface-cli download \
-  Qwen/Qwen3-VL-Embedding-2B \
-  --local-dir /mnt/data/checkpoints/Qwen3-VL-Embedding-2B
+  Qwen/Qwen3-VL-Embedding-8B \
+  --local-dir /mnt/data/ai-ground/devops/models/Qwen/Qwen3-VL-Embedding-8B
 ```
 
-compose 中挂载为：
-
-```text
-/models/Qwen3-VL-Embedding-2B
-```
+该模型由外部 vLLM + one-api 提供，应用通过 `QWEN3_VL_EMBEDDING_BASE_URL` 调用。
 
 ## Docker Compose 启动
 
@@ -133,25 +130,23 @@ MILVUS_VIDEO_COLLECTION_NAME=videos
 
 # Flask
 SERVER_HOST=localhost
-SERVER_PORT=30501
+SERVER_PORT=30012
+
+ONE_API_KEY=xxx
 
 # 场景挖掘 VLM
-SCENE_MINING_API_BASE_URL=http://localhost:8576/v1
-SCENE_MINING_API_MODEL_NAME=/models/qwen-gemini
+SCENE_MINING_API_BASE_URL=http://127.0.0.1:30049/v1
+SCENE_MINING_API_MODEL_NAME=Qwen3-VL-8B-Instruct
 SCENE_MINING_CONFIG_PATH=app/algorithm/scene_mining/config-qwen-gemini.yaml
 SCENE_MINING_OUTPUT_DIR=outputs/scene_mining
 SCENE_MINING_VIDEO_CACHE_DIR=data/scene_mining_videos
 SCENE_MINING_VIDEO_URL_PREFIX=file:///app/videos
-SCENE_MINING_VLM_PORT=8576
-SCENE_MINING_VLM_GPU_MEMORY_UTILIZATION=0.7773
-SCENE_MINING_VLM_MAX_MODEL_LEN=40960
 
 # Qwen3-VL 多模态嵌入服务
 EMBEDDING_MODEL=qwen3-vl
-QWEN3_VL_EMBEDDING_BASE_URL=http://localhost:8575
-QWEN3_VL_EMBEDDING_PORT=8575
-QWEN3_VL_EMBEDDING_DIM=2048
-QWEN3_VL_GPU_MEMORY_UTILIZATION=0.1727
+QWEN3_VL_EMBEDDING_BASE_URL=http://127.0.0.1:30049/v1
+QWEN3_VL_EMBEDDING_MODEL_NAME=Qwen3-VL-Embedding-8B
+QWEN3_VL_EMBEDDING_DIM=4096
 
 # 采样和运行期缓存
 FRAME_SAMPLE_FPS=1
@@ -161,6 +156,12 @@ FRAME_SAMPLE_EVENT_WEIGHT=1.5
 MEDIA_CACHE_DIR=data/media_cache
 TASK_STATUS_DIR=data/task_status
 UPLOAD_LOCK_DIR=/tmp/vision_perception_locks
+
+# 直接 URL 挖掘接口签名配置
+# body_hash = SHA256(raw_body)
+# sign = HmacSHA256(method + "\n" + path + "\n" + timestamp + "\n" + nonce + "\n" + body_hash, DIRECT_MINING_SIGN_SECRET)
+DIRECT_MINING_SIGN_SECRET=change-me
+DIRECT_MINING_SIGN_WINDOW_SECONDS=300
 ```
 
 ### 2. 确认视频目录
@@ -310,7 +311,7 @@ app/algorithm/scene_mining/README.md
 ### 异步处理视频
 
 ```bash
-curl -X POST http://127.0.0.1:30501/api/add/task \
+curl -X POST http://127.0.0.1:30012/api/add/task \
   -H 'Content-Type: application/json' \
   -d '{"video_url":"/media/perception-mining/example.mp4","action_type":3}'
 ```
@@ -318,19 +319,19 @@ curl -X POST http://127.0.0.1:30501/api/add/task \
 查询任务：
 
 ```bash
-curl http://127.0.0.1:30501/api/add/task/<task_id>
+curl http://127.0.0.1:30012/api/add/task/<task_id>
 ```
 
 ### 媒体代理健康检查
 
 ```bash
-curl 'http://127.0.0.1:30501/api/media/health?url=/media/perception-mining/example.mp4'
+curl 'http://127.0.0.1:30012/api/media/health?url=/media/perception-mining/example.mp4'
 ```
 
 预热缓存：
 
 ```bash
-curl -X POST http://127.0.0.1:30501/api/media/health \
+curl -X POST http://127.0.0.1:30012/api/media/health \
   -H 'Content-Type: application/json' \
   -d '{"urls":["/media/perception-mining/example.mp4"],"warm_cache":true}'
 ```
@@ -372,7 +373,7 @@ python app.py
 
 ```bash
 gunicorn --workers 2 --threads 8 \
-  --bind 0.0.0.0:30501 \
+  --bind 0.0.0.0:30012 \
   --timeout 3600 \
   wsgi:application
 ```

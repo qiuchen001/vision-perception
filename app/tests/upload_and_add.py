@@ -7,8 +7,8 @@ import json
 
 def upload_and_insert_videos():
     video_dir = r"E:\playground\ai\datasets\videos\360-camera\videos"
-    upload_url = "http://127.0.0.1:30501/vision-analyze/video/upload"
-    insert_url = "http://127.0.0.1:30501/vision-analyze/video/add"
+    upload_url = "http://127.0.0.1:30012/vision-analyze/video/upload"
+    insert_url = "http://127.0.0.1:30012/vision-analyze/video/add"
 
     for filename in os.listdir(video_dir):
         if filename.endswith(".mp4"):

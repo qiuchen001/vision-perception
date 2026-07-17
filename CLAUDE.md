@@ -20,7 +20,7 @@ python app.py
 
 **Production (gunicorn):**
 ```bash
-gunicorn --workers 2 --threads 8 --bind 0.0.0.0:30501 --timeout 3600 wsgi:application
+gunicorn --workers 2 --threads 8 --bind 0.0.0.0:30012 --timeout 3600 wsgi:application
 ```
 
 **Docker (full stack with GPU VLMs):**
@@ -51,7 +51,7 @@ There is no linter configuration in this repo.
 ```
 Browser/Client
       |
-   Flask (app.py, port 30501) — all routes defined directly in app.py
+   Flask (app.py, port 30012) — all routes defined directly in app.py
       |
   ┌──────────────────────────────┐
   │  Services (app/services/)    │
@@ -72,12 +72,11 @@ Browser/Client
   External services (see docker-compose.yml):
   ├── MinIO (S3-compatible)         — video + thumbnail storage
   ├── Milvus (port 19530)           — vector DB, all collections
-  ├── vLLM VLM (port 8576)          — scene mining (Qwen3.5-9B-Gemini-Distill)
-  └── vLLM Embedding (port 8575)    — Qwen3-VL-Embedding-2B (2048-dim)
+  └── one-api (port 30049)          — Qwen3-VL-8B-Instruct + Qwen3-VL-Embedding-8B
 ```
 
 **Video processing pipeline (`POST /api/add`):**
-1. `MiningVideoService` → `app/algorithm/scene_mining/adapter.py` → LangGraph DAG → VLM at port 8576 → `pred` dict with scene labels + `abnormal_event_times`
+1. `MiningVideoService` → `app/algorithm/scene_mining/adapter.py` → LangGraph DAG → one-api Qwen3-VL-8B-Instruct → `pred` dict with scene labels + `abnormal_event_times`
 2. `SummaryVideoService` → sends mining results to VLM → natural-language summary
 3. `VideoFeatureService` → ffmpeg extracts frames → embeds via Qwen3-VL-Embedding → upserts to `video_visual_features` and `video_text_features`
 4. `VideoDAO.upsert_video()` → writes final record to primary Milvus collection
@@ -89,7 +88,7 @@ Browser/Client
 | `app.py` | Flask app factory + all route definitions |
 | `config/config.py` | Central `Config` class wrapping all env vars |
 | `app/algorithm/scene_mining/config-qwen-gemini.yaml` | Scene mining pipeline config: VLM endpoint, FPS, category list, concurrency |
-| `docker-compose.yml` | Three services: VLM (8576), embedding (8575), Flask app (30501) |
+| `docker-compose.yml` | Flask app (30012); legacy local model sidecars are gated behind the `legacy-models` profile |
 | `.env_sample` | Template for all runtime env vars — copy to `.env` |
 
 ## Critical Environment Variables
@@ -97,7 +96,8 @@ Browser/Client
 - `MILVUS_HOST/PORT/DB_NAME` — Milvus connection
 - `MILVUS_VIDEO_COLLECTION_NAME` — primary video collection (not in `.env_sample`, must be set manually)
 - `OSS_ENDPOINT/ACCESS_KEY/SECRET_KEY/BUCKET_NAME` — MinIO
-- `QWEN3_VL_EMBEDDING_BASE_URL` — embedding service (default: `http://localhost:8575`)
+- `ONE_API_KEY` — one-api token for chat and embedding
+- `QWEN3_VL_EMBEDDING_BASE_URL` — one-api embedding base URL (default: `http://127.0.0.1:30049/v1`)
 - `SCENE_MINING_API_BASE_URL/MODEL_NAME` — VLM endpoint
 - `SCENE_MINING_CONFIG_PATH` — path to the YAML config above
 - `DASHSCOPE_API_KEY` — DashScope/Qwen API key for summary service
@@ -120,7 +120,7 @@ Browser/Client
 
 ## Milvus Collections
 
-1. **Primary video collection** (`MILVUS_VIDEO_COLLECTION_NAME`) — video metadata + two FLOAT_VECTOR(2048) fields (`embedding`, `summary_embedding`) with COSINE FLAT index
+1. **Primary video collection** (`MILVUS_VIDEO_COLLECTION_NAME`) — video metadata + two FLOAT_VECTOR(4096) fields (`embedding`, `summary_embedding`) with COSINE FLAT index
 2. **`video_text_features`** — one row per `(m_id, feature_type)` where `feature_type` is `"tags"` or `"summary"`
 3. **`video_visual_features`** — one row per video; weighted-average-pooled frame embedding
 4. **Frame-level collection** (`MILVUS_VIDEO_FRAME_COLLECTION_NAME`) — per-frame vectors for `search_mode=frame`

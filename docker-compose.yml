@@ -1,5 +1,6 @@
 services:
   qwen-gemini-vlm:
+    profiles: ["legacy-models"]
     image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/vllm/vllm-openai:v0.21.0-ubuntu2404
     expose:
       - "8000"
@@ -41,6 +42,7 @@ services:
       - vision-perception-net
 
   qwen3-vl-embedding:
+    profiles: ["legacy-models"]
     image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/vllm/vllm-openai:v0.21.0-ubuntu2404
     expose:
       - "8000"
@@ -74,21 +76,23 @@ services:
       FLASK_APP: app.py
       FLASK_ENV: production
       SERVER_HOST: 0.0.0.0
-      SERVER_PORT: "30501"
+      SERVER_PORT: "30012"
       WEB_CONCURRENCY: "4"
       GUNICORN_THREADS: "16"
-      APP_INTERNAL_BASE_URL: http://127.0.0.1:30501
+      APP_INTERNAL_BASE_URL: http://127.0.0.1:30012
       OSS_PUBLIC_BASE_URL: /media
       PYTHONPATH: /app
       EMBEDDING_MODEL: qwen3-vl
       MILVUS_HOST: 127.0.0.1
       MILVUS_PORT: "19530"
-      QWEN3_VL_EMBEDDING_BASE_URL: http://127.0.0.1:8575
+      QWEN3_VL_EMBEDDING_BASE_URL: http://127.0.0.1:30049/v1
+      QWEN3_VL_EMBEDDING_MODEL_NAME: Qwen3-VL-Embedding-8B
+      QWEN3_VL_EMBEDDING_DIM: "4096"
       QWEN3_VL_EMBEDDING_TIMEOUT: "300"
       QWEN3_VL_EMBEDDING_RETRIES: "2"
       QWEN3_VL_EMBEDDING_RETRY_BACKOFF: "1"
-      SCENE_MINING_API_BASE_URL: http://127.0.0.1:8576/v1
-      SCENE_MINING_API_MODEL_NAME: /models/qwen-gemini
+      SCENE_MINING_API_BASE_URL: http://127.0.0.1:30049/v1
+      SCENE_MINING_API_MODEL_NAME: Qwen3-VL-8B-Instruct
       SCENE_MINING_CONFIG_PATH: /app/app/algorithm/scene_mining/config-qwen-gemini.yaml
       SCENE_MINING_OUTPUT_DIR: /app/outputs/scene_mining
       SCENE_MINING_TOOL_CLIP_DIR: /app/outputs/scene_mining/_tool_clips
@@ -105,17 +109,15 @@ services:
       TASK_STATUS_DIR: /app/data/task_status
       UPLOAD_LOCK_DIR: /app/data/locks
       ENABLE_LEGACY_VIDEO_PROXY: "false"
-      MILVUS_VIDEO_TEXT_FEATURE_COLLECTION_NAME: video_text_features
-      MILVUS_VIDEO_VISUAL_FEATURE_COLLECTION_NAME: video_visual_features
+      MILVUS_VIDEO_COLLECTION_NAME: video_vector_qwen3vl8b_4096
+      MILVUS_VIDEO_FRAME_COLLECTION_NAME: video_frame_vector_qwen3vl8b_4096
+      MILVUS_VIDEO_TEXT_FEATURE_COLLECTION_NAME: video_text_features_qwen3vl8b_4096
+      MILVUS_VIDEO_VISUAL_FEATURE_COLLECTION_NAME: video_visual_features_qwen3vl8b_4096
       NVIDIA_VISIBLE_DEVICES: "${CUDA_VISIBLE_DEVICES:-all}"
     volumes:
       - /mnt/data/ai-ground/dataset/videos:/app/videos:ro
       - ./outputs:/app/outputs
       - ./data:/app/data
-    depends_on:
-      - qwen-gemini-vlm
-      - qwen3-vl-embedding
-
 networks:
   vision-perception-net:
     driver: bridge

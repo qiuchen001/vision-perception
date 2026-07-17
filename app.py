@@ -3,12 +3,16 @@ from flask_cors import CORS
 from app.services.video.upload import UploadVideoService
 from app.services.video.search import SearchVideoService
 from app.services.video.integrated_search import IntegratedSearchService
+from app.openapi_spec import OPENAPI_SPEC
 from app.utils.minio_uploader import MinioFileUploader
+import hmac
+import ipaddress
 import json
 import tempfile
 import os
 import queue
 import shutil
+import socket
 import threading
 import time
 import uuid
@@ -59,8 +63,117 @@ def _scene_mining_max_concurrent_videos():
     return max(1, min(value, 50))
 
 
+def _scene_mining_categories():
+    try:
+        with open(SCENE_MINING_CONFIG_PATH, 'r', encoding='utf-8') as config_file:
+            config = yaml.safe_load(config_file) or {}
+        categories_path = (config.get('paths') or {}).get('categories', 'categories.json')
+        if not os.path.isabs(categories_path):
+            categories_path = os.path.join(os.path.dirname(SCENE_MINING_CONFIG_PATH), categories_path)
+        with open(categories_path, 'r', encoding='utf-8') as categories_file:
+            categories = json.load(categories_file)
+    except (OSError, TypeError, json.JSONDecodeError, yaml.YAMLError) as exc:
+        app.logger.error("Failed to read scene mining categories: %s", exc)
+        raise
+
+    if not isinstance(categories, dict):
+        raise ValueError("场景挖掘标签配置格式错误")
+    return categories, categories_path
+
+
+def _validate_direct_mining_url(video_url):
+    parsed = urlparse(video_url or '')
+    if parsed.scheme not in {'http', 'https'}:
+        raise ValueError("video_url 只支持 http/https 可下载地址")
+    if not parsed.hostname:
+        raise ValueError("video_url 缺少有效域名或 IP")
+
+    if str(os.getenv('DIRECT_MINING_ALLOW_PRIVATE_URLS', 'false')).lower() == 'true':
+        return
+
+    try:
+        address_infos = socket.getaddrinfo(parsed.hostname, parsed.port, type=socket.SOCK_STREAM)
+    except socket.gaierror as exc:
+        raise ValueError(f"无法解析 video_url 域名: {parsed.hostname}") from exc
+
+    checked_ips = set()
+    for address_info in address_infos:
+        ip_text = address_info[4][0]
+        if ip_text in checked_ips:
+            continue
+        checked_ips.add(ip_text)
+        ip_address = ipaddress.ip_address(ip_text)
+        if (
+            ip_address.is_private
+            or ip_address.is_loopback
+            or ip_address.is_link_local
+            or ip_address.is_multicast
+            or ip_address.is_reserved
+            or ip_address.is_unspecified
+        ):
+            raise ValueError("video_url 不允许指向内网、回环或保留地址")
+
+
+def _verify_direct_mining_signature(raw_body, method, path, timestamp, once, content_sha256, sign):
+    secret = os.getenv('DIRECT_MINING_SIGN_SECRET', '').strip()
+    if not secret:
+        raise RuntimeError("DIRECT_MINING_SIGN_SECRET 未配置")
+
+    timestamp_text = str(timestamp or '').strip()
+    once_text = str(once or '').strip()
+    content_sha256_text = str(content_sha256 or '').strip().lower()
+    sign_text = str(sign or '').strip().lower()
+    if not timestamp_text or not once_text or not content_sha256_text or not sign_text:
+        raise ValueError("请提供 X-Timestamp、X-Nonce、X-Content-SHA256 和 X-Signature 请求头")
+    if len(once_text) > 128:
+        raise ValueError("X-Nonce 长度不能超过 128")
+
+    try:
+        timestamp_value = int(timestamp_text)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("X-Timestamp 必须是秒级 Unix 时间戳") from exc
+
+    window_seconds = int(os.getenv('DIRECT_MINING_SIGN_WINDOW_SECONDS', '300'))
+    if abs(int(time.time()) - timestamp_value) > max(1, window_seconds):
+        raise PermissionError("签名已过期")
+
+    actual_content_sha256 = hashlib.sha256(raw_body).hexdigest()
+    if not hmac.compare_digest(actual_content_sha256, content_sha256_text):
+        raise PermissionError("请求体摘要不匹配")
+
+    string_to_sign = "\n".join([
+        str(method or '').upper(),
+        str(path or ''),
+        timestamp_text,
+        once_text,
+        content_sha256_text,
+    ])
+    expected = hmac.new(
+        secret.encode('utf-8'),
+        string_to_sign.encode('utf-8'),
+        hashlib.sha256,
+    ).hexdigest()
+    if not hmac.compare_digest(expected.lower(), sign_text):
+        raise PermissionError("签名错误")
+
+    now = time.time()
+    expire_at = now + max(1, window_seconds)
+    with DIRECT_MINING_NONCE_LOCK:
+        expired_nonces = [
+            nonce_key for nonce_key, nonce_expire_at in DIRECT_MINING_USED_NONCES.items()
+            if nonce_expire_at <= now
+        ]
+        for nonce_key in expired_nonces:
+            DIRECT_MINING_USED_NONCES.pop(nonce_key, None)
+        if once_text in DIRECT_MINING_USED_NONCES:
+            raise PermissionError("once 已使用")
+        DIRECT_MINING_USED_NONCES[once_text] = expire_at
+
+
 MAX_CONCURRENT_ADD_TASKS = _scene_mining_max_concurrent_videos()
 ADD_PROCESS_SEMAPHORE = threading.BoundedSemaphore(MAX_CONCURRENT_ADD_TASKS)
+DIRECT_MINING_USED_NONCES = {}
+DIRECT_MINING_NONCE_LOCK = threading.Lock()
 
 
 @app.before_request
@@ -86,7 +199,7 @@ def _to_internal_url(video_url):
     parsed = urlparse(video_url or '')
     if parsed.scheme:
         return video_url
-    internal_base_url = os.getenv('APP_INTERNAL_BASE_URL', 'http://127.0.0.1:30501')
+    internal_base_url = os.getenv('APP_INTERNAL_BASE_URL', 'http://127.0.0.1:30012')
     return urljoin(internal_base_url.rstrip('/') + '/', str(video_url).lstrip('/'))
 
 
@@ -427,12 +540,223 @@ def media_health():
     }), 200
 
 
+@app.route('/openapi.json')
+def openapi_json():
+    return jsonify(OPENAPI_SPEC)
+
+
+@app.route('/docs')
+def swagger_docs():
+    return """
+<!doctype html>
+<html>
+  <head>
+    <title>Vision Perception API - Swagger UI</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script>
+      window.onload = () => {
+        window.ui = SwaggerUIBundle({
+          url: '/openapi.json',
+          dom_id: '#swagger-ui',
+          deepLinking: true
+        });
+      };
+    </script>
+  </body>
+</html>
+"""
+
+
+@app.route('/redoc')
+def redoc_docs():
+    return """
+<!doctype html>
+<html>
+  <head>
+    <title>Vision Perception API - ReDoc</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <redoc spec-url="/openapi.json"></redoc>
+    <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"></script>
+  </body>
+</html>
+"""
+
+
 # 添加静态文件路由
 @app.route('/<path:path>')
 def serve_static(path):
     """服务静态文件"""
     print(f"Requested path: {path}")
     return send_from_directory(STATIC_DIR, path)
+
+
+@app.route('/api/mining/tags', methods=['GET'])
+def mining_tags():
+    try:
+        categories, _ = _scene_mining_categories()
+    except Exception as exc:
+        return jsonify({
+            'code': 500,
+            'msg': f'读取标签配置失败: {exc}',
+            'data': None,
+        }), 500
+
+    flat_tags = []
+    category_items = []
+    for category, tags in categories.items():
+        tag_list = tags if isinstance(tags, list) else []
+        flat_tags.extend(str(tag) for tag in tag_list)
+        category_items.append({
+            'category': str(category),
+            'tags': [str(tag) for tag in tag_list],
+            'count': len(tag_list),
+        })
+
+    return jsonify({
+        'code': 0,
+        'msg': 'success',
+        'data': {
+            'categories': category_items,
+            'tags': flat_tags,
+            'category_count': len(category_items),
+            'tag_count': len(flat_tags),
+        }
+    })
+
+
+@app.route('/api/mining/url/stream', methods=['POST'])
+def mining_url_stream():
+    """直接基于可下载视频 URL 执行标签挖掘，不入库、不上传 MinIO。"""
+    raw_body = request.get_data(cache=True)
+    try:
+        _verify_direct_mining_signature(
+            raw_body,
+            request.method,
+            request.path,
+            request.headers.get('X-Timestamp'),
+            request.headers.get('X-Nonce'),
+            request.headers.get('X-Content-SHA256'),
+            request.headers.get('X-Signature'),
+        )
+    except ValueError as exc:
+        return jsonify({
+            'code': 400,
+            'msg': str(exc),
+            'data': None,
+        }), 400
+    except PermissionError as exc:
+        return jsonify({
+            'code': 401,
+            'msg': str(exc),
+            'data': None,
+        }), 401
+    except RuntimeError as exc:
+        return jsonify({
+            'code': 500,
+            'msg': str(exc),
+            'data': None,
+        }), 500
+
+    data = request.get_json(silent=True)
+    if not data or 'video_url' not in data:
+        return jsonify({
+            'code': 400,
+            'msg': '请提供 video_url',
+            'data': None,
+        }), 400
+
+    video_url = str(data['video_url']).strip()
+    try:
+        _validate_direct_mining_url(video_url)
+    except ValueError as exc:
+        return jsonify({
+            'code': 400,
+            'msg': str(exc),
+            'data': None,
+        }), 400
+
+    def generate():
+        events: queue.Queue[dict] = queue.Queue()
+        done_marker = object()
+
+        def send_event(event_type, stage, message, detail=None):
+            events.put({
+                "code": 0,
+                "msg": message,
+                "data": {
+                    "type": event_type,
+                    "stage": stage,
+                    "detail": detail or {},
+                    "timestamp": int(time.time() * 1000),
+                },
+            })
+
+        def progress_callback(stage, message=None, detail=None):
+            if isinstance(message, dict) and detail is None:
+                detail = message
+                message = None
+            send_event(
+                "progress",
+                str(stage or "processing"),
+                str(message or "处理中..."),
+                detail,
+            )
+
+        def worker():
+            try:
+                from app.algorithm.scene_mining.adapter import analyze_video, extract_tags
+
+                progress_callback("downloading", "下载/缓存视频中...")
+                scene_result = analyze_video(video_url, progress_callback=progress_callback)
+                tags = extract_tags(scene_result.summary_item)[:10]
+                events.put({
+                    "code": 0,
+                    "msg": "success",
+                    "data": {
+                        "type": "result",
+                        "video_url": video_url,
+                        "tags": tags,
+                        "pred": scene_result.summary_item.get("pred", {}),
+                        "abnormal_event_times": scene_result.summary_item.get("abnormal_event_times", []),
+                        "timestamp": int(time.time() * 1000),
+                    },
+                })
+            except Exception as exc:
+                events.put({
+                    "code": 500,
+                    "msg": f"挖掘失败: {exc}",
+                    "data": {
+                        "type": "error",
+                        "timestamp": int(time.time() * 1000),
+                    },
+                })
+            finally:
+                events.put(done_marker)
+
+        threading.Thread(target=worker, daemon=True).start()
+        send_event("progress", "queued", "已提交直接 URL 挖掘任务")
+
+        while True:
+            item = events.get()
+            if item is done_marker:
+                break
+            yield json.dumps(item, ensure_ascii=False) + "\n"
+
+    return Response(
+        stream_with_context(generate()),
+        content_type='application/x-ndjson; charset=utf-8',
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',
+        },
+    )
 
 
 @app.route('/api/upload', methods=['POST'])

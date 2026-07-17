@@ -33,6 +33,10 @@
 
 ## API接口
 
+### 对外接口文档
+
+- [直接视频 URL 场景挖掘接口](direct-mining-url-stream-api.md)：`POST /api/mining/url/stream`
+
 ### 1. 上传视频
 - **路径:** `/api/upload`
 - **方法:** `POST`

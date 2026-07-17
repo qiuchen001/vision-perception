@@ -65,7 +65,7 @@ def display_video_player(video: Dict):
     video_path = video.get('path', '')
     if video_path:
         if video_path.startswith(('http://', 'https://')):
-            proxy_url = f"http://10.66.8.56:30501/vision-analyze/video/proxy/{video_path}"
+            proxy_url = f"http://10.66.8.56:30012/vision-analyze/video/proxy/{video_path}"
             st.video(proxy_url)
         else:
             try:

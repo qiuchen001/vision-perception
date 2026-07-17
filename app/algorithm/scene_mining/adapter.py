@@ -81,6 +81,8 @@ def load_scene_mining_config(
         api_cfg["base_url"] = os.getenv("SCENE_MINING_API_BASE_URL")
     if os.getenv("SCENE_MINING_API_MODEL_NAME"):
         api_cfg["model_name"] = os.getenv("SCENE_MINING_API_MODEL_NAME")
+    if os.getenv("SCENE_MINING_API_KEY") or os.getenv("ONE_API_KEY"):
+        api_cfg["api_key"] = os.getenv("SCENE_MINING_API_KEY") or os.getenv("ONE_API_KEY")
 
     config_dir = resolved_config_path.parent
     paths_cfg = config.setdefault("paths", {})
