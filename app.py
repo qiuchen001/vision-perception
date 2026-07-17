@@ -715,7 +715,7 @@ def mining_url_stream():
 
                 progress_callback("downloading", "下载/缓存视频中...")
                 scene_result = analyze_video(video_url, progress_callback=progress_callback)
-                tags = extract_tags(scene_result.summary_item)[:10]
+                tags = extract_tags(scene_result.summary_item)
                 events.put({
                     "code": 0,
                     "msg": "success",
@@ -723,6 +723,7 @@ def mining_url_stream():
                         "type": "result",
                         "video_url": video_url,
                         "tags": tags,
+                        "tag_count": len(tags),
                         "pred": scene_result.summary_item.get("pred", {}),
                         "abnormal_event_times": scene_result.summary_item.get("abnormal_event_times", []),
                         "timestamp": int(time.time() * 1000),

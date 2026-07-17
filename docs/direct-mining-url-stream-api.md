@@ -159,6 +159,7 @@ sign = HMAC-SHA256(签名原文, 私钥)
     "type": "result",
     "video_url": "https://example.com/path/video.mp4",
     "tags": ["白天", "晴天", "城市地面道路"],
+    "tag_count": 3,
     "pred": {
       "自然时间段": ["白天"],
       "气象条件": ["晴天"],
@@ -178,7 +179,8 @@ sign = HMAC-SHA256(签名原文, 私钥)
 | `msg` | string | 成功时为 `success` |
 | `data.type` | string | 固定为 `result` |
 | `data.video_url` | string | 请求传入的视频地址 |
-| `data.tags` | string[] | 去重后的标签列表，最多返回前 10 个 |
+| `data.tags` | string[] | 完整去重标签列表 |
+| `data.tag_count` | integer | 标签数量 |
 | `data.pred` | object | 按标签类别分组的完整预测结果 |
 | `data.abnormal_event_times` | object[] | 异常事件时间段列表 |
 | `data.timestamp` | integer | 毫秒级事件时间戳 |
