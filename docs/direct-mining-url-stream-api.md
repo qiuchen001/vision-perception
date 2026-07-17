@@ -4,8 +4,6 @@
 
 该接口用于对一个可直接下载的在线视频进行场景标签挖掘。调用方传入视频下载地址和 HMAC-SHA256 签名信息，服务端校验通过后下载视频到本地缓存，并以流式 NDJSON 形式返回处理进度和最终挖掘结果。
 
-该接口只返回挖掘结果，不会上传视频到 MinIO，不会写入视频库，也不会写入 Milvus。
-
 ## 2. 接口信息
 
 | 项目 | 说明 |
@@ -58,7 +56,7 @@ body_hash = SHA256(raw_body_bytes)
 {"video_url":"https://example.com/path/video.mp4"}
 ```
 
-如果实际发送的请求体是以上 JSON 字符串，则 `body_hash` 必须基于这个字符串的 UTF-8 字节计算。服务端同样基于收到的原始 body 字节计算摘要，不会对 JSON 重新排序或重新序列化。
+如果实际发送的请求体是以上 JSON 字符串，则 `body_hash` 必须基于这个字符串的 UTF-8 字节计算。
 
 ### 4.2 签名原文
 
@@ -298,7 +296,6 @@ public static String calculateSign(String content, String secretKey) {
 1. `video_url` 必须是可直接下载的视频地址，支持 `http` 和 `https`。
 2. 接口默认不允许下载内网、回环地址或保留地址，避免 SSRF 风险。
 3. `X-Timestamp` 使用秒级 Unix 时间戳，不是毫秒级。
-4. `X-Content-SHA256` 必须基于实际发送的原始请求体计算，服务端不会对 JSON 重新排序或重新序列化后再验签。
+4. `X-Content-SHA256` 必须基于实际发送的原始请求体计算。
 5. 响应为 NDJSON 流，客户端需要按行解析 JSON。
 6. 使用 `curl` 调试时建议加 `-N`，避免客户端缓冲导致看不到实时进度。
-7. 该接口不保存视频资产和挖掘结果；如需入库和检索，应使用视频入库处理流程。
