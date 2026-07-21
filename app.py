@@ -497,6 +497,44 @@ def serve_media(bucket_name, object_name):
     return response
 
 
+@app.route('/api/scene-mining/media/<path:encoded_path>')
+def serve_scene_mining_media(encoded_path):
+    """Serve signed local scene-mining media files to the VLM backend over HTTP."""
+    from app.algorithm.scene_mining.media_url import (
+        guess_media_type,
+        is_allowed_media_path,
+        verify_media_url_signature,
+    )
+
+    try:
+        local_path = verify_media_url_signature(
+            encoded_path,
+            request.args.get('expires', ''),
+            request.args.get('signature', ''),
+        )
+    except PermissionError as exc:
+        app.logger.warning("Scene mining media signature rejected: %s", exc)
+        abort(403)
+
+    if not is_allowed_media_path(local_path):
+        app.logger.warning("Scene mining media path outside allowlist: %s", local_path)
+        abort(403)
+    if not os.path.isfile(local_path):
+        abort(404)
+
+    response = send_file(
+        local_path,
+        mimetype=guess_media_type(local_path),
+        conditional=True,
+        as_attachment=False,
+        download_name=os.path.basename(local_path),
+        max_age=MEDIA_CACHE_MAX_AGE,
+    )
+    response.headers['Accept-Ranges'] = 'bytes'
+    response.headers['Content-Disposition'] = f'inline; filename="{os.path.basename(local_path)}"'
+    return response
+
+
 @app.route('/api/media/health', methods=['GET', 'POST'])
 def media_health():
     """检查 /media 对象是否存在，并可选择预热本地 Range 缓存。"""

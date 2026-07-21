@@ -6,6 +6,7 @@ supervisor_2: Generates complex_tasks time-slices using merged_simple results
 """
 
 import asyncio
+import ast
 import json
 import logging
 import math
@@ -295,6 +296,110 @@ def _strip_content_wrappers(content: str) -> str:
     return content.strip()
 
 
+def _normalize_submit_time_plan_task(args: dict) -> dict:
+    task = dict(args)
+    task.setdefault("task_type", "complex")
+    task.setdefault("need_subagent", True)
+    task.setdefault("relevant_context", [])
+    if "skip" not in task:
+        task["skip"] = False
+
+    suspected_evidence = str(task.get("suspected_evidence", "") or "")
+    reason = str(task.get("reason", "") or suspected_evidence or "模型规划时间窗")
+    raw_slices = task.get("time_slices", [])
+    normalized_slices: list[dict] = []
+
+    if isinstance(raw_slices, dict):
+        normalized_slices = [raw_slices]
+    elif (
+        isinstance(raw_slices, list)
+        and len(raw_slices) >= 2
+        and all(isinstance(item, (int, float)) for item in raw_slices[:2])
+    ):
+        normalized_slices = [
+            {
+                "start": float(raw_slices[0]),
+                "end": float(raw_slices[1]),
+                "suspected_evidence": suspected_evidence,
+                "reason": reason,
+            }
+        ]
+    elif isinstance(raw_slices, list):
+        for item in raw_slices:
+            if isinstance(item, dict):
+                normalized_slices.append(item)
+            elif (
+                isinstance(item, list)
+                and len(item) >= 2
+                and all(isinstance(value, (int, float)) for value in item[:2])
+            ):
+                normalized_slices.append(
+                    {
+                        "start": float(item[0]),
+                        "end": float(item[1]),
+                        "suspected_evidence": suspected_evidence,
+                        "reason": reason,
+                    }
+                )
+
+    for item in normalized_slices:
+        item.setdefault("suspected_evidence", suspected_evidence)
+        item.setdefault("reason", reason)
+
+    task["time_slices"] = normalized_slices
+    return task
+
+
+def _extract_submit_time_plan_calls(content: str) -> list:
+    if "submit_time_plan" not in (content or ""):
+        return []
+
+    tasks: list[dict] = []
+    for match in re.finditer(r"submit_time_plan\s*\((.*?)\)\s*", content, re.DOTALL):
+        args_text = match.group(1).strip()
+        if not args_text:
+            continue
+        try:
+            expr = ast.parse(f"submit_time_plan({args_text})", mode="eval")
+            call = expr.body
+            if not isinstance(call, ast.Call):
+                continue
+            args: dict[str, Any] = {}
+            for kw in call.keywords:
+                if not kw.arg:
+                    continue
+                args[kw.arg] = ast.literal_eval(kw.value)
+            if args:
+                tasks.append(_normalize_submit_time_plan_task(args))
+        except (SyntaxError, ValueError, TypeError):
+            continue
+    if tasks:
+        return tasks
+
+    raw_time_slices = re.search(r"time_slices\s*=\s*\[([^\]]+)\]", content, re.DOTALL)
+    if not raw_time_slices:
+        return []
+    number_values = [
+        float(item)
+        for item in re.findall(r"-?\d+(?:\.\d+)?", raw_time_slices.group(1))
+    ]
+    if len(number_values) < 2:
+        return []
+    suspected_match = re.search(r'suspected_evidence\s*=\s*"([^"]*)"', content, re.DOTALL)
+    reason_match = re.search(r'reason\s*=\s*"([^"]*)"', content, re.DOTALL)
+    skip_match = re.search(r"skip\s*=\s*(True|False|true|false)", content)
+    return [
+        _normalize_submit_time_plan_task(
+            {
+                "skip": str(skip_match.group(1)).lower() == "true" if skip_match else False,
+                "time_slices": number_values[:2],
+                "suspected_evidence": suspected_match.group(1) if suspected_match else "",
+                "reason": reason_match.group(1) if reason_match else "",
+            }
+        )
+    ]
+
+
 def _extract_tasks_flexible(content: str) -> list:
     """Multi-strategy extraction of task lists from LLM output.
 
@@ -305,6 +410,10 @@ def _extract_tasks_flexible(content: str) -> list:
     """
     if not content:
         return []
+
+    function_tasks = _extract_submit_time_plan_calls(content)
+    if function_tasks:
+        return function_tasks
 
     # --- Phase 1: Direct JSON array extraction (raw + CJK-normalized) ---
     for text in (content, _normalize_cjk_quotes(content)):

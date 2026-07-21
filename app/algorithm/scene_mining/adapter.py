@@ -16,6 +16,11 @@ import yaml
 
 from config.config import Config
 
+try:
+    from .media_url import build_local_media_url
+except ImportError:
+    from media_url import build_local_media_url
+
 
 SCENE_MINING_DIR = Path(__file__).resolve().parent
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
@@ -152,6 +157,7 @@ def _prepare_video(
         config["paths"] = dict(config.get("paths", {}))
         config["paths"]["video_root"] = str(local_path.parent.resolve())
         config["paths"]["video_url_prefix"] = f"file://{local_path.parent.resolve()}"
+        config["paths"]["model_video_url"] = build_local_media_url(str(local_path))
         return local_path.name, str(local_path), raw_value, config
 
     local_path = _path_from_file_url(raw_value) if parsed.scheme == "file" else Path(raw_value)
@@ -167,7 +173,12 @@ def _prepare_video(
         config["paths"] = dict(config.get("paths", {}))
         config["paths"]["video_root"] = str(local_path.parent.resolve())
         config["paths"]["video_url_prefix"] = f"file://{local_path.parent.resolve()}"
+        config["paths"]["model_video_url"] = build_local_media_url(str(local_path))
         relative_video_path = local_path.name
+    else:
+        config = dict(config)
+        config["paths"] = dict(config.get("paths", {}))
+        config["paths"]["model_video_url"] = build_local_media_url(str(local_path))
     return relative_video_path, str(local_path), str(local_path), config
 
 

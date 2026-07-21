@@ -264,7 +264,7 @@ async def complex_worker_node(state: dict) -> dict:
             call_idx=slice_idx,
             save_name_prefix=f"pre_slice_{sub_agent_id}",
         )
-        sliced_video_url = f"file://{slice_clip_info['clip_path']}"
+        sliced_video_url = slice_clip_info.get("clip_url") or f"file://{slice_clip_info['clip_path']}"
         local_slice_duration = max(0.1, slice_end - slice_start)
         base_category_prompt = category_prompt
         max_event_time_retries = config.get("retry", {}).get("max_event_time_retries", 1)

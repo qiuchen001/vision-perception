@@ -22,7 +22,7 @@ video:
     "弱势交通参与者异常": 8
     "车辆轨迹与空间冲突": 8
     "极端高危与失控事件": 8
-  do_sample_frames: true
+  do_sample_frames: false
   save_sampled_clips: false
 
 concurrency:

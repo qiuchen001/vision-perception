@@ -11,6 +11,10 @@ from urllib.parse import unquote, urlparse
 import httpx
 from openai import AsyncOpenAI, BadRequestError
 
+try:
+    from media_url import build_local_media_url, decode_media_path
+except ImportError:
+    from .media_url import build_local_media_url, decode_media_path
 from response_parser import ResponseParser
 
 logger = logging.getLogger(__name__)
@@ -669,16 +673,20 @@ class QwenClient:
         temperature = self.config["model"]["temperature"]
         if parse_attempt > 0:
             temperature = min(1.0, temperature + 0.1 * parse_attempt)
-        fps = self._resolve_mm_processor_fps(category_name, round_idx, duration=duration)
+        do_sample_frames = bool(self.config["video"].get("do_sample_frames", False))
+        mm_processor_kwargs: Dict[str, Any] = {
+            "do_sample_frames": do_sample_frames,
+        }
+        if do_sample_frames:
+            mm_processor_kwargs["fps"] = self._resolve_mm_processor_fps(
+                category_name, round_idx, duration=duration
+            )
         model_cfg = self.config["model"]
         extra_body: Dict[str, Any] = {
             "top_k": model_cfg["top_k"],
             "presence_penalty": model_cfg["presence_penalty"],
             "repetition_penalty": model_cfg["repetition_penalty"],
-            "mm_processor_kwargs": {
-                "fps": fps,
-                "do_sample_frames": self.config["video"]["do_sample_frames"],
-            },
+            "mm_processor_kwargs": mm_processor_kwargs,
         }
         if bool(model_cfg.get("enable_thinking", False)):
             extra_body["chat_template_kwargs"] = {"enable_thinking": True}
@@ -887,6 +895,9 @@ class QwenClient:
             parsed = urlparse(video_url)
             if parsed.scheme == "file":
                 return unquote(parsed.path)
+            if parsed.path.startswith("/api/scene-mining/media/"):
+                encoded_path = parsed.path.rsplit("/", 1)[-1]
+                return decode_media_path(encoded_path)
             raise ValueError(f"不支持的视频URL: {video_url}")
         rel = video_url[len(prefix):]
         return str((Path(self.config["paths"]["video_root"]) / rel).resolve())
@@ -1117,6 +1128,7 @@ class QwenClient:
         return {
             "clip_path": clip_path,
             "host_clip_path": host_clip_path,
+            "clip_url": build_local_media_url(host_clip_path),
             "start_time": start_time,
             "end_time": end_time,
             "global_start_time": global_start_time,
@@ -1154,7 +1166,10 @@ class QwenClient:
                     ),
                 }
             )
-            content.append({"type": "video_url", "video_url": {"url": f"file://{clip['clip_path']}"}})
+            clip_url = clip.get("clip_url") or build_local_media_url(
+                str(clip.get("host_clip_path") or clip["clip_path"])
+            )
+            content.append({"type": "video_url", "video_url": {"url": clip_url}})
         content.append(
             {
                 "type": "text",

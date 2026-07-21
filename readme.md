@@ -136,11 +136,14 @@ ONE_API_KEY=xxx
 
 # 场景挖掘 VLM
 SCENE_MINING_API_BASE_URL=http://127.0.0.1:30049/v1
-SCENE_MINING_API_MODEL_NAME=Qwen3-VL-8B-Instruct
+SCENE_MINING_API_MODEL_NAME=Qwen3-VL-32B-Instruct
 SCENE_MINING_CONFIG_PATH=app/algorithm/scene_mining/config-qwen-gemini.yaml
 SCENE_MINING_OUTPUT_DIR=outputs/scene_mining
 SCENE_MINING_VIDEO_CACHE_DIR=data/scene_mining_videos
 SCENE_MINING_VIDEO_URL_PREFIX=file:///app/videos
+SCENE_MINING_MEDIA_BASE_URL=http://127.0.0.1:30012
+SCENE_MINING_MEDIA_SIGN_SECRET=change-me
+SCENE_MINING_MEDIA_URL_TTL_SECONDS=7200
 
 # Qwen3-VL 多模态嵌入服务
 EMBEDDING_MODEL=qwen3-vl
@@ -163,6 +166,8 @@ UPLOAD_LOCK_DIR=/tmp/vision_perception_locks
 DIRECT_MINING_SIGN_SECRET=change-me
 DIRECT_MINING_SIGN_WINDOW_SECONDS=300
 ```
+
+`SCENE_MINING_MEDIA_BASE_URL` 是挖掘服务提供给 vLLM 读取缓存视频/切片的内部 HTTP 地址。Docker 化部署时，必须配置成 vLLM 推理服务可访问的地址。
 
 ### 2. 确认视频目录
 

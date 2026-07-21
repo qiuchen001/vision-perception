@@ -80,6 +80,7 @@ services:
       WEB_CONCURRENCY: "4"
       GUNICORN_THREADS: "16"
       APP_INTERNAL_BASE_URL: http://127.0.0.1:30012
+      SCENE_MINING_MEDIA_BASE_URL: "${SCENE_MINING_MEDIA_BASE_URL:-http://127.0.0.1:30012}"
       OSS_PUBLIC_BASE_URL: /media
       PYTHONPATH: /app
       EMBEDDING_MODEL: qwen3-vl
@@ -92,12 +93,13 @@ services:
       QWEN3_VL_EMBEDDING_RETRIES: "2"
       QWEN3_VL_EMBEDDING_RETRY_BACKOFF: "1"
       SCENE_MINING_API_BASE_URL: http://127.0.0.1:30049/v1
-      SCENE_MINING_API_MODEL_NAME: Qwen3-VL-8B-Instruct
+      SCENE_MINING_API_MODEL_NAME: "${SCENE_MINING_API_MODEL_NAME:-Qwen3-VL-32B-Instruct}"
       SCENE_MINING_CONFIG_PATH: /app/app/algorithm/scene_mining/config-qwen-gemini.yaml
       SCENE_MINING_OUTPUT_DIR: /app/outputs/scene_mining
       SCENE_MINING_TOOL_CLIP_DIR: /app/outputs/scene_mining/_tool_clips
       SCENE_MINING_VIDEO_CACHE_DIR: /app/data/scene_mining_videos
       SCENE_MINING_VIDEO_URL_PREFIX: file:///app/videos
+      SCENE_MINING_MEDIA_URL_TTL_SECONDS: "7200"
       SCENE_MINING_SUMMARY_MAX_TOKENS: "4096"
       FRAME_SAMPLE_FPS: "1"
       FRAME_SAMPLE_MAX_FRAMES: "20"

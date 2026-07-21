@@ -33,6 +33,9 @@ logger = logging.getLogger(__name__)
 
 
 def build_video_url_from_config(config: dict, video_path: str) -> str:
+    model_video_url = str(config.get("paths", {}).get("model_video_url", "") or "").strip()
+    if model_video_url:
+        return model_video_url
     prefix = str(config.get("paths", {}).get("video_url_prefix", "file:///app/videos")).rstrip("/")
     return f"{prefix}/{video_path}"
 
