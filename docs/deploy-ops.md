@@ -4,7 +4,7 @@
 
 ## 1. 部署范围
 
-当前 `docker-compose.yml` 默认只构建和运行应用服务：
+当前 `docker-compose.yml` 只构建和运行应用服务：
 
 | 服务 | 镜像 | 说明 |
 | --- | --- | --- |
@@ -18,7 +18,7 @@
 | Milvus | `127.0.0.1:19530` | 视频、文本、视觉向量检索 |
 | MinIO | 由 `.env` 配置 | 视频上传和媒体文件存储 |
 
-`docker-compose.yml` 中的 `qwen-gemini-vlm` 和 `qwen3-vl-embedding` 属于 `legacy-models` profile，默认不会启动。
+模型服务统一由外部 one-api/vLLM 提供，本项目不再通过 Docker Compose 启动大模型。
 
 ## 2. 前置条件
 

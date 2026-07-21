@@ -1,69 +1,4 @@
 services:
-  qwen-gemini-vlm:
-    profiles: ["legacy-models"]
-    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/vllm/vllm-openai:v0.21.0-ubuntu2404
-    expose:
-      - "8000"
-    ports:
-      - "127.0.0.1:${SCENE_MINING_VLM_PORT:-8576}:8000"
-    environment:
-      CUDA_VISIBLE_DEVICES: "${CUDA_VISIBLE_DEVICES:-0}"
-      NVIDIA_VISIBLE_DEVICES: "${CUDA_VISIBLE_DEVICES:-all}"
-    volumes:
-      - /mnt/data/checkpoints/Qwen3_5-9B-Gemini-Distill:/models/qwen-gemini:ro
-      - /mnt/data/ai-ground/dataset/videos:/app/videos:ro
-      - ./data:/app/data:ro
-      - ./outputs:/app/outputs:ro
-    ipc: host
-    command:
-      - --model
-      - /models/qwen-gemini
-      - --trust-remote-code
-      - --tensor-parallel-size
-      - "1"
-      - --gpu-memory-utilization
-      - "${SCENE_MINING_VLM_GPU_MEMORY_UTILIZATION:-0.7773}"
-      - --max-model-len
-      - "${SCENE_MINING_VLM_MAX_MODEL_LEN:-40960}"
-      - --max-num-seqs
-      - "64"
-      - --allowed-local-media-path
-      - /app
-      - --media-io-kwargs
-      - '{"video": {"num_frames": -1}}'
-      - --reasoning-parser
-      - qwen3
-      - --enable-prefix-caching
-      - --enable-auto-tool-choice
-      - --tool-call-parser
-      - hermes
-    gpus: all
-    networks:
-      - vision-perception-net
-
-  qwen3-vl-embedding:
-    profiles: ["legacy-models"]
-    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/vllm/vllm-openai:v0.21.0-ubuntu2404
-    expose:
-      - "8000"
-    ports:
-      - "127.0.0.1:${QWEN3_VL_EMBEDDING_PORT:-8575}:8000"
-    environment:
-      QWEN3_VL_EMBEDDING_MODEL_PATH: /models/Qwen3-VL-Embedding-2B
-      QWEN3_VL_EMBEDDING_DTYPE: bfloat16
-      QWEN3_VL_GPU_MEMORY_UTILIZATION: "${QWEN3_VL_GPU_MEMORY_UTILIZATION:-0.1727}"
-      QWEN3_VL_MAX_MODEL_LEN: "32768"
-      CUDA_VISIBLE_DEVICES: "${CUDA_VISIBLE_DEVICES:-0}"
-      NVIDIA_VISIBLE_DEVICES: "${CUDA_VISIBLE_DEVICES:-all}"
-    volumes:
-      - /mnt/data/checkpoints/Qwen3-VL-Embedding-2B:/models/Qwen3-VL-Embedding-2B:ro
-      - ./scripts/qwen3_vl_embedding_server.py:/srv/qwen3_vl_embedding_server.py:ro
-    entrypoint: ["python3", "/srv/qwen3_vl_embedding_server.py"]
-    command: []
-    gpus: all
-    networks:
-      - vision-perception-net
-
   vision-perception:
     build:
       context: .
@@ -115,11 +50,7 @@ services:
       MILVUS_VIDEO_FRAME_COLLECTION_NAME: video_frame_vector_qwen3vl8b_4096
       MILVUS_VIDEO_TEXT_FEATURE_COLLECTION_NAME: video_text_features_qwen3vl8b_4096
       MILVUS_VIDEO_VISUAL_FEATURE_COLLECTION_NAME: video_visual_features_qwen3vl8b_4096
-      NVIDIA_VISIBLE_DEVICES: "${CUDA_VISIBLE_DEVICES:-all}"
     volumes:
       - /mnt/data/ai-ground/dataset/videos:/app/videos:ro
       - ./outputs:/app/outputs
       - ./data:/app/data
-networks:
-  vision-perception-net:
-    driver: bridge

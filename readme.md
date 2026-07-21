@@ -22,87 +22,45 @@ Flask / Gunicorn  :30012
       |
       +-- UploadService       -> MinIO
       +-- AddVideoService
-      |     +-- MiningVideoService  -> one-api :30049 / Qwen3-VL-8B-Instruct
-      |     +-- SummaryVideoService -> one-api :30049 / Qwen3-VL-8B-Instruct
+      |     +-- MiningVideoService  -> one-api :30049 / Qwen3-VL-32B-Instruct
+      |     +-- SummaryVideoService -> one-api :30049 / Qwen3-VL-32B-Instruct
       |     +-- VideoFeatureService -> one-api :30049 / Qwen3-VL-Embedding-8B
       |
       +-- SearchVideoService  -> Milvus
 ```
 
-当前推荐复用已经部署好的 **one-api + vLLM** 模型服务。`docker-compose.yml` 默认只启动应用服务，旧的本地模型 sidecar 已放到 `legacy-models` profile 中。
+当前固定复用已经部署好的 **one-api + vLLM** 模型服务。`docker-compose.yml` 只启动应用服务，不在本项目内启动 VLM 或 embedding 大模型。
 
 | 服务 | 作用 | 端口 |
 | --- | --- | --- |
-| one-api | 转发 `Qwen3-VL-8B-Instruct` 与 `Qwen3-VL-Embedding-8B` | `127.0.0.1:30049` |
+| one-api | 转发 `Qwen3-VL-32B-Instruct` 与 `Qwen3-VL-Embedding-8B` | `127.0.0.1:30049` |
 | `vision-perception` | Flask/Gunicorn 应用服务 | `0.0.0.0:30012` |
 
 > 注意：当前 compose 文件不内置 one-api、Milvus 和 MinIO，需要使用已有服务，并在 `.env` 中配置连接信息。
 
-## 模型下载
+## 模型服务依赖
 
-模型文件不提交到代码仓库，需要提前从 Hugging Face 下载并放到宿主机固定目录。
+模型服务统一由外部 one-api 转发，本项目只通过 OpenAI-compatible HTTP 接口调用，不负责下载、加载或启动大模型。
 
-### 1. 场景挖掘 VLM
+### 场景挖掘 VLM
 
-当前默认使用 one-api 上的 `Qwen3-VL-8B-Instruct`，不需要再由本项目启动 `qwen-gemini-vlm`。
+场景挖掘默认调用 one-api 上的 `Qwen3-VL-32B-Instruct`，配置项为：
 
-模型仓库：
-
-```text
-https://huggingface.co/Jackrong/Qwen3.5-9B-Gemini-3.1-Pro-Reasoning-Distill
+```ini
+SCENE_MINING_API_BASE_URL=http://127.0.0.1:30049/v1
+SCENE_MINING_API_MODEL_NAME=Qwen3-VL-32B-Instruct
 ```
 
-下载到：
+### 多模态嵌入模型
 
-```text
-/mnt/data/checkpoints/Qwen3_5-9B-Gemini-Distill
-```
-
-示例命令：
-
-```bash
-pip install -U huggingface_hub
-huggingface-cli download \
-  Jackrong/Qwen3.5-9B-Gemini-3.1-Pro-Reasoning-Distill \
-  --local-dir /mnt/data/checkpoints/Qwen3_5-9B-Gemini-Distill
-```
-
-compose 中挂载为：
-
-```text
-/models/qwen-gemini
-```
-
-### 2. 多模态嵌入模型
-
-当前嵌入模型已经切换为 one-api 上的 **Qwen3-VL-Embedding-8B 多模态嵌入模型**。它用于：
+当前嵌入模型使用 one-api 上的 **Qwen3-VL-Embedding-8B 多模态嵌入模型**。它用于：
 
 1. 将 tags 和 summary 文本编码为文本向量。
 2. 将图片查询编码为图片向量。
 3. 将视频采样帧编码为视觉向量，并聚合成视频级全局视觉特征。
 4. 让文本、图片、视频帧落在同一个 4096 维多模态语义空间，支持跨模态检索。
 
-模型仓库：
-
-```text
-https://huggingface.co/Qwen/Qwen3-VL-Embedding-8B
-```
-
-下载到：
-
-```text
-/mnt/data/ai-ground/devops/models/Qwen/Qwen3-VL-Embedding-8B
-```
-
-示例命令：
-
-```bash
-huggingface-cli download \
-  Qwen/Qwen3-VL-Embedding-8B \
-  --local-dir /mnt/data/ai-ground/devops/models/Qwen/Qwen3-VL-Embedding-8B
-```
-
-该模型由外部 vLLM + one-api 提供，应用通过 `QWEN3_VL_EMBEDDING_BASE_URL` 调用。
+应用通过 `QWEN3_VL_EMBEDDING_BASE_URL` 调用该模型。
 
 ## Docker Compose 启动
 
@@ -187,24 +145,22 @@ DIRECT_MINING_SIGN_WINDOW_SECONDS=300
 
 ### 3. 启动
 
-指定 GPU 后启动：
+构建并启动：
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 docker compose up --build
+docker compose up --build
 ```
 
 后台运行：
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 docker compose up --build -d
+docker compose up --build -d
 ```
 
 查看日志：
 
 ```bash
 docker compose logs -f vision-perception
-docker compose logs -f qwen-gemini-vlm
-docker compose logs -f qwen3-vl-embedding
 ```
 
 停止：
