@@ -106,6 +106,8 @@ huggingface-cli download \
 
 ## Docker Compose 启动
 
+面向运维侧的构建、运行、更新和排障步骤见：[运维部署手册](docs/deploy-ops.md)。
+
 ### 1. 准备环境变量
 
 ```bash
