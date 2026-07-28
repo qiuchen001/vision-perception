@@ -941,7 +941,7 @@ def mining_url_stream():
             try:
                 from app.algorithm.scene_mining.adapter import analyze_video, extract_tags
 
-                progress_callback("downloading", "下载/缓存视频中...")
+                progress_callback("downloading", "视频加载中...")
                 scene_result = analyze_video(video_url, progress_callback=progress_callback)
                 tags = extract_tags(scene_result.summary_item)
                 events.put({
