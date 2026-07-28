@@ -50,6 +50,15 @@ cp .env_sample .env
 # 应用端口
 SERVER_PORT=30012
 
+# 浏览器 session 登录鉴权
+SESSION_AUTH_ENABLED=true
+SESSION_SECRET=change-me
+SESSION_MAX_AGE_SECONDS=28800
+SESSION_COOKIE_SECURE=false
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD_HASH='pbkdf2_sha256$...'
+BROWSER_ALLOWED_ORIGINS=http://localhost:30012,http://127.0.0.1:30012
+
 # one-api
 ONE_API_KEY=xxx
 SCENE_MINING_API_BASE_URL=http://127.0.0.1:30049/v1
@@ -79,6 +88,14 @@ DIRECT_MINING_SIGN_WINDOW_SECONDS=300
 ```
 
 `SCENE_MINING_MEDIA_BASE_URL` 必须配置成 vLLM 推理服务可访问的应用地址。当前 Compose 使用 `network_mode: host`，本机 vLLM 通常可使用 `http://127.0.0.1:30012`。
+
+启用 session 登录前，先生成管理员密码哈希：
+
+```bash
+python app/utils/generate_password_hash.py
+```
+
+将输出写入 `.env` 的 `ADMIN_PASSWORD_HASH`，建议用单引号包裹整个哈希值，避免 `$` 被环境变量解析逻辑处理。`SESSION_SECRET` 必须使用生产环境随机字符串，并在多次重启间保持不变。
 
 ## 4. 构建镜像
 

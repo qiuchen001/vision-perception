@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, redirect, url_for, Response, stream_with_context, send_file, abort
+from flask import Flask, request, jsonify, send_from_directory, redirect, url_for, Response, stream_with_context, send_file, abort, session
 from flask_cors import CORS
 from app.services.video.upload import UploadVideoService
 from app.services.video.search import SearchVideoService
@@ -24,6 +24,7 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 from PIL import Image
 import io
+from datetime import timedelta
 
 # 获取当前文件所在目录的绝对路径
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -41,11 +42,32 @@ SCENE_MINING_CONFIG_PATH = os.getenv(
 if not os.path.exists(STATIC_DIR):
     os.makedirs(STATIC_DIR)
 
+
+def _env_int(name, default_value):
+    try:
+        return int(os.getenv(name, str(default_value)))
+    except (TypeError, ValueError):
+        return default_value
+
+
 app = Flask(__name__,
             static_url_path='',
             static_folder='static'
             )
-CORS(app)  # 启用CORS支持
+app.secret_key = (
+    os.getenv('SESSION_SECRET')
+    or os.getenv('SECRET_KEY')
+    or os.getenv('DIRECT_MINING_SIGN_SECRET')
+    or os.urandom(32).hex()
+)
+app.config.update(
+    SESSION_COOKIE_NAME=os.getenv('SESSION_COOKIE_NAME', 'vision_perception_session'),
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE=os.getenv('SESSION_COOKIE_SAMESITE', 'Lax'),
+    SESSION_COOKIE_SECURE=os.getenv('SESSION_COOKIE_SECURE', 'false').lower() == 'true',
+    PERMANENT_SESSION_LIFETIME=timedelta(seconds=_env_int('SESSION_MAX_AGE_SECONDS', 28800)),
+)
+CORS(app, supports_credentials=True)  # 启用CORS支持
 
 # 打印调试信息
 print(f"Base Directory: {BASE_DIR}")
@@ -170,6 +192,109 @@ def _verify_direct_mining_signature(raw_body, method, path, timestamp, once, con
         DIRECT_MINING_USED_NONCES[once_text] = expire_at
 
 
+def _session_auth_enabled():
+    return os.getenv('SESSION_AUTH_ENABLED', 'false').lower() == 'true'
+
+
+def _admin_username():
+    return os.getenv('ADMIN_USERNAME', 'admin').strip() or 'admin'
+
+
+def _verify_password(password, encoded):
+    try:
+        algorithm, iterations_text, salt_hex, digest_hex = str(encoded or '').split('$')
+        if algorithm != 'pbkdf2_sha256':
+            return False
+        iterations = int(iterations_text)
+        salt = bytes.fromhex(salt_hex)
+        expected = bytes.fromhex(digest_hex)
+    except (TypeError, ValueError):
+        return False
+    actual = hashlib.pbkdf2_hmac('sha256', str(password or '').encode('utf-8'), salt, iterations)
+    return hmac.compare_digest(actual, expected)
+
+
+def _has_browser_session():
+    username = str(session.get('username', ''))
+    return bool(username) and hmac.compare_digest(username, _admin_username())
+
+
+def _auth_json_error(status_code, message):
+    return jsonify({'code': status_code, 'msg': message, 'data': None}), status_code
+
+
+def _safe_redirect_target(target):
+    value = str(target or '').strip()
+    if value.startswith('/') and not value.startswith('//'):
+        return value
+    return url_for('index')
+
+
+def _request_origin():
+    origin = request.headers.get('Origin', '').rstrip('/')
+    if origin:
+        return origin
+    referer = request.headers.get('Referer', '')
+    parsed_referer = urlparse(referer)
+    if parsed_referer.scheme and parsed_referer.netloc:
+        return f'{parsed_referer.scheme}://{parsed_referer.netloc}'.rstrip('/')
+    return ''
+
+
+def _validate_browser_origin():
+    if request.method in {'GET', 'HEAD', 'OPTIONS'}:
+        return True
+    origin = _request_origin()
+    allowed_origins = {
+        configured_origin.strip().rstrip('/')
+        for configured_origin in os.getenv(
+            'BROWSER_ALLOWED_ORIGINS',
+            'http://localhost:30012,http://127.0.0.1:30012',
+        ).split(',')
+        if configured_origin.strip()
+    }
+    forwarded_host = request.headers.get('X-Forwarded-Host', '').strip()
+    if forwarded_host:
+        forwarded_proto = request.headers.get('X-Forwarded-Proto', 'http').strip()
+        allowed_origins.add(f'{forwarded_proto}://{forwarded_host}'.rstrip('/'))
+    host_url = request.host_url.rstrip('/')
+    if host_url:
+        allowed_origins.add(host_url)
+    return bool(origin) and origin in allowed_origins
+
+
+def _is_auth_exempt_path(path):
+    if request.method == 'OPTIONS':
+        return True
+    if path in {
+        '/login',
+        '/favicon.ico',
+        '/api/auth/login',
+        '/api/auth/logout',
+        '/api/auth/session',
+        '/api/mining/url/stream',
+    }:
+        return True
+    return path.startswith('/api/scene-mining/media/')
+
+
+def _require_session_auth():
+    if not _session_auth_enabled():
+        return None
+    path = request.path
+    if _is_auth_exempt_path(path):
+        return None
+    if _has_browser_session():
+        if not _validate_browser_origin():
+            if path.startswith('/api/'):
+                return _auth_json_error(403, 'Request origin is not allowed')
+            abort(403)
+        return None
+    if path.startswith('/api/') or path.startswith('/media/'):
+        return _auth_json_error(401, 'Browser session required')
+    return redirect(url_for('login_page', next=request.full_path.rstrip('?')))
+
+
 MAX_CONCURRENT_ADD_TASKS = _scene_mining_max_concurrent_videos()
 ADD_PROCESS_SEMAPHORE = threading.BoundedSemaphore(MAX_CONCURRENT_ADD_TASKS)
 DIRECT_MINING_USED_NONCES = {}
@@ -178,6 +303,9 @@ DIRECT_MINING_NONCE_LOCK = threading.Lock()
 
 @app.before_request
 def log_upload_request():
+    auth_response = _require_session_auth()
+    if auth_response is not None:
+        return auth_response
     if request.path.startswith('/api/upload'):
         print(
             f"Upload request start: remote={request.remote_addr}, "
@@ -193,6 +321,61 @@ def disable_html_cache(response):
         response.headers['Expires'] = '0'
         response.headers['ETag'] = ''
     return response
+
+
+@app.route('/api/auth/login', methods=['POST'])
+def auth_login():
+    if not _session_auth_enabled():
+        return jsonify({
+            'code': 0,
+            'msg': 'session auth disabled',
+            'data': {'authenticated': False, 'username': ''},
+        })
+    password_hash = os.getenv('ADMIN_PASSWORD_HASH', '').strip()
+    if not password_hash:
+        return _auth_json_error(500, 'ADMIN_PASSWORD_HASH is not configured')
+    data = request.get_json(silent=True) or {}
+    username = str(data.get('username', '')).strip()
+    password = str(data.get('password', ''))
+    expected_username = _admin_username()
+    if not (
+        hmac.compare_digest(username, expected_username)
+        and _verify_password(password, password_hash)
+    ):
+        return _auth_json_error(401, 'Invalid username or password')
+    session.clear()
+    session.permanent = True
+    session['username'] = expected_username
+    return jsonify({
+        'code': 0,
+        'msg': 'success',
+        'data': {'authenticated': True, 'username': expected_username},
+    })
+
+
+@app.route('/api/auth/logout', methods=['POST'])
+def auth_logout():
+    session.clear()
+    return jsonify({
+        'code': 0,
+        'msg': 'success',
+        'data': {'authenticated': False, 'username': ''},
+    })
+
+
+@app.route('/api/auth/session', methods=['GET'])
+def auth_session():
+    authenticated = _session_auth_enabled() and _has_browser_session()
+    username = str(session.get('username', '')) if authenticated else ''
+    return jsonify({
+        'code': 0,
+        'msg': 'success',
+        'data': {
+            'auth_enabled': _session_auth_enabled(),
+            'authenticated': authenticated,
+            'username': username,
+        },
+    })
 
 
 def _to_internal_url(video_url):
@@ -412,6 +595,13 @@ def index():
     except Exception as e:
         print(f"Error serving index.html: {str(e)}")
         return str(e), 500
+
+
+@app.route('/login')
+def login_page():
+    if _session_auth_enabled() and _has_browser_session():
+        return redirect(_safe_redirect_target(request.args.get('next')))
+    return send_from_directory(STATIC_DIR, 'login.html')
 
 
 @app.route('/upload')
@@ -756,7 +946,7 @@ def mining_url_stream():
                 tags = extract_tags(scene_result.summary_item)
                 events.put({
                     "code": 0,
-                    "msg": "success",
+                    "msg": "已完成",
                     "data": {
                         "type": "result",
                         "video_url": video_url,
@@ -770,7 +960,7 @@ def mining_url_stream():
             except Exception as exc:
                 events.put({
                     "code": 500,
-                    "msg": f"挖掘失败: {exc}",
+                    "msg": f"VLM挖掘失败: {exc}",
                     "data": {
                         "type": "error",
                         "timestamp": int(time.time() * 1000),
@@ -780,7 +970,7 @@ def mining_url_stream():
                 events.put(done_marker)
 
         threading.Thread(target=worker, daemon=True).start()
-        send_event("progress", "queued", "已提交直接 URL 挖掘任务")
+        send_event("progress", "queued", "VLM已接收")
 
         while True:
             item = events.get()
