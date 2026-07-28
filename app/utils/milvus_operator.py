@@ -6,6 +6,7 @@ Milvus 数据库操作工具类。
 import os
 import numpy as np
 import uuid
+import threading
 from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 from pymilvus import connections, db, Collection, utility
@@ -299,18 +300,41 @@ class MilvusOperator:
             return []
 
 
+class LazyMilvusOperator:
+    def __init__(self, database: str, collection_env: str, metric_type: str = 'IP'):
+        self.database = database
+        self.collection_env = collection_env
+        self.metric_type = metric_type
+        self._instance: Optional[MilvusOperator] = None
+        self._lock = threading.Lock()
+
+    def _get_instance(self) -> MilvusOperator:
+        if self._instance is None:
+            with self._lock:
+                if self._instance is None:
+                    collection = os.getenv(self.collection_env)
+                    self._instance = MilvusOperator.get_instance(
+                        database=self.database,
+                        collection=collection,
+                        metric_type=self.metric_type,
+                    )
+        return self._instance
+
+    def __getattr__(self, name: str):
+        return getattr(self._get_instance(), name)
+
+
 # 示例使用方式
 # text_video_vector = MilvusOperator.get_instance(
 #     database='text_video_db',
 #     collection='text_video_vector',
 #     metric_type='IP'
 # )
-
 # 使用默认的 IP 度量类型
-video_frame_operator = MilvusOperator.get_instance(
-    database='video_db',
-    # collection='video_frame_vector'
-    collection=os.getenv("MILVUS_VIDEO_FRAME_COLLECTION_NAME"),
+# 使用默认的 IP 度量类型
+video_frame_operator = LazyMilvusOperator(
+    database=os.getenv("MILVUS_DB_NAME", "video_db"),
+    collection_env="MILVUS_VIDEO_FRAME_COLLECTION_NAME",
     metric_type='COSINE'
 )
 
